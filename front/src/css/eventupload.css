@@ -1,0 +1,579 @@
+.eventupload-container {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+.eventupload-container *,
+.eventupload-container *::before,
+.eventupload-container *::after {
+  box-sizing: inherit;
+}
+
+/* PC 버전 스타일 */
+@media (min-width: 769px) {
+   .eventupload-container {    
+    width: 90vw;           
+    min-width: 340px;
+    margin: 0 auto;
+    padding-top: 20px;
+    overflow: hidden;
+
+  }
+
+  /* PC 헤더 */
+  .eventupload-header {
+    position: sticky;
+    top: 0;
+    background: white;
+    padding: 24px 32px;
+    border-bottom: 1px solid #f0f0f0;
+    display: flex;
+    align-items: center;
+    gap: 20px;
+    z-index: 100;
+  }
+
+  .eventupload-back-button {
+    width: 44px;
+    height: 44px;
+    border: none;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 12px;
+    transition: all 0.2s ease;
+
+  }
+
+  .eventupload-back-button:hover {
+
+    transform: translateY(-1px);
+  }
+
+  /* PC 스텝 콘텐츠 */
+  .eventupload-step-content {
+    padding: 40px 32px 120px;
+    opacity: 0;
+    transform: translateY(20px);
+    transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    min-height: 500px;
+    display: flex;
+    flex-direction: column;
+  }
+
+  .eventupload-step-content.show {
+    opacity: 1;
+    transform: translateY(0);
+  }
+
+  /* 제목 크기 고정 */
+  .eventupload-title {
+    font-size: 28px; 
+    font-weight: 700;
+    line-height: 1.3;
+    color: #191f28;
+    margin-bottom: 40px;
+    word-break: keep-all;
+  }
+
+  /* PC 모드 선택 */
+  .eventupload-mode-selection {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 20px;
+  }
+
+  .eventupload-mode-card {
+    padding: 32px 24px;
+    border: 2px solid #e9ecef;
+    border-radius: 20px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    background: white;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    gap: 16px;
+    min-height: 200px;
+  }
+
+  .eventupload-mode-card:hover {
+    border-color: #5E936C;
+    background: #f8fbf9;
+    transform: translateY(-2px);
+    box-shadow: 0 8px 24px rgba(94, 147, 108, 0.15);
+  }
+
+  .eventupload-mode-card.selected {
+    border-color: #5E936C;
+    background: #f8fbf9;
+    box-shadow: 0 0 0 1px #5E936C, 0 8px 24px rgba(94, 147, 108, 0.2);
+    transform: translateY(-2px);
+  }
+
+  /* PC 입력 필드 */
+  .eventupload-input {
+    width: 100%;
+    padding: 24px;
+    font-size: 20px;
+    border: 2px solid #e9ecef;
+    border-radius: 16px;
+    background: white;
+    transition: all 0.2s ease;
+    outline: none;
+  }
+
+  .eventupload-input:focus {
+    border-color: #5E936C;
+    box-shadow: 0 0 0 3px rgba(94, 147, 108, 0.1);
+  }
+
+  .eventupload-textarea {
+    width: 100%;
+    padding: 24px;
+    font-size: 20px;
+    border: 2px solid #e9ecef;
+    border-radius: 16px;
+    background: white;
+    transition: all 0.2s ease;
+    outline: none;
+    resize: vertical;
+    min-height: 140px;
+    font-family: inherit;
+  }
+
+  .eventupload-textarea:focus {
+    border-color: #5E936C;
+    box-shadow: 0 0 0 3px rgba(94, 147, 108, 0.1);
+  }
+
+  /* PC 하단 버튼 */
+  .eventupload-bottom {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    padding: 24px 32px;
+    background: white;
+    border-top: 1px solid #f0f0f0;
+    border-radius: 0 0 16px 16px;
+  }
+
+  .eventupload-next-button {
+    width: 100%;
+    padding: 20px;
+    font-size: 18px;
+    font-weight: 600;
+    border: none;
+    border-radius: 16px;
+    background: #e9ecef;
+    color: #adb5bd;
+    cursor: not-allowed;
+    transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+  }
+
+  .eventupload-next-button.active {
+    background: #5E936C;
+    color: white;
+    cursor: pointer;
+    box-shadow: 0 4px 16px rgba(94, 147, 108, 0.3);
+  }
+
+  .eventupload-next-button.active:hover {
+    background: #4a7a57;
+    transform: translateY(-2px);
+    box-shadow: 0 8px 24px rgba(94, 147, 108, 0.4);
+  }
+}
+
+/* 모바일 버전 스타일 */
+@media (max-width: 768px) {
+  .eventupload-container {
+    width: 100%;
+    background: white;
+    border-radius: 0;
+     padding-top: 48px
+  }
+
+
+  /* 모바일 헤더 */
+  .eventupload-header {
+    position: sticky;
+    top: 0;
+    background: white;
+    padding: 16px 20px;
+    border-bottom: 1px solid #f0f0f0;
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    z-index: 100;
+  }
+
+  .eventupload-back-button {
+    width: 40px;
+    height: 40px;
+    border: none;
+    background: none;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    transition: background-color 0.2s ease;
+    color: #495057;
+  }
+
+  .eventupload-back-button:hover {
+    background-color: #f8f9fa;
+  }
+
+  .eventupload-back-button:active {
+    background-color: #e9ecef;
+    transform: scale(0.95);
+  }
+
+  /* 모바일 스텝 콘텐츠 */
+  .eventupload-step-content {
+    padding: 32px 20px 120px;
+    opacity: 0;
+    transform: translateY(20px);
+    transition: all 0.4s ease;
+    min-height: calc(100vh - 120px);
+    display: flex;
+    flex-direction: column;
+  }
+
+  .eventupload-step-content.show {
+    opacity: 1;
+    transform: translateY(0);
+  }
+
+  /* 제목 크기 고정 */
+  .eventupload-title {
+    font-size: 22px;
+    font-weight: 700;
+    line-height: 1.4;
+    color: #191f28;
+    margin-bottom: 32px;
+    word-break: keep-all;
+  }
+
+  /* 모바일 모드 선택 */
+  .eventupload-mode-selection {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+
+
+
+  .eventupload-mode-card {
+    padding: 20px;
+    border: 2px solid #e9ecef;
+    border-radius: 16px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    background: white;
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    font-size: 10px;
+  }
+
+  .eventupload-mode-card:active {
+    transform: scale(0.98);
+  }
+
+  .eventupload-mode-card:hover {
+    border-color: #5E936C;
+    background: #f8fbf9;
+  }
+
+  .eventupload-mode-card.selected {
+    border-color: #5E936C;
+    background: #f8fbf9;
+    box-shadow: 0 0 0 1px #5E936C;
+  }
+
+  /* 모바일 입력 필드 */
+  .eventupload-input {
+    width: 100%;
+    padding: 18px;
+    font-size: 16px;
+    border: 2px solid #e9ecef;
+    border-radius: 12px;
+    background: white;
+    transition: border-color 0.2s ease;
+    outline: none;
+    -webkit-appearance: none;
+  }
+
+  .eventupload-input:focus {
+    border-color: #5E936C;
+  }
+
+  .eventupload-textarea {
+    width: 100%;
+    padding: 18px;
+    font-size: 16px;
+    border: 2px solid #e9ecef;
+    border-radius: 12px;
+    background: white;
+    transition: border-color 0.2s ease;
+    outline: none;
+    resize: vertical;
+    min-height: 120px;
+    font-family: inherit;
+    -webkit-appearance: none;
+  }
+
+  .eventupload-textarea:focus {
+    border-color: #5E936C;
+  }
+
+
+  .eventupload-next-button {
+    width: 100%;
+    padding: 16px;
+    font-size: 16px;
+    font-weight: 600;
+    border: none;
+    border-radius: 12px;
+    cursor: not-allowed;
+    transition: all 0.2s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+  }
+
+  .eventupload-next-button.active {
+    background: #5E936C;
+    color: white;
+    cursor: pointer;
+  }
+
+  .eventupload-next-button:active {
+    transform: scale(0.98);
+  }
+}
+
+/* 공통 스타일 */
+.eventupload-progress-bar {
+  flex: 1;
+  height: 4px;
+  background: #e9ecef;
+  border-radius: 2px;
+  overflow: hidden;
+}
+
+.eventupload-progress-fill {
+  height: 100%;
+  background: #5E936C;
+  border-radius: 2px;
+  transition: width 0.3s ease;
+}
+
+.eventupload-question {
+  flex: 1;
+}
+
+.eventupload-input-group {
+  margin-top: 8px;
+}
+
+.eventupload-input::placeholder,
+.eventupload-textarea::placeholder {
+  color: #adb5bd;
+}
+
+.eventupload-mode-icon {
+  color: #5E936C;
+  flex-shrink: 0;
+}
+
+.eventupload-ai-icon {
+  font-size: 32px;
+}
+
+.eventupload-mode-title {
+  font-size: 15px;
+  font-weight: 600;
+  color: #191f28;
+  margin-bottom: 4px;
+}
+
+.eventupload-mode-desc {
+  font-size: 14px;
+  color: #8b95a1;
+  line-height: 1.4;
+}
+
+.eventupload-ai-result {
+  flex: 1;
+}
+
+.eventupload-ai-content-card {
+  background: white;
+  border: 1px solid #e9ecef;
+  border-radius: 16px;
+  padding: 24px;
+  margin-bottom: 24px;
+}
+
+.eventupload-ai-content {
+  position: relative;
+}
+
+.eventupload-ai-text {
+  font-size: 16px;
+  line-height: 1.6;
+  color: #333;
+  margin-bottom: 16px;
+}
+
+.eventupload-edit-button {
+  background: none;
+  border: 1px solid #5E936C;
+  color: #5E936C;
+  padding: 8px 16px;
+  border-radius: 8px;
+  font-size: 14px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.eventupload-edit-button:hover {
+  background: #5E936C;
+  color: white;
+}
+
+.eventupload-edit-container {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.eventupload-edit-textarea {
+  width: 100%;
+  padding: 16px;
+  border: 1px solid #e9ecef;
+  border-radius: 8px;
+  font-size: 16px;
+  line-height: 1.6;
+  resize: vertical;
+  outline: none;
+  font-family: inherit;
+}
+
+.eventupload-edit-textarea:focus {
+  border-color: #5E936C;
+}
+
+.eventupload-edit-buttons {
+  display: flex;
+  gap: 8px;
+}
+
+.eventupload-edit-save {
+  background: #5E936C;
+  color: white;
+  border: none;
+  padding: 8px 16px;
+  border-radius: 6px;
+  font-size: 14px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  transition: background-color 0.2s ease;
+}
+
+.eventupload-edit-save:hover {
+  background: #4a7a57;
+}
+
+.eventupload-edit-cancel {
+  background: white;
+  color: #666;
+  border: 1px solid #e9ecef;
+  padding: 8px 16px;
+  border-radius: 6px;
+  font-size: 14px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.eventupload-edit-cancel:hover {
+  background: #f8f9fa;
+}
+
+.eventupload-summary-card {
+  background: #f8fbf9;
+  border: 1px solid #e3f2e6;
+  border-radius: 16px;
+  padding: 24px;
+  margin-bottom: 32px;
+}
+
+.eventupload-summary-title {
+  font-size: 18px;
+  font-weight: 600;
+  color: #333;
+  margin-bottom: 16px;
+}
+
+.eventupload-summary-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.eventupload-summary-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px 0;
+  border-bottom: 1px solid #e9ecef;
+}
+
+.eventupload-summary-item:last-child {
+  border-bottom: none;
+}
+
+.eventupload-summary-label {
+  font-size: 14px;
+  color: #666;
+  font-weight: 500;
+}
+
+.eventupload-summary-value {
+  font-size: 16px;
+  color: #333;
+  font-weight: 600;
+}
+
+.eventupload-submit-button {
+  width: 100%;
+  padding: 18px;
+  background: #5E936C;
+  color: white;
+  border: none;
+  border-radius: 12px;
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+}
+
+.eventupload-submit-button:hover {
+  background: #4a7a57;
+}
