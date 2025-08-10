@@ -4,6 +4,8 @@ import './App.css';
 import LoginPage from './pages/LoginPage';
 import SignupPage from './pages/SignupPage';
 import EventUpload from './pages/EventUpload';
+import MyPage from './pages/MyPage';
+
 
 function App() {
   return (
@@ -15,6 +17,8 @@ function App() {
         <Route path="/login" element={<LoginPage/>} />
         <Route path="/signup" element={<SignupPage/>} />
         <Route path="/event-upload" element={<EventUpload/>} />
+        <Route path="/mypage" element={<MyPage/>} />
+
       </Routes>
     </Router>
   );
