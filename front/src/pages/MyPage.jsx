@@ -20,23 +20,23 @@ const MyPage = ({ onPageChange, onLogout, user }) => {
   const empty = 5 - full - (hasHalf ? 1 : 0);
 
   return (
-    <div className="mp-page">
-      <main className="mp-main">
-        <div className="mypage-wrap">
+    <div className="mypage-page">
+      <main className="mypage-main">
+        <div className="mypage-wrapper">
           {/* 상단 요약 카드 */}
-          <section className="hero-card" aria-label="프로필 요약">
-            <div className="hero-left">
+          <section className="profile-summary-card" aria-label="프로필 요약">
+            <div className="profile-summary-left">
               {user?.avatarUrl ? (
-                <img className="hero-avatar-img" src={user.avatarUrl} alt={`${displayName} 프로필`} />
+                <img className="profile-avatar-image" src={user.avatarUrl} alt={`${displayName} 프로필`} />
               ) : (
-                <div className="hero-avatar" aria-hidden="true">{initial}</div>
+                <div className="profile-avatar" aria-hidden="true">{initial}</div>
               )}
 
-              <div className="hero-meta">
-                <h2 className="hero-name">{displayName}</h2>
-                <p className="hero-mail">{email}</p>
-                <div className="hero-rating" aria-label={`평점 ${rating.toFixed(1)}점, 리뷰 ${reviewCount}개`}>
-                  <div className="stars" aria-hidden="true">
+              <div className="profile-meta">
+                <h2 className="profile-name">{displayName}</h2>
+                <p className="profile-email">{email}</p>
+                <div className="profile-rating" aria-label={`평점 ${rating.toFixed(1)}점, 리뷰 ${reviewCount}개`}>
+                  <div className="rating-stars" aria-hidden="true">
                     {Array.from({ length: full }).map((_, i) => <span key={`f${i}`} className="star full">★</span>)}
                     {hasHalf && <span className="star half">★</span>}
                     {Array.from({ length: empty }).map((_, i) => <span key={`e${i}`} className="star empty">★</span>)}
@@ -48,9 +48,9 @@ const MyPage = ({ onPageChange, onLogout, user }) => {
             </div>
 
             {/* 우측 정보 수정 버튼 */}
-            <div className="hero-actions">
+            <div className="profile-actions">
               <button
-                className="hero-edit-btn"
+                className="profile-edit-button"
                 onClick={() => onPageChange?.("profile")}
               >
                 📝 정보 수정
@@ -59,11 +59,11 @@ const MyPage = ({ onPageChange, onLogout, user }) => {
           </section>
 
           {/* 데스크톱: 가운데 정렬 2×2 느낌 */}
-          <section className="tile-row desktop-tiles" role="list">
+          <section className="desktop-tile-grid" role="list">
             {MENU_ITEMS.map((m) => (
-              <button key={m.key} className="tile" onClick={() => onPageChange?.(m.key)}>
-                <div className={`tile-icon ${m.key === "bookmarks" ? "tile-bookmark" :
-                                           m.key === "subscriptions" ? "tile-sub" : "tile-upload"}`}>
+              <button key={m.key} className="tile-button" onClick={() => onPageChange?.(m.key)}>
+                <div className={`tile-icon ${m.key === "bookmarks" ? "tile-icon-bookmark" :
+                                           m.key === "subscriptions" ? "tile-icon-subscription" : "tile-icon-upload"}`}>
                   {m.icon}
                 </div>
                 <div className="tile-text">
@@ -75,30 +75,30 @@ const MyPage = ({ onPageChange, onLogout, user }) => {
           </section>
 
           {/* 모바일 리스트 */}
-          <section className="list-card mobile-list">
+          <section className="mobile-list-card">
             {MENU_ITEMS.map((m, idx) => (
               <button
                 key={m.key}
-                className="list-row"
+                className="mobile-list-row"
                 onClick={() => onPageChange?.(m.key)}
               >
-                <div className={`list-icon ${m.key === "bookmarks" ? "li-bookmark" :
-                                            m.key === "subscriptions" ? "li-sub" : "li-upload"}`}>
+                <div className={`mobile-list-icon ${m.key === "bookmarks" ? "list-icon-bookmark" :
+                                            m.key === "subscriptions" ? "list-icon-subscription" : "list-icon-upload"}`}>
                   {m.icon}
                 </div>
-                <div className="list-text">
-                  <p className="list-title">{m.title}</p>
-                  <p className="list-desc">{m.desc}</p>
+                <div className="mobile-list-text">
+                  <p className="mobile-list-title">{m.title}</p>
+                  <p className="mobile-list-description">{m.desc}</p>
                 </div>
-                <span className="list-chev" aria-hidden="true">›</span>
-                {idx < MENU_ITEMS.length - 1 && <div className="list-divider" />}
+                <span className="mobile-list-chevron" aria-hidden="true">›</span>
+                {idx < MENU_ITEMS.length - 1 && <div className="mobile-list-divider" />}
               </button>
             ))}
           </section>
 
           {/* 로그아웃 (독립 섹션) */}
           <section className="logout-section" aria-label="로그아웃">
-            <button className="sb-logout" onClick={onLogout}>↪ 로그아웃</button>
+            <button className="logout-button" onClick={onLogout}>↪ 로그아웃</button>
           </section>
         </div>
       </main>
