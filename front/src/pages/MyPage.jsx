@@ -1,9 +1,7 @@
 import React, { useMemo } from "react";
 import "../css/mypage.css";
-import mainLogo from "../imgs/mainlogo.png";
 
 const MENU_ITEMS = [
-  { key: "profile", icon: "📝", title: "정보 수정", desc: "프로필·개인정보 변경" },
   { key: "bookmarks", icon: "🔖", title: "북마크한 행사", desc: "관심 있는 행사" },
   { key: "subscriptions", icon: "👥", title: "구독한 주최자", desc: "팔로우한 주최자" },
   { key: "joined", icon: "✅", title: "내가 참여한 행사", desc: "참여 내역" },
@@ -15,7 +13,6 @@ const MyPage = ({ onPageChange, onLogout, user }) => {
   const email = user?.email || "email@example.com";
   const initial = useMemo(() => (displayName ? displayName[0] : "U"), [displayName]);
 
-  // 더미 평점/리뷰 (API 연동 전)
   const rating = typeof user?.rating === "number" ? user.rating : 4.5;
   const reviewCount = typeof user?.reviewCount === "number" ? user.reviewCount : 23;
   const full = Math.floor(rating);
@@ -23,48 +20,8 @@ const MyPage = ({ onPageChange, onLogout, user }) => {
   const empty = 5 - full - (hasHalf ? 1 : 0);
 
   return (
-    <div className="mp-layout">
-      {/* Sidebar */}
-      <aside className="mp-sidebar" aria-label="주 메뉴">
-        <div className="sb-logo-wrap">
-          <img src={mainLogo} alt="Main Logo" className="sb-logo-img" />
-        </div>
-
-        <div className="sb-usercard">
-          <div className="sb-avatar" aria-hidden="true">{initial}</div>
-          <div className="sb-username">{displayName}님</div>
-          <div className="sb-chip">일반 사용자</div>
-        </div>
-
-        <nav className="sb-nav">
-          <div className="sb-section">탐색하기</div>
-          <button className="sb-item" onClick={() => onPageChange?.("main")}>🏠 홈</button>
-          <button className="sb-item" onClick={() => onPageChange?.("create")}>➕ 행사 등록</button>
-          <button className="sb-item" onClick={() => onPageChange?.("qr")}>🪪 QR 체크인</button>
-          <button className="sb-item" onClick={() => onPageChange?.("notifications")}>
-            🔔 알림 <span className="sb-badge">3</span>
-          </button>
-
-          <div className="sb-section">개인 설정</div>
-          <button className="sb-item sb-item--active" aria-current="page">👤 마이페이지</button>
-          <button className="sb-item" onClick={() => onPageChange?.("my-events")}>🗂️ 내 행사 관리</button>
-          {/* 위치 설정은 요구에 따라 제외 */}
-        </nav>
-
-        {/* ✅ 사이드바 하단 로그아웃 복구 */}
-        <div className="sb-footer">
-          <button className="sb-logout" onClick={onLogout}>↪ 로그아웃</button>
-        </div>
-      </aside>
-
-      {/* Main */}
+    <div className="mp-page">
       <main className="mp-main">
-        <div className="mypage-breadcrumb" aria-label="경로 표시">
-          <span className="crumb-home" onClick={() => onPageChange?.("main")}>이벤토리</span>
-          <span className="crumb-sep">·</span>
-          <span className="crumb-current">마이페이지</span>
-        </div>
-
         <div className="mypage-wrap">
           {/* 상단 요약 카드 */}
           <section className="hero-card" aria-label="프로필 요약">
@@ -89,15 +46,24 @@ const MyPage = ({ onPageChange, onLogout, user }) => {
                 </div>
               </div>
             </div>
+
+            {/* 우측 정보 수정 버튼 */}
+            <div className="hero-actions">
+              <button
+                className="hero-edit-btn"
+                onClick={() => onPageChange?.("profile")}
+              >
+                📝 정보 수정
+              </button>
+            </div>
           </section>
 
-          {/* 데스크톱: 카드 그리드 */}
-          <section className="tile-row desktop-tiles" role="list" aria-label="마이페이지 메뉴(데스크톱)">
+          {/* 데스크톱: 가운데 정렬 2×2 느낌 */}
+          <section className="tile-row desktop-tiles" role="list">
             {MENU_ITEMS.map((m) => (
-              <button key={m.key} className="tile" role="listitem" onClick={() => onPageChange?.(m.key)}>
-                <div className={`tile-icon ${m.key === "profile" ? "tile-edit" :
-                                           m.key === "bookmarks" ? "tile-bookmark" :
-                                           m.key === "subscriptions" ? "tile-sub" : "tile-upload"}`} aria-hidden="true">
+              <button key={m.key} className="tile" onClick={() => onPageChange?.(m.key)}>
+                <div className={`tile-icon ${m.key === "bookmarks" ? "tile-bookmark" :
+                                           m.key === "subscriptions" ? "tile-sub" : "tile-upload"}`}>
                   {m.icon}
                 </div>
                 <div className="tile-text">
@@ -108,17 +74,15 @@ const MyPage = ({ onPageChange, onLogout, user }) => {
             ))}
           </section>
 
-          {/* 모바일/중간폭: 단일 카드(박스) 안 세로 리스트 */}
-          <section className="list-card mobile-list" aria-label="마이페이지 메뉴(리스트)">
+          {/* 모바일 리스트 */}
+          <section className="list-card mobile-list">
             {MENU_ITEMS.map((m, idx) => (
               <button
                 key={m.key}
                 className="list-row"
                 onClick={() => onPageChange?.(m.key)}
-                aria-label={m.title}
               >
-                <div className={`list-icon ${m.key === "profile" ? "li-edit" :
-                                            m.key === "bookmarks" ? "li-bookmark" :
+                <div className={`list-icon ${m.key === "bookmarks" ? "li-bookmark" :
                                             m.key === "subscriptions" ? "li-sub" : "li-upload"}`}>
                   {m.icon}
                 </div>
@@ -130,6 +94,11 @@ const MyPage = ({ onPageChange, onLogout, user }) => {
                 {idx < MENU_ITEMS.length - 1 && <div className="list-divider" />}
               </button>
             ))}
+          </section>
+
+          {/* 로그아웃 (독립 섹션) */}
+          <section className="logout-section" aria-label="로그아웃">
+            <button className="sb-logout" onClick={onLogout}>↪ 로그아웃</button>
           </section>
         </div>
       </main>
