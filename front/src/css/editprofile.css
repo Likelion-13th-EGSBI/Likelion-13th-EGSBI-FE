@@ -8,16 +8,14 @@
   --ring:0 0 0 3px rgba(94,147,108,.22);
 }
 
-/* 페이지 컨테이너(상단/사이드/하단은 Layout에서) */
+/* 페이지 컨테이너 */
 .edit-profile-container{
   background:var(--bg); color:var(--fg);
   font-family:'Pretendard',system-ui,-apple-system,Segoe UI,Roboto,sans-serif;
   padding: clamp(12px, 2vh, 24px);
 }
 
-/* =========================================================
-   상단 프로필 '카드' 미리보기 (mypage처럼 좌우 패딩 + 가운데 정렬)
-   ========================================================= */
+/* 상단 프로필 카드 */
 .edit-profile-preview-card{
   position: relative;
   overflow: hidden;
@@ -28,7 +26,6 @@
   margin: 0 auto 18px;
   max-width: 960px;
 }
-
 .edit-profile-preview-banner{
   height: 100px;
   background:
@@ -37,10 +34,10 @@
     linear-gradient(135deg, rgba(94,147,108,.18), rgba(147,168,140,.12));
 }
 
-/* 본문: 좌/우 2열(작은 화면은 1열) + 좌우 패딩 */
+/* 카드 본문 */
 .edit-profile-preview-body{
   position: relative;
-  padding: 20px 20px 16px; /* 겹침 제거 후 정돈 */
+  padding: 20px 20px 16px;
   display: grid;
   grid-template-columns: 1fr;
   gap: 16px;
@@ -48,12 +45,12 @@
 }
 @media (min-width: 720px){
   .edit-profile-preview-body{
-    grid-template-columns: 260px minmax(0,1fr); /* 좌(아바타+업로드) / 우(텍스트) */
+    grid-template-columns: 220px minmax(0,1fr); /* 좌(아바타+업로드) / 우(텍스트) */
     gap: 20px;
   }
 }
 
-/* 좌우 컬럼 컨테이너 */
+/* 좌측 영역 */
 .edit-profile-preview-left{
   display:flex;
   flex-direction:column;
@@ -65,61 +62,70 @@
   gap: 10px;
 }
 
-/* === 프로필 미리보기(아바타) 크기 조금 키움 === */
+/* 프로필 이미지 (단정하게 축소) */
 .edit-profile-preview-avatar-large{
-  width: 112px;  /* 96 → 112 */
-  height: 112px; /* 96 → 112 */
+  width: 96px;
+  height: 96px;
   border-radius: 50%;
   object-fit: cover;
-  border: 3px solid #fff;
+  border: 2px solid #fff;
   box-shadow: var(--shadow-1);
   background: #f7faf8;
-  transform: none; /* 겹침 제거 */
-  margin-top: 0;
 }
 @media (max-width: 480px){
-  .edit-profile-preview-avatar-large{ width:96px; height:96px; }
+  .edit-profile-preview-avatar-large{ width:84px; height:84px; }
 }
 .edit-profile-preview-avatar-placeholder{
   display:flex; align-items:center; justify-content:center;
   color: rgba(94,147,108,.50); background: rgba(94,147,108,.10);
 }
 
-/* 이름/닉네임/이메일 텍스트 */
+/* 우측 텍스트: 닉네임 -> 이름 -> 이메일 (세로 배치) */
 .edit-profile-preview-texts{
-  transform: none; /* 겹침 제거 */
-  display:flex; flex-direction:column; gap: 6px; line-height:1.3;
+  display:flex; flex-direction:column; gap: 4px; line-height:1.3;
 }
-.edit-profile-preview-name-line{ display:flex; align-items:baseline; gap:8px; flex-wrap:wrap; }
-.edit-profile-preview-name{ font-size: 20px; font-weight: 900; letter-spacing:.2px; }
-.edit-profile-preview-nickname{ font-size: 14px; color: rgba(0,0,0,.60); }
-.edit-profile-preview-email{ font-size: 13.5px; color: rgba(0,0,0,.65); }
+.edit-profile-preview-name{       /* 닉네임 표기용 (굵게) */
+  font-size: 18px; font-weight: 900; color: var(--fg);
+}
+.edit-profile-preview-nickname{   /* 이름 표기용 */
+  font-size: 15px; color: rgba(0,0,0,.75);
+}
+.edit-profile-preview-email{      /* 이메일 표기용 */
+  font-size: 13.5px; color: rgba(0,0,0,.65);
+}
 
-/* === 업로드 버튼: 아바타와 거리 '중간값'으로 조정 === */
+/* 업로드 버튼 영역 (버튼 폭 = 프로필 원 지름 96px) */
 .edit-profile-upload{
-  display:flex; flex-direction:column; gap:10px; align-items:flex-start;
-  margin-top: 9px; /* (모바일/반쪽) 4px ↔ 14px 중간 */
+  display:flex; flex-direction:column; gap:8px; align-items:flex-start;
+  margin-top: 8px;
 }
 @media (min-width: 720px){
   .edit-profile-upload{
-    margin-top: clamp(16px, 3.5vh, 40px); /* 이전보다 한 단계 위쪽(중간 느낌) */
+    margin-top: clamp(10px, 2.5vh, 20px);
   }
 }
 .edit-profile-file-input{ display:none; }
+.edit-profile-upload .edit-profile-button{
+  width: 96px;
+  padding: 10px 0;
+  text-align: center;
+  font-size: 13px;
+  font-weight: 700;
+}
+.edit-profile-upload .edit-profile-button-ghost{
+  width: 96px;
+  padding: 8px 0;
+  text-align: center;
+  font-size: 12.5px;
+}
 
-/* =========================================================
-   본문 그리드 (항상 1열, 가운데 정렬)
-   ========================================================= */
+/* 본문 필드 영역 */
 .edit-profile-grid{
   width:100%; max-width: 960px;
   margin: 0 auto;
   display:grid; gap:16px;
   grid-template-columns: 1fr;
 }
-
-/* =========================================================
-   필드(라인별 편집) — 카드와 동일한 좌우 패딩
-   ========================================================= */
 .edit-profile-fields{
   background:var(--card);
   border:1px solid rgba(0,0,0,.08);
@@ -127,15 +133,13 @@
   box-shadow:var(--shadow-0);
   padding: 8px 20px 6px;
 }
-
 .edit-profile-row{
   display:grid; gap:10px; align-items:center;
   grid-template-columns: 110px minmax(0,1fr) auto;
-  padding: 12px 0; /* 좌우 패딩은 상위에서 */
+  padding: 12px 0;
   border-bottom:1px solid rgba(0,0,0,.06);
 }
 .edit-profile-row:last-child{ border-bottom:none; }
-
 .edit-profile-row-stack .edit-profile-control{
   display:flex; gap:10px; flex-wrap:wrap;
 }
@@ -146,7 +150,7 @@
 
 /* 라벨/컨트롤/액션 */
 .edit-profile-label{
-  font-weight:800; font-size:15px; letter-spacing:.2px;
+  font-weight:800; font-size:15px;
 }
 .edit-profile-control{ display:flex; align-items:center; }
 .edit-profile-control-stack{ display:flex; flex-direction:column; gap:10px; }
@@ -164,11 +168,12 @@
 .edit-profile-input:focus{
   outline:none; border-color: var(--primary); box-shadow: var(--ring);
 }
-.edit-profile-input[readonly]{
+.edit-profile-input[readonly],
+.edit-profile-input:disabled{
   background:#f5f6f5; color:rgba(0,0,0,.60); cursor:not-allowed;
 }
 
-/* 버튼 공통 */
+/* 버튼 */
 .edit-profile-button{
   appearance:none; border:none; cursor:pointer;
   background:var(--primary); color:#fff; font-weight:800;
@@ -190,45 +195,8 @@
   background:#fafafa; transform:translateY(-1px);
 }
 
-/* =========================================================
-   자기소개 인라인 편집(카운터 포함)
-   ========================================================= */
-.edit-profile-preview-bio-row{
-  margin-top: 6px;
-  display:flex; flex-direction: column; align-items:flex-start; gap: 8px;
-}
-.edit-profile-preview-bio{
-  font-size: 13.5px; color: rgba(0,0,0,.75); text-align:left;
-}
-.edit-profile-inline-edit{
-  padding: 8px 12px; font-weight: 700;
-}
-
-.edit-profile-preview-bio-editor{
-  width: 100%;
-  display: flex; flex-direction: column; gap: 10px; align-items: stretch;
-}
-.edit-profile-textarea{
-  width: 100%; min-height: 92px; resize: vertical;
-  padding: 12px 14px; border-radius: 12px;
-  border: 1.5px solid rgba(0,0,0,.12);
-  background: var(--card); color: var(--fg);
-  font-size: 14px; line-height: 1.5;
-  transition: border-color .16s ease, box-shadow .16s ease;
-}
-.edit-profile-textarea:focus{
-  outline: none; border-color: var(--primary); box-shadow: var(--ring);
-}
-.edit-profile-bio-counter {
-  font-size: 12px; color: rgba(0,0,0,.5); align-self: flex-end;
-  margin-top: -4px; margin-bottom: 4px;
-}
-.edit-profile-bio-counter-warning { color: var(--danger); }
-.edit-profile-inline-actions{ display:flex; gap: 8px; }
-
 /* 모션 최소화 */
 @media (prefers-reduced-motion: reduce){
   .edit-profile-button,
-  .edit-profile-input,
-  .edit-profile-textarea{ transition:none !important; }
+  .edit-profile-input{ transition:none !important; }
 }

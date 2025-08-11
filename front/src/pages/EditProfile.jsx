@@ -9,7 +9,6 @@ const MOCK_USER = {
   email: "test@example.com",
   nickname: "미미민지",
   profileImageUrl: "",
-  bio: "한 줄 자기소개가 여기에 들어갑니다. 간단하게 나를 표현해보세요.",
 };
 
 const EditProfile = () => {
@@ -19,14 +18,12 @@ const EditProfile = () => {
   const [phone, setPhone] = useState("");
   const [email, setEmail] = useState("");
   const [nickname, setNickname] = useState("");
-  const [bio, setBio] = useState("");
 
   const [editing, setEditing] = useState({
     name: false,
     phone: false,
     nickname: false,
     password: false,
-    bio: false,
   });
 
   const [profileFile, setProfileFile] = useState(null);
@@ -42,7 +39,6 @@ const EditProfile = () => {
     setPhone(data.phone || "");
     setEmail(data.email || "");
     setNickname(data.nickname || "");
-    setBio(data.bio || "");
     if (data.profileImageUrl) setPreviewURL(data.profileImageUrl);
   }, []);
 
@@ -57,6 +53,7 @@ const EditProfile = () => {
       setPreviewURL("");
     }
   };
+
   const handleRemoveImage = () => {
     setProfileFile(null);
     setPreviewURL("");
@@ -68,7 +65,6 @@ const EditProfile = () => {
     if (key === "name") setName(orig.name || "");
     if (key === "phone") setPhone(orig.phone || "");
     if (key === "nickname") setNickname(orig.nickname || "");
-    if (key === "bio") setBio(orig.bio || "");
     if (key === "password") {
       setNewPassword("");
       setNewPasswordConfirm("");
@@ -81,7 +77,6 @@ const EditProfile = () => {
     if (key === "name") next.name = name;
     if (key === "phone") next.phone = phone;
     if (key === "nickname") next.nickname = nickname;
-    if (key === "bio") next.bio = bio;
     originalRef.current = next;
     setEditing((s) => ({ ...s, [key]: false }));
     alert("변경되었습니다.");
@@ -109,7 +104,7 @@ const EditProfile = () => {
     <Layout pageTitle="프로필 수정" activeMenuItem="mypage">
       <div className="edit-profile-container">
 
-        {/* ✅ 상단 프로필 카드: 좌(아바타+업로드) | 우(닉네임/이메일 표시 + 자기소개 편집) */}
+        {/* ✅ 상단 프로필 카드 */}
         <section className="edit-profile-preview-card">
           <div className="edit-profile-preview-banner" />
           <div className="edit-profile-preview-body">
@@ -129,7 +124,7 @@ const EditProfile = () => {
               )}
               <div className="edit-profile-upload">
                 <label htmlFor="profile-upload" className="edit-profile-button">
-                  프로필 이미지 업로드
+                  이미지 수정하기
                 </label>
                 <input
                   id="profile-upload"
@@ -151,7 +146,7 @@ const EditProfile = () => {
               </div>
             </div>
 
-            {/* RIGHT: 이름/닉네임/이메일 '표시만' + 자기소개(인라인 편집) */}
+            {/* RIGHT: 이름/닉네임/이메일 표시 */}
             <div className="edit-profile-preview-right">
               <div className="edit-profile-preview-texts">
                 <h2 className="edit-profile-preview-name" style={{ margin: 0 }}>
@@ -164,64 +159,15 @@ const EditProfile = () => {
                   {email || "email@example.com"}
                 </p>
               </div>
-
-              {/* 자기소개: 보기/편집 토글 + 카운터 */}
-              {!editing.bio ? (
-                <div className="edit-profile-preview-bio-row">
-                  <p className="edit-profile-preview-bio">
-                    {bio || "자기소개가 없습니다."}
-                  </p>
-                  <button
-                    type="button"
-                    className="edit-profile-button edit-profile-button-ghost edit-profile-inline-edit"
-                    onClick={() => startEdit("bio")}
-                  >
-                    자기소개 수정
-                  </button>
-                </div>
-              ) : (
-                <div className="edit-profile-preview-bio-editor">
-                  <textarea
-                    className="edit-profile-textarea"
-                    rows={3}
-                    maxLength={200}
-                    value={bio}
-                    onChange={(e) => setBio(e.target.value)}
-                    placeholder="자기소개를 입력하세요. (최대 200자)"
-                  />
-                  <div
-                    className={`edit-profile-bio-counter ${
-                      bio.length >= 180 ? "edit-profile-bio-counter-warning" : ""
-                    }`}
-                  >
-                    {bio.length} / 200
-                  </div>
-                  <div className="edit-profile-inline-actions">
-                    <button
-                      type="button"
-                      className="edit-profile-button edit-profile-button-secondary"
-                      onClick={() => cancelEdit("bio")}
-                    >
-                      취소
-                    </button>
-                    <button
-                      type="button"
-                      className="edit-profile-button"
-                      onClick={() => saveEdit("bio")}
-                    >
-                      저장
-                    </button>
-                  </div>
-                </div>
-              )}
             </div>
           </div>
         </section>
 
-        {/* ✅ 필드 섹션: 순서 = 이메일 → 비번 → 닉네임 → 이름 → 번호 */}
+        {/* ✅ 필드 섹션 */}
         <div className="edit-profile-grid">
           <section className="edit-profile-fields">
-            {/* 이메일 */}
+
+            {/* 이메일 (변경 불가) */}
             <div className="edit-profile-row">
               <div className="edit-profile-label">이메일</div>
               <div className="edit-profile-control">
@@ -229,9 +175,7 @@ const EditProfile = () => {
                   className="edit-profile-input"
                   type="email"
                   value={email}
-                  readOnly
-                  aria-readonly="true"
-                  placeholder="이메일"
+                  disabled
                 />
               </div>
               <div className="edit-profile-actions" />
@@ -310,8 +254,6 @@ const EditProfile = () => {
                   value={nickname}
                   onChange={(e) => setNickname(e.target.value)}
                   readOnly={!editing.nickname}
-                  aria-readonly={!editing.nickname ? "true" : "false"}
-                  placeholder="닉네임"
                 />
               </div>
               <div className="edit-profile-actions">
@@ -354,8 +296,6 @@ const EditProfile = () => {
                   value={name}
                   onChange={(e) => setName(e.target.value)}
                   readOnly={!editing.name}
-                  aria-readonly={!editing.name ? "true" : "false"}
-                  placeholder="이름"
                 />
               </div>
               <div className="edit-profile-actions">
@@ -398,8 +338,6 @@ const EditProfile = () => {
                   value={phone}
                   onChange={(e) => setPhone(e.target.value)}
                   readOnly={!editing.phone}
-                  aria-readonly={!editing.phone ? "true" : "false"}
-                  placeholder="010-0000-0000"
                 />
               </div>
               <div className="edit-profile-actions">
