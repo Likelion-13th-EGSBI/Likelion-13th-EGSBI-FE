@@ -1,4 +1,5 @@
 import React, { useMemo } from "react";
+import Layout from "../components/Layout"; 
 import "../css/mypage.css";
 
 const MENU_ITEMS = [
@@ -20,89 +21,132 @@ const MyPage = ({ onPageChange, onLogout, user }) => {
   const empty = 5 - full - (hasHalf ? 1 : 0);
 
   return (
-    <div className="mypage-page">
-      <main className="mypage-main">
-        <div className="mypage-wrapper">
-          {/* 상단 요약 카드 */}
-          <section className="profile-summary-card" aria-label="프로필 요약">
-            <div className="profile-summary-left">
-              {user?.avatarUrl ? (
-                <img className="profile-avatar-image" src={user.avatarUrl} alt={`${displayName} 프로필`} />
-              ) : (
-                <div className="profile-avatar" aria-hidden="true">{initial}</div>
-              )}
-
-              <div className="profile-meta">
-                <h2 className="profile-name">{displayName}</h2>
-                <p className="profile-email">{email}</p>
-                <div className="profile-rating" aria-label={`평점 ${rating.toFixed(1)}점, 리뷰 ${reviewCount}개`}>
-                  <div className="rating-stars" aria-hidden="true">
-                    {Array.from({ length: full }).map((_, i) => <span key={`f${i}`} className="star full">★</span>)}
-                    {hasHalf && <span className="star half">★</span>}
-                    {Array.from({ length: empty }).map((_, i) => <span key={`e${i}`} className="star empty">★</span>)}
+    <Layout pageTitle="마이페이지" activeMenuItem="mypage">
+      <div className="mypage-page">
+        <main className="mypage-main">
+          <div className="mypage-wrapper">
+            {/* 상단 요약 카드 */}
+            <section className="profile-summary-card" aria-label="프로필 요약">
+              <div className="profile-summary-left">
+                {user?.avatarUrl ? (
+                  <img
+                    className="profile-avatar-image"
+                    src={user.avatarUrl}
+                    alt={`${displayName} 프로필`}
+                  />
+                ) : (
+                  <div className="profile-avatar" aria-hidden="true">
+                    {initial}
                   </div>
-                  <span className="rating-value">{rating.toFixed(1)}</span>
-                  <span className="review-count">리뷰 {reviewCount}개</span>
+                )}
+
+                <div className="profile-meta">
+                  <h2 className="profile-name">{displayName}</h2>
+                  <p className="profile-email">{email}</p>
+                  <div
+                    className="profile-rating"
+                    aria-label={`평점 ${rating.toFixed(1)}점, 리뷰 ${reviewCount}개`}
+                  >
+                    <div className="rating-stars" aria-hidden="true">
+                      {Array.from({ length: full }).map((_, i) => (
+                        <span key={`f${i}`} className="star full">
+                          ★
+                        </span>
+                      ))}
+                      {hasHalf && <span className="star half">★</span>}
+                      {Array.from({ length: empty }).map((_, i) => (
+                        <span key={`e${i}`} className="star empty">
+                          ★
+                        </span>
+                      ))}
+                    </div>
+                    <span className="rating-value">{rating.toFixed(1)}</span>
+                    <span className="review-count">리뷰 {reviewCount}개</span>
+                  </div>
                 </div>
               </div>
-            </div>
 
-            {/* 우측 정보 수정 버튼 */}
-            <div className="profile-actions">
-              <button
-                className="profile-edit-button"
-                onClick={() => onPageChange?.("profile")}
-              >
-                📝 정보 수정
+              {/* 우측 정보 수정 버튼 */}
+              <div className="profile-actions">
+                <button
+                  className="profile-edit-button"
+                  onClick={() => onPageChange?.("profile")}
+                >
+                  📝 정보 수정
+                </button>
+              </div>
+            </section>
+
+            {/* 데스크톱: 가운데 정렬 2×2 느낌 */}
+            <section className="desktop-tile-grid" role="list">
+              {MENU_ITEMS.map((m) => (
+                <button
+                  key={m.key}
+                  className="tile-button"
+                  onClick={() => onPageChange?.(m.key)}
+                >
+                  <div
+                    className={`tile-icon ${
+                      m.key === "bookmarks"
+                        ? "tile-icon-bookmark"
+                        : m.key === "subscriptions"
+                        ? "tile-icon-subscription"
+                        : "tile-icon-upload"
+                    }`}
+                  >
+                    {m.icon}
+                  </div>
+                  <div className="tile-text">
+                    <strong>{m.title}</strong>
+                    <span>{m.desc}</span>
+                  </div>
+                </button>
+              ))}
+            </section>
+
+            {/* 모바일 리스트 */}
+            <section className="mobile-list-card">
+              {MENU_ITEMS.map((m, idx) => (
+                <button
+                  key={m.key}
+                  className="mobile-list-row"
+                  onClick={() => onPageChange?.(m.key)}
+                >
+                  <div
+                    className={`mobile-list-icon ${
+                      m.key === "bookmarks"
+                        ? "list-icon-bookmark"
+                        : m.key === "subscriptions"
+                        ? "list-icon-subscription"
+                        : "list-icon-upload"
+                    }`}
+                  >
+                    {m.icon}
+                  </div>
+                  <div className="mobile-list-text">
+                    <p className="mobile-list-title">{m.title}</p>
+                    <p className="mobile-list-description">{m.desc}</p>
+                  </div>
+                  <span className="mobile-list-chevron" aria-hidden="true">
+                    ›
+                  </span>
+                  {idx < MENU_ITEMS.length - 1 && (
+                    <div className="mobile-list-divider" />
+                  )}
+                </button>
+              ))}
+            </section>
+
+            {/* 로그아웃 (독립 섹션) */}
+            <section className="logout-section" aria-label="로그아웃">
+              <button className="logout-button" onClick={onLogout}>
+                ↪ 로그아웃
               </button>
-            </div>
-          </section>
-
-          {/* 데스크톱: 가운데 정렬 2×2 느낌 */}
-          <section className="desktop-tile-grid" role="list">
-            {MENU_ITEMS.map((m) => (
-              <button key={m.key} className="tile-button" onClick={() => onPageChange?.(m.key)}>
-                <div className={`tile-icon ${m.key === "bookmarks" ? "tile-icon-bookmark" :
-                                           m.key === "subscriptions" ? "tile-icon-subscription" : "tile-icon-upload"}`}>
-                  {m.icon}
-                </div>
-                <div className="tile-text">
-                  <strong>{m.title}</strong>
-                  <span>{m.desc}</span>
-                </div>
-              </button>
-            ))}
-          </section>
-
-          {/* 모바일 리스트 */}
-          <section className="mobile-list-card">
-            {MENU_ITEMS.map((m, idx) => (
-              <button
-                key={m.key}
-                className="mobile-list-row"
-                onClick={() => onPageChange?.(m.key)}
-              >
-                <div className={`mobile-list-icon ${m.key === "bookmarks" ? "list-icon-bookmark" :
-                                            m.key === "subscriptions" ? "list-icon-subscription" : "list-icon-upload"}`}>
-                  {m.icon}
-                </div>
-                <div className="mobile-list-text">
-                  <p className="mobile-list-title">{m.title}</p>
-                  <p className="mobile-list-description">{m.desc}</p>
-                </div>
-                <span className="mobile-list-chevron" aria-hidden="true">›</span>
-                {idx < MENU_ITEMS.length - 1 && <div className="mobile-list-divider" />}
-              </button>
-            ))}
-          </section>
-
-          {/* 로그아웃 (독립 섹션) */}
-          <section className="logout-section" aria-label="로그아웃">
-            <button className="logout-button" onClick={onLogout}>↪ 로그아웃</button>
-          </section>
-        </div>
-      </main>
-    </div>
+            </section>
+          </div>
+        </main>
+      </div>
+    </Layout>
   );
 };
 
