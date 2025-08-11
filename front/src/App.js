@@ -5,7 +5,7 @@ import LoginPage from './pages/LoginPage';
 import SignupPage from './pages/SignupPage';
 import EventUpload from './pages/EventUpload';
 import MyPage from './pages/MyPage';
-import Profile from './pages/ProfileEdit';
+import EditProfile from './pages/EditProfile';
 
 function App() {
   return (
@@ -18,7 +18,7 @@ function App() {
         <Route path="/signup" element={<SignupPage/>} />
         <Route path="/event-upload" element={<EventUpload/>} />
         <Route path="/mypage" element={<MyPage/>} />
-        <Route path="/mypage/edit" element={<Profile/>} />
+        <Route path="/mypage/edit" element={<EditProfile/>} />
 
       </Routes>
     </Router>

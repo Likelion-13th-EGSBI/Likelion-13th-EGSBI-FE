@@ -73,12 +73,9 @@ const MyPage = ({ onPageChange, onLogout, user }) => {
               <div className="profile-actions">
                 <button
                   className="profile-edit-button"
-                  onClick={() => {
-                    onPageChange?.("profile");     // 기존 상태 업데이트 유지
-                    navigate("/profile/edit");     // ✅ 라우팅 이동
-                  }}
+                  onClick={() => navigate("/mypage/edit")}
                 >
-                  📝 정보 수정
+                  📝 프로필 수정
                 </button>
               </div>
             </section>
