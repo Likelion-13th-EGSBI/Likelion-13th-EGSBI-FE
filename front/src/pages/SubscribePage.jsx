@@ -5,31 +5,30 @@ import InfiniteScroll from 'react-infinite-scroll-component';
 import axios from 'axios';
 import '../css/subscribe.css';
 
-/** 여기만 바꾸면 모드 전환됨 */
-const DEV_MOCK = true; // 🔄 UI 확인: true / API 모드: false
+/* API 연결 후 모드 전환용 */
+const DEV_MOCK = true; // UI 확인: true / API 모드: false
 
 const PAGE_SIZE = 20;
 const baseURL = process.env.REACT_APP_API_URL ?? '';
 
 const MOCK_HOSTS = [
-  { id: 1, name: '라이언 스튜디오', description: '디자인/IT 커뮤니티 이벤트를 주최합니다', category: ['디자인','IT'], profileImage: null },
-  { id: 2, name: '코드팩토리',   description: '프로그래밍 및 개발자 커뮤니티 운영',       category: ['개발','교육'], profileImage: null },
-  { id: 3, name: '트래블메이커', description: '여행 관련 모임과 이벤트 기획',             category: ['여행','문화'], profileImage: null },
-  { id: 4, name: '푸드하우스',   description: '맛집 탐방과 요리 클래스 진행',             category: ['요리','맛집'], profileImage: null },
+  { id: 1, name: '라이언 스튜디오', profileImage: null },
+  { id: 2, name: '코드팩토리', profileImage: null },
+  { id: 3, name: '트래블메이커', profileImage: null },
+  { id: 4, name: '푸드하우스', profileImage: null },
 ];
 
 export default function SubscribePage() {
   const [organizers, setOrganizers] = useState([]);
   const [page, setPage] = useState(1);
-  const [hasMore, setHasMore] = useState(!DEV_MOCK); // 목은 더 불러올 것 없음
+  const [hasMore, setHasMore] = useState(!DEV_MOCK);
   const [loading, setLoading] = useState(false);
   const [errMsg, setErrMsg] = useState('');
 
   const isFetchingRef = useRef(false);
 
-  // API 모드일 때만 호출되는 fetch
   const fetchOrganizers = useCallback(async (nextPage = 1) => {
-    if (DEV_MOCK) return;                 // 목 모드면 API 호출 X
+    if (DEV_MOCK) return;
     if (isFetchingRef.current) return;
     isFetchingRef.current = true;
 
@@ -40,7 +39,6 @@ export default function SubscribePage() {
         params: { page: nextPage, size: PAGE_SIZE },
       });
 
-      // 응답 구조에 맞춰 배열 추출
       const items = Array.isArray(res.data?.data)
         ? res.data.data
         : Array.isArray(res.data?.items)
@@ -62,24 +60,26 @@ export default function SubscribePage() {
   }, []);
 
   useEffect(() => {
-    if (DEV_MOCK) {
-      setOrganizers(MOCK_HOSTS);  // UI 확인용
-    } else {
-      fetchOrganizers(1);         // API 모드
-    }
+    if (DEV_MOCK) setOrganizers(MOCK_HOSTS);
+    else fetchOrganizers(1);
   }, [fetchOrganizers]);
 
   const loadMore = async () => {
-    if (DEV_MOCK) return;         // 목 모드면 더 불러오기 없음
+    if (DEV_MOCK) return;
     const next = page + 1;
     await fetchOrganizers(next);
     setPage(next);
   };
 
+  // 구독 해제 후 리스트에서 제거
+  const handleUnsubscribe = (id) => {
+    setOrganizers(prev => prev.filter(o => o.id !== id));
+  };
+
   const isEmpty = (organizers?.length ?? 0) === 0 && !loading && !errMsg;
 
   return (
-    <Layout pageTitle="구독" activeMenuItem="home">
+    <Layout pageTitle="구독" activeMenuItem="subscribe">
       <div className="subscribe-page">
         <div className="subscribe-header">
           <h2>구독한 주최자</h2>
@@ -100,11 +100,14 @@ export default function SubscribePage() {
             next={loadMore}
             hasMore={hasMore}
             loader={<div className="state state--loading">불러오는 중…</div>}
-
           >
             <ul className="org-grid">
               {(organizers ?? []).map((org) => (
-                <HostCard key={org.id} host={org} />
+                <HostCard
+                  key={org.id}
+                  host={org}
+                  onUnsubscribe={handleUnsubscribe}
+                />
               ))}
             </ul>
           </InfiniteScroll>

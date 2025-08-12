@@ -14,7 +14,7 @@
   background: var(--bg);
   color: var(--fg);
   padding: 24px;
-  min-height: calc(100vh - 64px); /* 데스크탑 TopBar 높이 */
+  min-height: calc(100vh - 64px);
   box-sizing: border-box;
   display: flex;
   flex-direction: column;
@@ -25,8 +25,8 @@
 @media (max-width: 768px) {
   .subscribe-page {
     padding: 16px;
-    padding-top: 88px; /* 모바일 TopBar 높이(약 56~72px) + 여유 */
-    min-height: 100vh; /* 모바일은 계산 대신 꽉 채우기 */
+    padding-top: 88px;
+    min-height: 100vh;
   }
 }
 
@@ -41,29 +41,25 @@
   margin-bottom: 4px;
   background: var(--bg);
 }
-
-/* ✅ (선택) 스크롤해도 헤더 고정 */
 @media (max-width: 768px) {
   .subscribe-header {
     position: sticky;
-    top: 56px;   /* 모바일 TopBar 높이 추정값 */
-    z-index: 2;  /* TopBar 아래로 */
+    top: 56px;
+    z-index: 2;
   }
 }
-
 .subscribe-header h2 {
-  color: var(--brand);
+  color: #000; /* 요청: 검정색 */
   font-size: 1.4rem;
   margin: 0;
   letter-spacing: -0.2px;
 }
-
 .subscribe-count {
   color: var(--muted);
   font-size: 0.95rem;
 }
 
-/* 그리드: 데스크탑 3열, 태블릿 2열, 모바일 1열 */
+/* 그리드 */
 .org-grid {
   list-style: none;
   margin: 0;
@@ -72,12 +68,8 @@
   grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 16px;
 }
-@media (max-width: 1024px) {
-  .org-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
-}
-@media (max-width: 640px) {
-  .org-grid { grid-template-columns: 1fr; gap: 12px; }
-}
+@media (max-width: 1024px) { .org-grid { grid-template-columns: repeat(2, 1fr); } }
+@media (max-width: 640px)  { .org-grid { grid-template-columns: 1fr; gap: 12px; } }
 
 /* 카드 */
 .org-card {
@@ -97,12 +89,21 @@
   box-shadow: 0 4px 14px rgba(0,0,0,0.04);
 }
 
-/* 카드 상단 */
+/* 카드 상단: 왼쪽(아바타+이름) + 오른쪽(버튼) */
 .org-card__header {
   display: flex;
   align-items: center;
+  justify-content: space-between; /* 버튼 오른쪽 고정 */
   gap: 12px;
 }
+
+.org-card__info {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-width: 0; /* 이름 ellipsis 적용 위한 필수 */
+}
+
 .org-card__avatar {
   width: 44px;
   height: 44px;
@@ -120,44 +121,40 @@
   height: 100%;
   object-fit: cover;
 }
-.org-card__meta { min-width: 0; }
+
 .org-card__name {
   font-weight: 700;
   font-size: 1rem;
   line-height: 1.2;
-  margin-bottom: 4px;
-}
-.org-card__desc {
-  color: var(--muted);
-  font-size: .92rem;
-  line-height: 1.3;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
+  white-space: nowrap;     /* 줄바꿈 방지 */
+  overflow: hidden;        /* 넘치는 글자 숨김 */
+  text-overflow: ellipsis; /* ... 표시 */
+  max-width: 38vw;         /* 버튼과 겹치지 않도록 범위 제한(모바일에서 유효) */
 }
 
-/* 태그 */
-.org-card__tags {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 6px;
+/* 구독 해제 버튼 */
+.unsubscribe-btn {
+  background: #F2ECD8;
+  color: #40180F;
+  border: none;
+  padding: 6px 12px;
+  border-radius: 8px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.2s ease, transform 0.15s ease;
+  white-space: nowrap;
 }
-.org-card__tag {
-  border: 1px solid var(--line);
-  color: #333;
-  background: #fff;
-  padding: 4px 8px;
-  border-radius: 999px;
-  font-size: .8rem;
-}
+.unsubscribe-btn:hover { background: #e8dec4; transform: translateY(-1px); }
+.unsubscribe-btn:active { transform: translateY(0); }
+
+/* (사용 안 하는 과거 블록 비활성화용 - 혹시 남아있다면 무시) */
+.org-card__meta { display: none; }
+.org-card__desc { display: none; }
+.org-card__tags { display: none; }
 
 /* 상태/빈 상태 */
-.state {
-  text-align: center;
-  margin: 16px 0;
-  color: var(--muted);
-  font-size: .95rem;
-}
+.state { text-align: center; margin: 16px 0; color: var(--muted); font-size: .95rem; }
 .state--error { color: var(--accent); }
 .state--end { color: var(--muted); }
 .state--loading { color: #939E91; }
