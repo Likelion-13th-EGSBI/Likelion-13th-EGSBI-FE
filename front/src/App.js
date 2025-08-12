@@ -21,7 +21,7 @@ function App() {
         <Route path="/event-upload" element={<EventUpload/>} />
         <Route path="/mypage" element={<MyPage/>} />
         <Route path="/mypage/edit" element={<EditProfile/>} />
-        <Route path="/notification" element={<Notification/>} />
+        <Route path="/notifications" element={<Notification/>} />
       </Routes>
     </Router>
   );
