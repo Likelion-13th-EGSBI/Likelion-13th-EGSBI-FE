@@ -1,32 +1,94 @@
-/* Layout 컴포넌트 스타일 */
-.layout-container {
-  display: flex;
-    height: 100vh;
+:root {
+  --sidebar-w: 240px;
+  --topbar-h: 64px;
+
+
+  --gutter-d: 40px;
+  --gutter-t: 24px;
+  --gutter-m: 16px;
+  --content-max: 1180px;
 }
 
-/* 메인 콘텐츠 영역 */
+.layout-container {
+  display: flex;
+  height: 100vh;
+  overflow: hidden;
+}
+
+
 .layout-main-content {
   flex: 1;
   display: flex;
   flex-direction: column;
+  overflow: auto;
+  background: #fff;
 }
 
-/* 사이드바가 있을 때 */
+
 .layout-main-content.with-layout {
-  margin-left: 240px; /* 사이드바 너비만큼 여백 */
-  padding-top: 64px; /* TopBar 높이만큼 상단 패딩 추가 */
+  margin-left: var(--sidebar-w);
+  padding-top: var(--topbar-h);
+  padding-left: var(--gutter-d);
+  padding-right: var(--gutter-d);
 }
 
-/* 사이드바가 없을 때 (모바일) */
+
 .layout-main-content.without-layout {
   margin-left: 0;
   padding-top: 0;
+  padding-left: var(--gutter-m);
+  padding-right: var(--gutter-m);
 }
 
-/* 모바일에서 레이아웃 조정 */
-@media (max-width: 768px) {
+
+.layout-main-content.with-layout>.subscribe-page,
+.layout-main-content.with-layout>.host-detail,
+.layout-main-content.with-layout>.dashboard-page,
+.layout-main-content.with-layout>.page-root {
+  width: 100%;
+  max-width: var(--content-max);
+  margin-inline: auto;
+}
+
+.layout-main-content.without-layout>.subscribe-page,
+.layout-main-content.without-layout>.host-detail,
+.layout-main-content.without-layout>.dashboard-page,
+.layout-main-content.without-layout>.page-root {
+  width: 100%;
+  max-width: var(--content-max);
+  margin-inline: auto;
+}
+
+
+@media (max-width: 1024px) {
   .layout-main-content.with-layout {
     margin-left: 0;
+    padding-top: var(--topbar-h);
+    padding-left: var(--gutter-t);
+    padding-right: var(--gutter-t);
+  }
+}
+
+@media (max-width: 768px) {
+
+  .layout-main-content.with-layout,
+  .layout-main-content.without-layout {
+    margin-left: 0;
     padding-top: 0;
+    padding-left: var(--gutter-m);
+    padding-right: var(--gutter-m);
+  }
+}
+
+
+@media (min-width: 1440px) {
+  :root {
+    --content-max: 1240px;
+  }
+}
+
+@media (min-width: 1680px) {
+  :root {
+    --content-max: 1320px;
   }
 }
