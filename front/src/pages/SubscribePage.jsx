@@ -100,7 +100,7 @@ export default function SubscribePage() {
             next={loadMore}
             hasMore={hasMore}
             loader={<div className="state state--loading">불러오는 중…</div>}
-            endMessage={<div className="state state--end"></div>}
+
           >
             <ul className="org-grid">
               {(organizers ?? []).map((org) => (
