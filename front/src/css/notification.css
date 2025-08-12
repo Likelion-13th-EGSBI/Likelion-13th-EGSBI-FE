@@ -14,18 +14,19 @@
   font-family: 'Pretendard', system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
 }
 
-/* ===== 기본(모바일 유지) ===== */
+/* ===== 기본(모바일: 최대 480px 폭 제한 + 중앙정렬) ===== */
 .notification-page {
   background: var(--bg);
   color: var(--fg);
-  padding: 20px 12px 36px; /* 모바일 좌우 여백 유지 */
+  padding: 20px 16px 36px; /* 답답하지 않게 좌우 늘림 */
   width: 100%;
+  max-width: 480px; /* 모바일 폭 제한 */
   margin: 0 auto;
 }
 
 .page-title-row {
   display: flex; align-items: center; justify-content: space-between;
-  margin: 64px 0 10px; /* 상단바에 가리지 않게 */
+  margin: 64px 0 10px;
 }
 .page-title { margin: 0; font-size: 20px; font-weight: 700; }
 
@@ -47,7 +48,7 @@
 .noti-list { margin:10px 0 0; padding:0; list-style:none; display:flex; flex-direction:column; gap:12px; }
 .noti-card {
   display:flex; gap:12px; padding:14px;
-  background:#fafafa; /* 카드 색을 배경과 구분 */
+  background:#fafafa;
   border-radius:var(--radius-lg);
   box-shadow:var(--shadow-0);
   outline:none; cursor:pointer;
@@ -70,7 +71,7 @@
 /* 빈 상태 */
 .noti-empty { text-align:center; color:#777; padding:32px 0; font-size:14px; }
 
-/* ===== 반쪽 화면(태블릿~중간 데스크톱): 이전 여백의 '반' 수준으로 축소 ===== */
+/* ===== 반쪽 화면(태블릿~중간 데스크톱) ===== */
 @media (min-width: 769px) and (max-width: 1200px) {
   .notification-page {
     padding: 22px 14px 44px;
@@ -81,15 +82,15 @@
   .page-title-row { margin: 18px 0 12px; }
 }
 
-/* ===== 전체 화면(큰 데스크톱): 좌우 균등 여백 ===== */
+/* ===== 전체 화면(큰 데스크톱: 좌우 균등 여백) ===== */
 @media (min-width: 1201px) {
   .notification-page {
     padding-top: 24px;
     padding-bottom: 48px;
-    padding-left: 40px;  /* 좌측 여백 */
-    padding-right: 40px; /* 우측 여백 */
+    padding-left: 40px;
+    padding-right: 40px;
     width: 100%;
-    max-width: 1400px;   /* 가운데 정렬 위해 폭 제한 */
+    max-width: 1400px;
     margin: 0 auto;
   }
   .page-title-row { margin: 20px 0 12px; }

@@ -185,9 +185,24 @@
   .profile-edit-button{ padding:8px 12px; font-size:13px; }
 }
 
+/* ===== Logout (독립 섹션) ===== */
+.logout-section{ width:100%; }
+.logout-button{
+  width:100%; height:44px; border-radius:12px;
+  border:1px solid var(--primary); background:#fff; color:var(--primary);
+  font-weight:900; cursor:pointer;
+  transition: background-color .18s ease, transform .12s ease, box-shadow .18s ease;
+}
+.logout-button:hover{
+  background:rgba(94,147,108,.08);
+  transform:translateY(-0.5px);
+  box-shadow:0 4px 14px rgba(0,0,0,.07);
+}
+
 /* ===== Focus (접근성) ===== */
 .tile-button:focus-visible,
 .mobile-list-row:focus-visible,
+.logout-button:focus-visible,
 .profile-edit-button:focus-visible{
   outline:none;
   box-shadow:var(--ring), 0 6px 18px rgba(0,0,0,.10);
@@ -196,5 +211,6 @@
 
 @media (prefers-reduced-motion: reduce){
   .tile-button,
+  .logout-button,
   .profile-edit-button{ transition:none !important; }
 }

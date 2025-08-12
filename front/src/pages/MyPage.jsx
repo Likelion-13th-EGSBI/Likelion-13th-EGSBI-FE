@@ -10,11 +10,11 @@ const MENU_ITEMS = [
   { key: "uploaded", icon: "📌", title: "내가 업로드한 행사", desc: "등록한 행사 관리" },
 ];
 
-const MyPage = ({ onPageChange, user }) => {
+const MyPage = ({ onPageChange, onLogout, user }) => {
   const navigate = useNavigate();
 
-  const displayName = user?.name || "김민지";
-  const email = user?.email || "test@example.com";
+  const displayName = user?.name || "사용자";
+  const email = user?.email || "email@example.com";
   const initial = useMemo(() => (displayName ? displayName[0] : "U"), [displayName]);
 
   const rating = typeof user?.rating === "number" ? user.rating : 4.5;
@@ -138,6 +138,13 @@ const MyPage = ({ onPageChange, user }) => {
                   )}
                 </button>
               ))}
+            </section>
+
+            {/* 로그아웃 (독립 섹션) */}
+            <section className="logout-section" aria-label="로그아웃">
+              <button className="logout-button" onClick={onLogout}>
+                ↪ 로그아웃
+              </button>
             </section>
           </div>
         </main>
