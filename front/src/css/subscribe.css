@@ -14,11 +14,20 @@
   background: var(--bg);
   color: var(--fg);
   padding: 24px;
-  min-height: calc(100vh - 64px); /* TopBar 높이에 맞게 조정 */
+  min-height: calc(100vh - 64px); /* 데스크탑 TopBar 높이 */
   box-sizing: border-box;
   display: flex;
   flex-direction: column;
   gap: 16px;
+}
+
+/* 모바일: TopBar만큼 위 여백 추가 */
+@media (max-width: 768px) {
+  .subscribe-page {
+    padding: 16px;
+    padding-top: 88px; /* 모바일 TopBar 높이(약 56~72px) + 여유 */
+    min-height: 100vh; /* 모바일은 계산 대신 꽉 채우기 */
+  }
 }
 
 /* 헤더 */
@@ -30,13 +39,25 @@
   border-bottom: 1px solid var(--line);
   padding-bottom: 12px;
   margin-bottom: 4px;
+  background: var(--bg);
 }
+
+/* ✅ (선택) 스크롤해도 헤더 고정 */
+@media (max-width: 768px) {
+  .subscribe-header {
+    position: sticky;
+    top: 56px;   /* 모바일 TopBar 높이 추정값 */
+    z-index: 2;  /* TopBar 아래로 */
+  }
+}
+
 .subscribe-header h2 {
   color: var(--brand);
   font-size: 1.4rem;
   margin: 0;
   letter-spacing: -0.2px;
 }
+
 .subscribe-count {
   color: var(--muted);
   font-size: 0.95rem;
