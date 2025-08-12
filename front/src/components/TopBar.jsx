@@ -15,22 +15,26 @@ const TopBar = () => {
     return () => window.removeEventListener('resize', handleResize);
   }, []);
 
-  // switch문으로 경로별 제목 결정
-  const getTitle = (path) => {
-    switch (path) {
-      case '/':
-        return '메인페이지';
-      case '/event-upload':
-        return '행사 등록';
-      case '/profile':
-        return '내 프로필';
-      case '/settings':
-        return '설정';
-      // 필요에 따라 케이스 추가
-      default:
-        return '페이지 제목';
-    }
-  };
+ // switch문으로 경로별 제목 결정
+const getTitle = (path) => {
+  switch (path) {
+    case '/':
+      return '메인페이지';
+    case '/event-upload':
+      return '행사 등록';
+    case '/mypage':
+      return '마이페이지';
+    case '/mypage/edit':
+      return '프로필 수정';
+    case '/notifications':
+      return '알림';
+    case '/settings':
+      return '설정';
+    // 필요에 따라 케이스 추가
+    default:
+      return '페이지 제목';
+  }
+};
 
   const title = getTitle(location.pathname);
 
@@ -46,7 +50,10 @@ const TopBar = () => {
               <Search size={18} />
               <input type="text" placeholder="행사 검색..." />
             </div>
-            <button className="topbar-mobile-btn topbar-mobile-bell">
+            <button
+              className="topbar-mobile-btn topbar-mobile-bell"
+              onClick={() => navigate('/notifications')}
+            >
               <Bell size={21} />
               <span className="topbar-notification-badge">5</span>
             </button>
@@ -89,7 +96,10 @@ const TopBar = () => {
             <Search size={18} />
             <input type="text" placeholder="행사를 검색해보세요..." />
           </div>
-          <button className="topbar-notification-btn">
+          <button
+            className="topbar-notification-btn"
+            onClick={() => navigate('/notifications')}
+          >
             <Bell size={20} />
             <span className="topbar-notification-badge">5</span>
           </button>

@@ -1,0 +1,115 @@
+:root {
+  --bg: #fff;
+  --fg: #222;
+  --primary: #5E936C;
+  --accent: #93A98C;
+  --danger: #B94E4E;
+  --card: #fff;
+  --radius-xl: 20px;
+  --radius-lg: 16px;
+  --radius-md: 12px;
+  --shadow-0: 0 1px 2px rgba(0,0,0,.06);
+  --shadow-1: 0 6px 18px rgba(0,0,0,.10), 0 2px 6px rgba(0,0,0,.06);
+  --ring: 0 0 0 3px rgba(94,147,108,.18);
+  font-family: 'Pretendard', system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
+}
+
+/* ===== 기본(모바일: 최대 480px 폭 제한 + 중앙정렬) ===== */
+.notification-page {
+  background: var(--bg);
+  color: var(--fg);
+  padding: 20px 16px 36px; /* 답답하지 않게 좌우 늘림 */
+  width: 100%;
+  max-width: 480px; /* 모바일 폭 제한 */
+  margin: 0 auto;
+}
+
+.page-title-row {
+  display: flex; align-items: center; justify-content: space-between;
+  margin: 64px 0 10px;
+}
+.page-title { margin: 0; font-size: 20px; font-weight: 700; }
+
+/* 모바일 필터 탭 */
+.filter-tabs { display:flex; align-items:center; justify-content:space-between; gap:8px; padding:8px 0; }
+.filter-scroll { display:flex; gap:8px; overflow-x:auto; -webkit-overflow-scrolling:touch; padding-bottom:2px; }
+.filter-scroll::-webkit-scrollbar { display:none; }
+.filter-chip {
+  border:1px solid rgba(0,0,0,.08); background:#f7f7f7;
+  padding:6px 12px; border-radius:999px; font-size:14px; white-space:nowrap; cursor:pointer;
+  transition: background .15s ease, box-shadow .2s ease, border-color .15s ease;
+}
+.filter-chip:hover { background:#eef2ee; }
+.filter-chip.selected { border-color:transparent; background:rgba(94,147,108,.14); color:#1f3b2a; box-shadow:var(--ring); }
+.mark-read-inline { border:none; background:#f1f3f1; padding:6px 10px; border-radius:10px; font-size:13px; cursor:pointer; }
+.mark-read-inline:hover { filter:brightness(0.97); }
+
+/* 리스트/카드 */
+.noti-list { margin:10px 0 0; padding:0; list-style:none; display:flex; flex-direction:column; gap:12px; }
+.noti-card {
+  display:flex; gap:12px; padding:14px;
+  background:#fafafa;
+  border-radius:var(--radius-lg);
+  box-shadow:var(--shadow-0);
+  outline:none; cursor:pointer;
+  transition: background .15s ease, transform .18s ease, box-shadow .22s ease;
+}
+.noti-card.unread { background:rgba(94,147,108,.08); }
+.noti-card:hover { transform:translateY(-1px); box-shadow:var(--shadow-1); background:rgba(94,147,108,.06); }
+.noti-card.unread:hover { background:rgba(94,147,108,.12); }
+.noti-card:active { transform:translateY(0) scale(0.997); }
+.noti-card:focus-visible { box-shadow:var(--ring); }
+
+.noti-icon { font-size:24px; width:36px; height:36px; display:flex; align-items:center; justify-content:center; border-radius:50%; background:#f2f4f2; flex:none; }
+.noti-body { flex:1; display:flex; flex-direction:column; gap:4px; }
+.noti-title-row { display:flex; align-items:center; gap:6px; }
+.noti-title { margin:0; font-size:15px; font-weight:700; }
+.noti-dot { width:8px; height:8px; border-radius:50%; background:var(--primary); display:inline-block; }
+.noti-message { margin:0; font-size:14px; color:#555; }
+.noti-time { font-size:12px; color:#999; }
+
+/* 빈 상태 */
+.noti-empty { text-align:center; color:#777; padding:32px 0; font-size:14px; }
+
+/* ===== 반쪽 화면(태블릿~중간 데스크톱) ===== */
+@media (min-width: 769px) and (max-width: 1200px) {
+  .notification-page {
+    padding: 22px 14px 44px;
+    width: 100%;
+    max-width: 96%;
+    margin: 0 auto;
+  }
+  .page-title-row { margin: 18px 0 12px; }
+}
+
+/* ===== 전체 화면(큰 데스크톱: 좌우 균등 여백) ===== */
+@media (min-width: 1201px) {
+  .notification-page {
+    padding-top: 24px;
+    padding-bottom: 48px;
+    padding-left: 40px;
+    padding-right: 40px;
+    width: 100%;
+    max-width: 1400px;
+    margin: 0 auto;
+  }
+  .page-title-row { margin: 20px 0 12px; }
+}
+
+/* 데스크톱: 웹 툴바 보이고 모바일 필터 숨김 */
+@media (min-width: 1024px) {
+  .web-toolbar { display:block; }
+  .filter-tabs { display:none; }
+}
+
+/* 웹 전용 툴바 스타일 */
+.web-toolbar-inner { display:flex; align-items:center; gap:6px; flex-wrap:wrap; }
+.web-chip {
+  padding:6px 10px; font-size:13px; border-radius:999px;
+  border:1px solid rgba(0,0,0,.08); background:#f7f7f7; cursor:pointer;
+  transition: background .15s ease, box-shadow .2s ease, border-color .15s ease;
+}
+.web-chip:hover { background:#eef2ee; }
+.web-chip.selected { border-color:transparent; background:rgba(94,147,108,.14); color:#1f3b2a; box-shadow:var(--ring); }
+.web-markread { padding:6px 10px; font-size:13px; border-radius:8px; border:none; background:#e9efe9; cursor:pointer; }
+.web-markread:hover { filter:brightness(0.97); }
