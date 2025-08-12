@@ -6,6 +6,8 @@ import SignupPage from './pages/SignupPage';
 import EventUpload from './pages/EventUpload';
 import MyPage from './pages/MyPage';
 import EditProfile from './pages/EditProfile';
+import Notification from './pages/Notification';
+
 
 function App() {
   return (
@@ -19,7 +21,7 @@ function App() {
         <Route path="/event-upload" element={<EventUpload/>} />
         <Route path="/mypage" element={<MyPage/>} />
         <Route path="/mypage/edit" element={<EditProfile/>} />
-
+        <Route path="/notification" element={<Notification/>} />
       </Routes>
     </Router>
   );

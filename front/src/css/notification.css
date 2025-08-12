@@ -1,0 +1,94 @@
+:root {
+  --bg: #fff;
+  --fg: #222;
+  --primary: #5E936C;
+  --accent: #93A98C;
+  --danger: #B94E4E;
+  --card: #fff;
+  --shadow-0: 0 1px 2px rgba(0, 0, 0, 0.06);
+  --shadow-1: 0 6px 18px rgba(0, 0, 0, 0.06);
+  --radius-lg: 16px;
+}
+
+/* 페이지 */
+.notification-page {
+  background: var(--bg);
+  color: var(--fg);
+  min-height: 100vh;
+  padding: 20px;
+  font-family: 'Pretendard', sans-serif;
+}
+
+/* 상단바 */
+.notification-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+}
+
+.notification-header h2 {
+  font-size: 20px;
+  font-weight: bold;
+}
+
+.more-btn {
+  background: none;
+  border: none;
+  font-size: 20px;
+  cursor: pointer;
+}
+
+/* 리스트 */
+.notification-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.notification-item {
+  display: flex;
+  align-items: flex-start;
+  background: var(--card);
+  padding: 12px;
+  margin-bottom: 12px;
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-0);
+  transition: background 0.2s;
+}
+
+.notification-item.unread {
+  background: rgba(94, 147, 108, 0.08); /* 읽지 않은 알림 강조 */
+}
+
+.noti-icon {
+  font-size: 24px;
+  margin-right: 12px;
+}
+
+.noti-content h4 {
+  margin: 0;
+  font-size: 16px;
+  font-weight: bold;
+}
+
+.noti-content p {
+  margin: 4px 0;
+  font-size: 14px;
+  color: #555;
+}
+
+.noti-date {
+  font-size: 12px;
+  color: #999;
+}
+
+/* 반응형 */
+@media (max-width: 480px) {
+  .notification-page {
+    padding: 12px;
+  }
+  .noti-content h4 {
+    font-size: 14px;
+  }
+}
