@@ -30,6 +30,8 @@ const getTitle = (path) => {
       return '알림';
     case '/settings':
       return '설정';
+    case '/bookmarks':
+      return '북마크한 행사';
     // 필요에 따라 케이스 추가
     default:
       return '페이지 제목';
