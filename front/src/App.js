@@ -7,10 +7,11 @@ import SignupPage from './pages/SignupPage';
 import MyPage from './pages/MyPage';
 import EditProfile from './pages/EditProfile';
 import NotificationPage from './pages/NotificationPage';
-
 import SubscribePage from './pages/SubscribePage';        
 import BookmarkedEvents from './pages/BookmarkedEvents';  
 import JoinedEvents from './pages/JoinedEvents';
+import EventUpload from './pages/EventUpload';
+
 
 function App() {
   return (
@@ -22,6 +23,9 @@ function App() {
         {/* 인증 */}
         <Route path="/login" element={<LoginPage />} />
         <Route path="/signup" element={<SignupPage />} />
+
+        {/* 행사 업로드 */}
+        <Route path="/event-upload" element={<EventUpload />} /> {/* ✅ 추가 */}
 
         {/* 마이페이지 & 프로필 */}
         <Route path="/mypage" element={<MyPage />} />
