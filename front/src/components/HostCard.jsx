@@ -1,23 +1,33 @@
 import React from 'react';
-import '../css/subscribe.css';
+import '../css/hostcard.css';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 
 export default function HostCard({ host, onUnsubscribe }) {
+
+  const navigate = useNavigate();
+
+  // host 유무와 상관없이 안전한 값 준비 (목업/빈값 대응)
   const id = host?.id ?? null;
   const name = host?.name ?? '이름 없음';
   const image = host?.profileImage ?? host?.image ?? null;
 
-  const navigate = useNavigate();
-
   const handleCardClick = () => {
-    if (id != null) navigate(`/host/${id}`);
+    if (id != null) navigate(`/host/${id}`); // 실제 라우트
+  };
+
+  const handleCardKeyDown = (e) => {
+    if (e.key === 'Enter' || e.key === ' ') {
+      e.preventDefault();
+      handleCardClick();
+    }
   };
 
   const handleUnsubscribe = async (e) => {
     e.stopPropagation(); // 카드 클릭 방지
+    if (id == null) return; // 목업/빈카드면 무시
+
     const apiBase = process.env.REACT_APP_API_URL ?? '';
-    // MOCK 모드나 API 미설정이면 즉시 제거만
     if (!apiBase) {
       onUnsubscribe?.(id);
       return;
@@ -32,9 +42,15 @@ export default function HostCard({ host, onUnsubscribe }) {
   };
 
   return (
-    <li className="org-card" onClick={handleCardClick} role="button" tabIndex={0}>
+    <li
+      className={`org-card ${id == null ? 'is-mock' : ''}`}
+      onClick={handleCardClick}
+      onKeyDown={handleCardKeyDown}
+      role={id != null ? 'button' : 'group'}
+      tabIndex={0}
+      aria-label={`${name} 카드`}
+    >
       <div className="org-card__header">
-        {/* 왼쪽: 아바타 + 이름(긴 경우 … 처리) */}
         <div className="org-card__info">
           <div className="org-card__avatar">
             {image ? <img src={image} alt={`${name} 프로필`} /> : (name?.[0] ?? '호')}
@@ -42,9 +58,15 @@ export default function HostCard({ host, onUnsubscribe }) {
           <div className="org-card__name" title={name}>{name}</div>
         </div>
 
-        {/* 오른쪽: 구독 해제 버튼 */}
-        <button className="unsubscribe-btn" onClick={handleUnsubscribe}>
-          구독 해제
+        <button
+          type="button"
+          className="unsubscribe-btn"
+          onClick={handleUnsubscribe}
+          aria-live="polite"
+          aria-label="구독 상태"
+        >
+          <span className="label-default">구독중</span>
+          <span className="label-hover">구독 해제</span>
         </button>
       </div>
     </li>
