@@ -17,15 +17,15 @@ const MOCK_HOST = {
   aiSummary:
     '디자인/IT 분야의 전문 커뮤니티로, 실무 중심 워크숍과 네트워킹이 강점입니다. 친절한 진행과 알찬 자료가 호평을 받습니다. 재참여 의사가 높고, 운영팀 소통이 빠르다는 의견이 많습니다.',
 };
+
 const MOCK_EVENTS = [
-  { id: 1, title: "행사 1", image: null, date: "2025-10-01", time: "10:00", location: "서울", fee: "무료", hashtag: ["디자인", "IT", "커뮤니티"] },
+  { id: 1, title: "행사 1", image: null, date: "2025-10-01", time: "10:00", location: "서울", fee: "무료", hashtags: ["디자인", "IT", "커뮤니티"] },
   { id: 2, title: "행사 2", image: null, date: "2025-11-01", time: "15:00", location: "부산", fee: "10,000원" },
   { id: 3, title: "행사 3", image: null, date: "2025-12-10", time: "09:00", location: "대구", fee: "무료" },
   { id: 4, title: "행사 4", image: null, date: "2026-01-15", time: "13:00", location: "광주", fee: "5,000원" },
   { id: 5, title: "행사 5", image: null, date: "2026-02-20", time: "14:00", location: "인천", fee: "무료" },
   { id: 6, title: "행사 6", image: null, date: "2026-03-05", time: "11:00", location: "제주", fee: "무료" },
 ];
-
 
 export default function HostDetail() {
   const { id } = useParams();
@@ -35,9 +35,11 @@ export default function HostDetail() {
   const [isSubscribed, setIsSubscribed] = useState(true);
   const [subscribing, setSubscribing] = useState(false);
   const [bookmarks, setBookmarks] = useState({});
+
   const toggleBookmark = (id) => {
     setBookmarks(prev => ({ ...prev, [id]: !prev[id] }));
   };
+
   const Stars = ({ value = 0 }) => {
     const full = Math.floor(value);
     const half = value - full >= 0.5;
@@ -97,15 +99,11 @@ export default function HostDetail() {
     }
   };
 
-  const goEventsPage = () => {
-    navigate(`/host/${id}/events`, { state: { hostName: host?.name } });
-  };
-
   return (
     <Layout pageTitle="주최자" activeMenuItem="subscribe">
       <div className="host-detail">
         <div className="hd-inner">
-          {/* 프로필 카드: 아바타가 카드 바깥으로 살짝 겹치도록 */}
+          {/* 프로필 카드 */}
           <section className="hero-card card-overlap">
             <div className="avatar-xxl">
               {host?.profileImage ? (
@@ -141,12 +139,19 @@ export default function HostDetail() {
             <p className="ai-summary-txt">{shortSummary}</p>
           </section>
 
-          {/* 🆕 주최자 행사 목록 */}
+          {/* 주최자 행사 목록 */}
           <section className="host-events-section">
             <h2 className="section-title">주최한 행사</h2>
             <div className="event-grid">
               {MOCK_EVENTS.map((event) => (
-                <EventCard key={event.id} {...event} />
+                <EventCard
+                  key={event.id}
+                  id={event.id}
+                  {...event}
+                  bookmarked={bookmarks[event.id]}
+                  onBookmarkToggle={() => toggleBookmark(event.id)}
+                  onClick={() => navigate(`/events/${event.id}`)} // 클릭 시 상세페이지 이동
+                />
               ))}
             </div>
           </section>
