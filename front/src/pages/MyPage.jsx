@@ -23,6 +23,24 @@ const MyPage = ({ onPageChange, onLogout, user }) => {
   const hasHalf = rating - full >= 0.5;
   const empty = 5 - full - (hasHalf ? 1 : 0);
 
+  // 메뉴 클릭 시 라우팅
+  const handleMenuClick = (key) => {
+    switch (key) {
+      case "bookmarks":
+        navigate("/bookmarks");
+        break;
+      case "subscriptions":
+        navigate("/subscribes");
+        break;
+      case "joined":
+        navigate("/joined");
+        break;
+      default:
+        onPageChange?.(key);
+        break;
+    }
+  };
+
   return (
     <Layout pageTitle="마이페이지" activeMenuItem="mypage">
       <div className="mypage-page">
@@ -52,15 +70,11 @@ const MyPage = ({ onPageChange, onLogout, user }) => {
                   >
                     <div className="rating-stars" aria-hidden="true">
                       {Array.from({ length: full }).map((_, i) => (
-                        <span key={`f${i}`} className="star full">
-                          ★
-                        </span>
+                        <span key={`f${i}`} className="star full">★</span>
                       ))}
                       {hasHalf && <span className="star half">★</span>}
                       {Array.from({ length: empty }).map((_, i) => (
-                        <span key={`e${i}`} className="star empty">
-                          ★
-                        </span>
+                        <span key={`e${i}`} className="star empty">★</span>
                       ))}
                     </div>
                     <span className="rating-value">{rating.toFixed(1)}</span>
@@ -86,7 +100,7 @@ const MyPage = ({ onPageChange, onLogout, user }) => {
                 <button
                   key={m.key}
                   className="tile-button"
-                  onClick={() => onPageChange?.(m.key)}
+                  onClick={() => handleMenuClick(m.key)}
                 >
                   <div
                     className={`tile-icon ${
@@ -113,7 +127,7 @@ const MyPage = ({ onPageChange, onLogout, user }) => {
                 <button
                   key={m.key}
                   className="mobile-list-row"
-                  onClick={() => onPageChange?.(m.key)}
+                  onClick={() => handleMenuClick(m.key)}
                 >
                   <div
                     className={`mobile-list-icon ${
@@ -130,9 +144,7 @@ const MyPage = ({ onPageChange, onLogout, user }) => {
                     <p className="mobile-list-title">{m.title}</p>
                     <p className="mobile-list-description">{m.desc}</p>
                   </div>
-                  <span className="mobile-list-chevron" aria-hidden="true">
-                    ›
-                  </span>
+                  <span className="mobile-list-chevron" aria-hidden="true">›</span>
                   {idx < MENU_ITEMS.length - 1 && (
                     <div className="mobile-list-divider" />
                   )}
@@ -140,7 +152,7 @@ const MyPage = ({ onPageChange, onLogout, user }) => {
               ))}
             </section>
 
-            {/* 로그아웃 (독립 섹션) */}
+            {/* 로그아웃 */}
             <section className="logout-section" aria-label="로그아웃">
               <button className="logout-button" onClick={onLogout}>
                 ↪ 로그아웃
