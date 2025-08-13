@@ -1,8 +1,16 @@
 import React from "react";
 import "../css/eventcard.css";
-import { FaRegHeart, FaHeart, FaCalendarAlt, FaClock, FaMapMarkerAlt, FaWonSign } from "react-icons/fa";
+import {
+  FaRegHeart,
+  FaHeart,
+  FaCalendarAlt,
+  FaClock,
+  FaMapMarkerAlt,
+  FaWonSign,
+} from "react-icons/fa";
 
 const EventCard = ({
+  id,
   image,
   title,
   summary,
@@ -10,16 +18,32 @@ const EventCard = ({
   date,
   location,
   time,
-  fee,          // NOTE: 호출부에서 price를 넘기면 fee로 매핑 필요
+  fee,
   bookmarked,
-  onBookmarkToggle
+  onBookmarkToggle,
+  onClick,
 }) => {
   return (
-    <div className="event-card">
+    <div
+      className="event-card"
+      onClick={typeof onClick === "function" ? () => onClick(id) : undefined}
+      role={typeof onClick === "function" ? "button" : undefined}
+      tabIndex={typeof onClick === "function" ? 0 : undefined}
+      onKeyDown={(e) => {
+        if (!onClick) return;
+        if (e.key === "Enter" || e.key === " ") {
+          e.preventDefault();
+          onClick(id);
+        }
+      }}
+    >
       {/* 북마크 버튼 */}
       <button
-        className={`bookmark-btn ${bookmarked ? 'bookmarked' : ''}`}
-        onClick={onBookmarkToggle}
+        className={`bookmark-btn ${bookmarked ? "bookmarked" : ""}`}
+        onClick={(e) => {
+          e.stopPropagation();
+          onBookmarkToggle && onBookmarkToggle();
+        }}
         aria-label="bookmark"
       >
         {bookmarked ? <FaHeart className="icon" /> : <FaRegHeart className="icon" />}
@@ -29,9 +53,7 @@ const EventCard = ({
       <div
         className="event-image"
         style={{
-          background: image
-            ? `url(${image}) center/cover no-repeat`
-            : "#5E936C"
+          background: image ? `url(${image}) center/cover no-repeat` : "#5E936C",
         }}
       >
         {!image && <span className="placeholder-text">No Image</span>}
@@ -45,7 +67,9 @@ const EventCard = ({
         {/* 해시태그 */}
         <div className="hashtags">
           {hashtags.map((tag, index) => (
-            <span key={index} className="hashtag">#{tag}</span>
+            <span key={index} className="hashtag">
+              #{tag}
+            </span>
           ))}
         </div>
 

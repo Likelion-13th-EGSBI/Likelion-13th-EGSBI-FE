@@ -1,0 +1,160 @@
+/* src/css/eventdetail.css */
+
+/* ── 이벤트 상세 페이지 스타일 ─────────────────────── */
+.event-detail-container {
+    max-width: 900px;
+    margin: 0 auto;
+    padding: 20px;
+    font-family: Arial, sans-serif;
+    color: #333;
+}
+    
+.event-detail-container .event-image img {
+    width: 100%;
+    height: auto;
+    border-radius: 10px;
+    object-fit: cover;
+}
+
+/* 오너/프로필 영역 */
+.event-detail-container .event-owner {
+    display: flex;
+    align-items: center;
+    margin-top: 15px;
+    gap: 10px;
+}
+
+.event-detail-container .owner-avatar {
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+}
+
+.event-detail-container .owner-name {
+    color: #5E936C;
+    font-weight: bold;
+    text-decoration: none;
+}
+
+/* 본문 정보 */
+.event-detail-container .event-info {
+    margin-top: 20px;
+}
+
+.event-detail-container .event-title {
+    font-size: 2rem;
+    color: #5E936C;
+    margin-bottom: 10px;
+}
+
+.event-detail-container .event-summary {
+    font-size: 1.1rem;
+    margin-bottom: 15px;
+}
+
+.event-detail-container .event-description {
+    font-size: 1rem;
+    line-height: 1.6;
+}
+
+/* 액션 버튼 */
+.event-detail-container .event-actions {
+    margin-top: 25px;
+    display: flex;
+    gap: 15px;
+}
+
+.event-detail-container .btn {
+    padding: 10px 20px;
+    border: none;
+    border-radius: 5px;
+    color: #fff;
+    cursor: pointer;
+}
+
+.event-detail-container .edit-btn {
+    background-color: #5E936C;
+}
+
+.event-detail-container .review-btn {
+    background-color: #5E936C;
+}
+
+/* 리뷰 팝업(오버레이) */
+.event-detail-container .review-popup {
+    position: fixed;
+    /* 화면 전체 오버레이 */
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.5);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+}
+
+.event-detail-container .review-content {
+    background-color: #fff;
+    padding: 20px;
+    width: 500px;
+    max-height: 80%;
+    overflow-y: auto;
+    border-radius: 10px;
+    position: relative;
+}
+
+.event-detail-container .close-btn {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    border: none;
+    background: none;
+    font-size: 1.2rem;
+    cursor: pointer;
+}
+
+.event-detail-container .review-list {
+    margin-top: 20px;
+}
+
+.event-detail-container .review-item {
+    border-bottom: 1px solid #ddd;
+    padding: 10px 0;
+}
+
+.event-detail-container .review-user {
+    font-weight: bold;
+    color: #5E936C;
+}
+
+.event-detail-container .review-text {
+    margin-top: 5px;
+    font-size: 0.95rem;
+}
+
+/* 반응형 */
+@media (max-width: 768px) {
+    .event-detail-container {
+        padding: 15px;
+    }
+
+    .event-detail-container .event-title {
+        font-size: 1.5rem;
+    }
+
+    .event-detail-container .review-content {
+        width: 90%;
+    }
+
+    .event-detail-container .event-actions {
+        flex-direction: column;
+        gap: 10px;
+    }
+
+    .event-detail-container .btn {
+        width: 100%;
+        text-align: center;
+    }
+}
