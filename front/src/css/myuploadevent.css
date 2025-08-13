@@ -1,0 +1,564 @@
+.myuploadevent-container {
+    width: 100%;
+    max-width: none;
+    margin: 0;
+    padding: 0;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Noto Sans KR', sans-serif;
+}
+
+/* ==================== 로딩 ==================== */
+.myuploadevent-loading {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 8px;
+    padding: 100px 0;
+}
+
+.myuploadevent-loading-dot {
+    width: 8px;
+    height: 8px;
+    background: #5E936C;
+    border-radius: 50%;
+    animation: loading-bounce 1.4s ease-in-out infinite both;
+}
+
+.myuploadevent-loading-dot:nth-child(1) { animation-delay: -0.32s; }
+.myuploadevent-loading-dot:nth-child(2) { animation-delay: -0.16s; }
+
+@keyframes loading-bounce {
+    0%, 80%, 100% { transform: scale(0); opacity: 0.5; }
+    40% { transform: scale(1); opacity: 1; }
+}
+
+/* ==================== 헤더 (통합) ==================== */
+.myuploadevent-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 20px;
+    border-bottom: 1px solid #f0f3f4;
+    background: white;
+    margin-top: 30px;
+    z-index: 10;
+}
+
+.myuploadevent-title {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: #1a1d21;
+    margin: 0;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.myuploadevent-count {
+    font-size: 1rem;
+    color: #5E936C;
+    font-weight: 600;
+}
+
+.myuploadevent-add-btn {
+    background: #5E936C;
+    color: white;
+    border: none;
+    border-radius: 8px;
+    padding: 10px 16px;
+    font-size: 0.9rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.myuploadevent-add-btn:hover {
+    background: #4a7857;
+    transform: translateY(-1px);
+}
+
+/* ==================== 빈 상태 ==================== */
+.myuploadevent-empty {
+    text-align: center;
+    padding: 80px 20px;
+    max-width: 400px;
+    margin: 0 auto;
+    grid-column: 1 / -1;
+}
+
+.myuploadevent-empty-icon {
+    font-size: 3rem;
+    margin-bottom: 16px;
+    opacity: 0.7;
+}
+
+.myuploadevent-empty-title {
+    font-size: 1.25rem;
+    font-weight: 600;
+    color: #1a1d21;
+    margin: 0 0 8px 0;
+}
+
+.myuploadevent-empty-desc {
+    font-size: 0.9rem;
+    color: #6b7684;
+    margin: 0 0 24px 0;
+}
+
+.myuploadevent-empty-button {
+    background: #5E936C;
+    color: white;
+    border: none;
+    border-radius: 8px;
+    padding: 12px 24px;
+    font-size: 0.9rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.myuploadevent-empty-button:hover {
+    background: #4a7857;
+}
+
+/* ==================== 3열 그리드 레이아웃 (데스크톱) ==================== */
+.myuploadevent-events {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 20px;
+    padding: 20px;
+}
+
+.myuploadevent-card {
+    background: white;
+    border-radius: 12px;
+    overflow: hidden;
+    border: 1px solid #e5e7eb;
+    transition: all 0.3s ease;
+    cursor: pointer;
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    min-height: 380px;
+}
+
+.myuploadevent-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 12px 32px rgba(0, 0, 0, 0.12);
+    border-color: #5E936C;
+}
+
+/* 데스크톱에서도 이미지 비율 조정 */
+.myuploadevent-card-image {
+    position: relative;
+    width: 100%;
+    padding-bottom: 75%; /* 4:3 비율로 조정 */
+    overflow: hidden;
+    background: #f8f9fa;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.myuploadevent-card-image img {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover; /* contain에서 cover로 변경 */
+    object-position: center;
+    background: #f8f9fa;
+    transition: transform 0.3s ease;
+}
+
+.myuploadevent-card:hover .myuploadevent-card-image img {
+    transform: scale(1.02);
+}
+
+.myuploadevent-card-content {
+    padding: 14px;
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+}
+
+.myuploadevent-card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 6px;
+}
+
+.myuploadevent-card-title {
+    font-size: 1rem;
+    font-weight: 600;
+    color: #1a1d21;
+    margin: 0;
+    line-height: 1.3;
+    flex: 1;
+    margin-right: 8px;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+
+.myuploadevent-menu-button {
+    width: 24px;
+    height: 24px;
+    border: none;
+    background: transparent;
+    color: #6b7684;
+    cursor: pointer;
+    border-radius: 4px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1rem;
+    flex-shrink: 0;
+}
+
+.myuploadevent-menu-button:hover {
+    background: #f3f4f6;
+}
+
+.myuploadevent-card-description {
+    font-size: 0.8rem;
+    color: #6b7684;
+    line-height: 1.3;
+    margin: 0 0 10px 0;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    min-height: 2.6em;
+}
+
+.myuploadevent-card-info {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    margin-bottom: 10px;
+    flex: 1;
+}
+
+.myuploadevent-info-item {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    font-size: 0.75rem;
+    color: #6b7684;
+}
+
+.myuploadevent-info-item span {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    flex: 1;
+}
+
+.myuploadevent-info-icon {
+    font-size: 0.8rem;
+    width: 11px;
+    flex-shrink: 0;
+}
+
+/* 정보 항목별 스타일 */
+.myuploadevent-info-date::before {
+    content: "일시: ";
+    font-weight: 500;
+    color: #4a5568;
+}
+
+.myuploadevent-info-location::before {
+    content: "장소: ";
+    font-weight: 500;
+    color: #4a5568;
+}
+
+.myuploadevent-info-price::before {
+    content: "요금: ";
+    font-weight: 500;
+    color: #4a5568;
+}
+
+.myuploadevent-card-actions {
+    padding-top: 10px;
+    border-top: 1px solid #f3f4f6;
+}
+
+.myuploadevent-action-button {
+    width: 100%;
+    padding: 8px 12px;
+    border-radius: 6px;
+    font-size: 0.8rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    border: none;
+    text-align: center;
+}
+
+.myuploadevent-edit {
+    background: #f0f7f4;
+    color: #5E936C;
+}
+
+.myuploadevent-edit:hover {
+    background: #e8f5ea;
+}
+
+/* ==================== 태블릿 (768px - 1023px) ==================== */
+@media (min-width: 768px) and (max-width: 1023px) {
+    .myuploadevent-header {
+        padding: 18px 20px;
+    }
+    
+    .myuploadevent-title {
+        font-size: 1.4rem;
+    }
+    
+    .myuploadevent-events {
+        gap: 18px;
+        padding: 18px;
+    }
+    
+    .myuploadevent-card {
+        min-height: 350px;
+    }
+    
+    .myuploadevent-card-image {
+        padding-bottom: 60%;
+        background: #f8f9fa;
+    }
+    
+    .myuploadevent-card-image img {
+        object-fit: cover; /* contain에서 cover로 변경 */
+        object-position: center;
+        background: #f8f9fa;
+    }
+    
+    .myuploadevent-card-content {
+        padding: 12px;
+    }
+    
+    .myuploadevent-card-title {
+        font-size: 0.9rem;
+    }
+    
+    .myuploadevent-card-description {
+        font-size: 0.75rem;
+        min-height: 2.4em;
+        margin-bottom: 8px;
+    }
+    
+    .myuploadevent-info-item {
+        font-size: 0.7rem;
+        gap: 4px;
+    }
+    
+    .myuploadevent-info-item span {
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+        flex: 1;
+    }
+    
+    .myuploadevent-card-info {
+        gap: 3px;
+        margin-bottom: 8px;
+    }
+    
+    .myuploadevent-card-actions {
+        padding-top: 8px;
+    }
+    
+    .myuploadevent-action-button {
+        padding: 6px 10px;
+        font-size: 0.75rem;
+    }
+}
+
+@media (max-width: 767px) {
+    /* 헤더 최적화 */
+    .myuploadevent-header {
+        padding-top: 30px;
+    }
+    
+    .myuploadevent-title {
+        font-size: 1.2rem;
+    }
+    
+    .myuploadevent-count {
+        font-size: 0.85rem;
+        background: #f0f7f4;
+        padding: 2px 6px;
+        border-radius: 6px;
+    }
+    
+    .myuploadevent-add-btn {
+        padding: 8px 12px;
+        font-size: 0.8rem;
+    }
+    
+    /* 3열 레이아웃 유지 */
+    .myuploadevent-events {
+        grid-template-columns: repeat(3, 1fr);
+        gap: 8px;
+        padding: 12px;
+    }
+    
+    /* 카드 최적화 - 높이 조정 */
+    .myuploadevent-card {
+        min-height: auto; /* 자동 높이로 변경 */
+        max-height: 320px; /* 이미지 크기 증가에 따른 높이 조정 */
+        border-radius: 8px;
+    }
+    
+    .myuploadevent-card:hover {
+        transform: none; /* 모바일에서 hover 효과 제거 */
+    }
+    
+    /* 이미지 비율 크게 키우기 */
+    .myuploadevent-card-image {
+        padding-bottom: 120%; /* 세로로 긴 이미지 비율 */
+        background: #f8f9fa;
+    }
+    
+    .myuploadevent-card-image img {
+        object-fit: contain;
+        object-position: center;
+        background: #f8f9fa;
+    }
+    
+    /* 콘텐츠 패딩 줄이기 */
+    .myuploadevent-card-content {
+        padding: 8px;
+    }
+    
+    /* 제목 최적화 */
+    .myuploadevent-card-title {
+        font-size: 0.75rem;
+        line-height: 1.1;
+        -webkit-line-clamp: 1; /* 1줄로 제한 */
+        margin-bottom: 3px;
+    }
+    
+    .myuploadevent-menu-button {
+        width: 16px;
+        height: 16px;
+        font-size: 0.7rem;
+    }
+    
+    /* 설명 최적화 */
+    .myuploadevent-card-description {
+        font-size: 0.6rem;
+        line-height: 1.2;
+        min-height: auto; /* 최소 높이 제거 */
+        margin-bottom: 5px;
+        -webkit-line-clamp: 2; /* 2줄로 제한 */
+    }
+    
+    /* 정보 섹션 최적화 */
+    .myuploadevent-card-info {
+        gap: 2px;
+        margin-bottom: 5px;
+    }
+    
+    .myuploadevent-info-item {
+        font-size: 0.6rem;
+        gap: 3px;
+    }
+    
+    .myuploadevent-info-item span {
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+        flex: 1;
+    }
+    
+    .myuploadevent-info-icon {
+        font-size: 0.65rem;
+        width: 8px;
+    }
+    
+    /* 모바일용 명칭 스타일 */
+    .myuploadevent-info-date::before,
+    .myuploadevent-info-location::before,
+    .myuploadevent-info-price::before {
+        font-size: 0.6rem;
+        font-weight: 600;
+    }
+    
+    /* 액션 버튼 최적화 */
+    .myuploadevent-card-actions {
+        padding-top: 5px;
+    }
+    
+    .myuploadevent-action-button {
+        padding: 4px 6px;
+        font-size: 0.65rem;
+        border-radius: 3px;
+    }
+    
+    /* 빈 상태 최적화 */
+    .myuploadevent-empty {
+        padding: 50px 16px;
+    }
+    
+    .myuploadevent-empty-icon {
+        font-size: 2.5rem;
+    }
+    
+    .myuploadevent-empty-title {
+        font-size: 1.1rem;
+    }
+    
+    .myuploadevent-empty-desc {
+        font-size: 0.85rem;
+    }
+    
+    .myuploadevent-empty-button {
+        padding: 10px 20px;
+        font-size: 0.85rem;
+    }
+}
+
+/* ==================== 애니메이션 ==================== */
+.myuploadevent-card {
+    animation: fadeInUp 0.4s ease-out forwards;
+}
+
+.myuploadevent-card:nth-child(1) { animation-delay: 0.05s; }
+.myuploadevent-card:nth-child(2) { animation-delay: 0.1s; }
+.myuploadevent-card:nth-child(3) { animation-delay: 0.15s; }
+.myuploadevent-card:nth-child(4) { animation-delay: 0.2s; }
+.myuploadevent-card:nth-child(5) { animation-delay: 0.25s; }
+.myuploadevent-card:nth-child(6) { animation-delay: 0.3s; }
+
+@keyframes fadeInUp {
+    from {
+        opacity: 0;
+        transform: translateY(15px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* ==================== 접근성 ==================== */
+.myuploadevent-add-btn:focus,
+.myuploadevent-action-button:focus,
+.myuploadevent-menu-button:focus {
+    outline: 2px solid #5E936C;
+    outline-offset: 2px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    * {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+    }
+}
