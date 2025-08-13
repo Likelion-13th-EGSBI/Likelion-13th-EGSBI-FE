@@ -30,7 +30,7 @@ const MyPage = ({ onPageChange, onLogout, user }) => {
         navigate("/bookmarks");
         break;
       case "subscriptions":
-        navigate("/subscribe");
+        navigate("/subscribes");
         break;
       case "joined":
         navigate("/joined");

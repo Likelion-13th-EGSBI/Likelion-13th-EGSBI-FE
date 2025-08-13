@@ -1,31 +1,41 @@
 import React from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import './App.css';
+
 import LoginPage from './pages/LoginPage';
 import SignupPage from './pages/SignupPage';
-// import EventUpload from './pages/EventUpload'; // 업로드 페이지 (나중에 추가)
 import MyPage from './pages/MyPage';
 import EditProfile from './pages/EditProfile';
 import NotificationPage from './pages/NotificationPage';
-import SubscribePage from './pages/SubscribePage';
-import BookmarkedEvents from './pages/BookmarkedEvents';
+
+import SubscribePage from './pages/SubscribePage';        
+import BookmarkedEvents from './pages/BookmarkedEvents';  
 import JoinedEvents from './pages/JoinedEvents';
+// import MyUploadedEvents from './pages/MyUploadedEvents';  // /my-upload-event  ← 이미 존재한다고 했음
 
 function App() {
   return (
     <Router>
       <Routes>
+        {/* 메인 */}
         <Route path="/" element={<></>} />
+
+        {/* 인증 */}
         <Route path="/login" element={<LoginPage />} />
         <Route path="/signup" element={<SignupPage />} />
+
+        {/* 마이페이지 & 프로필 */}
         <Route path="/mypage" element={<MyPage />} />
-        <Route path="/mypage/edit" element={<EditProfile />} />
-        <Route path="/notifications" element={<NotificationPage />} />
-        <Route path="/subscribe" element={<SubscribePage />} />
+        <Route path="/profile" element={<EditProfile />} />
         <Route path="/bookmarks" element={<BookmarkedEvents />} />
+        <Route path="/subscribes" element={<SubscribePage />} />
         <Route path="/joined" element={<JoinedEvents />} />
-        {/* 업로드 페이지 — 나중에 필요하면 주석 해제 */}
-        {/* <Route path="/event-upload" element={<EventUpload />} /> */}
+        {/* <Route path="/my-upload-event" element={<MyUploadedEvents />} /> */}
+
+
+        {/* 알림 */}
+        <Route path="/notifications" element={<NotificationPage />} />
+
       </Routes>
     </Router>
   );
