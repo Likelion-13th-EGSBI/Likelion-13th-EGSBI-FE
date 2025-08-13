@@ -1,115 +1,97 @@
-/* 페이지 컨테이너 */
-.host-detail {
-  background: var(--bg);
-  color: var(--fg);
-  padding: 24px;
-  min-height: calc(100vh - 64px);
-  box-sizing: border-box;
-  display: grid;
-  gap: 16px;
-  max-width: 900px; /* 중앙 폭 제한 */
-  margin: 0 auto;   /* 중앙 정렬 */
-}
+/* HostCard 전용 스타일 — 페이지 CSS와 분리 */
 
-/* 1) 상단 프로필 카드 */
-.hero-card {
+/* 카드 */
+.org-card {
+  background: #fff;
+  border: 1px solid #E9ECEF;
+  border-radius: 14px;
+  padding: 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  transition: transform .12s ease, box-shadow .12s ease, background .12s ease;
+  cursor: pointer;
+}
+.org-card:hover {
+  background: #fafafa;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 14px rgba(0,0,0,0.04);
+}
+.org-card.is-mock { cursor: default; } /* 목업카드는 클릭 이동 없음 */
+
+/* 헤더: 아바타+이름 / 버튼 */
+.org-card__header {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 20px 24px;
-  border-radius: 16px;
-  border: 1.5px solid #CFCFCF;
-  background: var(--card);
-  box-shadow: none;
+  gap: 12px;
 }
-
-.hero-main {
+.org-card__info {
   display: flex;
   align-items: center;
-  gap: 16px;
+  gap: 12px;
+  min-width: 0; /* 이름 ellipsis */
 }
 
-.avatar-xxl {
-  width: 84px;
-  height: 84px;
+.org-card__avatar {
+  width: 44px;
+  height: 44px;
+  flex: 0 0 44px;
   border-radius: 50%;
+  background: #40180F;
+  color: #fff;
+  display: grid;
+  place-items: center;
+  font-weight: 700;
   overflow: hidden;
-  background: var(--brand);
 }
-.avatar-xxl img {
+.org-card__avatar img {
   width: 100%;
   height: 100%;
   object-fit: cover;
 }
 
-.hero-texts {
-  display: flex;
-  flex-direction: column;
-}
-.host-title {
-  font-weight: 800;
-  font-size: 1.8rem;
-  margin: 0;
-}
-.host-stars-row {
-  margin-top: 4px;
-  color: #F2B544;
+.org-card__name {
+  font-weight: 700;
   font-size: 1rem;
+  line-height: 1.2;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
-/* 구독 버튼 */
-.pill-subscribe {
-  background: #E9E2CF;
-  color: #3A2B22;
-  border: none;
-  padding: 8px 14px;
+/* 구독 상태 버튼: 기본 '구독중' / hover '구독 해제' */
+.unsubscribe-btn {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 12px;
   border-radius: 999px;
+  border: 1px solid #CFCFCF;
+  background: #fff;
+  color: #3A2B22;
   font-weight: 700;
   cursor: pointer;
+  transition: background .15s ease, color .15s ease, border-color .15s ease, transform .12s ease;
   white-space: nowrap;
 }
-.pill-subscribe.on {
-  background: #D8D0BB;
-}
-
-/* 2) AI 요약 카드 */
-.ai-summary-card {
-  border: 1.5px solid #CFCFCF;
-  border-radius: 16px;
-  padding: 20px 24px;
-  background: var(--card);
-  box-shadow: none;
-}
-.ai-badge {
-  display: inline-block;
-  background: #F2ECD8;
-  padding: 4px 10px;
-  border-radius: 6px;
-  font-size: 0.85rem;
-  margin-bottom: 10px;
-}
-.ai-summary-txt {
-  margin: 0;
-  line-height: 1.5;
-}
-
-/* 3) 행사 모아보기 버튼 */
-.center-btn {
-  display: flex;
-  justify-content: center;
-}
-.cta-olive {
-  background: var(--olive);
-  color: #fff;
-  border: none;
-  padding: 10px 26px;
-  border-radius: 10px;
-  font-size: 1rem;
-  font-weight: 500;
-  cursor: pointer;
-  transition: background 0.2s ease, transform 0.15s ease;
-}
-.cta-olive:hover {
-  background: var(--olive-hover);
+.unsubscribe-btn:hover,
+.unsubscribe-btn:focus-visible {
+  background: #F9F6EE;
+  border-color: #BDB7A6;
   transform: translateY(-1px);
+}
+
+.unsubscribe-btn .label-default { display: inline; }
+.unsubscribe-btn .label-hover   { display: none; }
+.unsubscribe-btn:hover .label-default,
+.unsubscribe-btn:focus-visible .label-default { display: none; }
+.unsubscribe-btn:hover .label-hover,
+.unsubscribe-btn:focus-visible .label-hover   { display: inline; }
+
+/* 모바일(hover: none) — 항상 기본 라벨만 */
+@media (hover: none) {
+  .unsubscribe-btn .label-default { display: inline !important; }
+  .unsubscribe-btn .label-hover   { display: none !important; }
 }

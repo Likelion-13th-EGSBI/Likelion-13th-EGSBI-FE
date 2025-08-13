@@ -1,120 +1,96 @@
-import React, { useState } from "react";
-import { useNavigate } from "react-router-dom";
-import Avatar from "react-avatar";
-import { FaUserCircle } from "react-icons/fa";
-import "../css/signuppage.css"; 
-import logo from '../imgs/mainlogo.png';
+import React, { useState, useEffect, useCallback } from 'react';
+import Layout from '../components/Layout';
+import HostCard from '../components/HostCard';
+import InfiniteScroll from 'react-infinite-scroll-component';
+import axios from 'axios';
+import '../css/subscribe.css';
 
-const SignupPage = () => {
-  const navigate = useNavigate();
+const PAGE_SIZE = 20;
+const baseURL = process.env.REACT_APP_API_URL ?? '';
 
-  const [name, setName] = useState("");
-  const [phone, setPhone] = useState("");
-  const [email, setEmail] = useState("");
-  const [nickname, setNickname] = useState("");
-  const [password, setPassword] = useState("");
-  const [profileFile, setProfileFile] = useState(null);
-  const [previewURL, setPreviewURL] = useState("");
+export default function SubscribePage() {
+  const [organizers, setOrganizers] = useState([]);
+  const [page, setPage] = useState(1);
+  const [hasMore, setHasMore] = useState(true);
+  const [loading, setLoading] = useState(false);
+  const [errMsg, setErrMsg] = useState('');
 
-  const handleLoginClick = () => {
-    navigate("/login");
+  const fetchOrganizers = useCallback(
+    async (nextPage = 1) => {
+      if (loading) return;
+      setLoading(true);
+      setErrMsg('');
+
+      try {
+        const res = await axios.get(`${baseURL}/api/organizers`, {
+          params: { page: nextPage, size: PAGE_SIZE },
+        });
+
+        const items = Array.isArray(res.data?.data)
+          ? res.data.data
+          : Array.isArray(res.data?.items)
+          ? res.data.items
+          : Array.isArray(res.data)
+          ? res.data
+          : [];
+
+        setOrganizers(prev => (nextPage === 1 ? items : [...prev, ...items]));
+        setHasMore(items.length === PAGE_SIZE);
+      } catch (e) {
+        console.error(e);
+        setErrMsg('구독 목록을 불러오는 중 문제가 발생했어요.');
+        setHasMore(false);
+      } finally {
+        setLoading(false);
+      }
+    },
+    [loading]
+  );
+
+  useEffect(() => {
+    fetchOrganizers(1);
+  }, [fetchOrganizers]);
+
+  const loadMore = async () => {
+    const next = page + 1;
+    await fetchOrganizers(next);
+    setPage(next);
   };
 
-  const handleFileChange = (e) => {
-    const file = e.target.files[0];
-    setProfileFile(file);
-
-    if (file) {
-      const reader = new FileReader();
-      reader.onloadend = () => setPreviewURL(reader.result);
-      reader.readAsDataURL(file);
-    } else {
-      setPreviewURL("");
-    }
-  };
-
+  const isEmpty = (Array.isArray(organizers) ? organizers.length : 0) === 0 && !loading && !errMsg;
 
   return (
-    <div className="signup-container">
-        <div className="signup-header">
-            <img src={logo} className="signup-header-logo" alt="로고" />
+    <Layout pageTitle="구독" activeMenuItem="home">
+      <div className="subscribe-page">
+        <div className="subscribe-header">
+          <h2>구독한 주최자</h2>
+          <span className="subscribe-count">{organizers?.length ?? 0}명</span>
         </div>
-      <div className="signup-inner">
-        <h1 className="signup-title">회원가입</h1>
-        <form className="signup-input-form">
-        <div className="signup-profile-section">
-            {previewURL ? (
-                <img
-                src={previewURL}
-                alt="프로필 미리보기"
-                className="signup-profile-image"
-                />
-            ) : (
-                <FaUserCircle className="signup-profile-icon" />
-            )}
 
-            <div className="signup-profile-upload-wrapper">
-                <label htmlFor="profile-upload" className="signup-profile-btn">
-                프로필 이미지 업로드
-                </label>
-                <input
-                id="profile-upload"
-                type="file"
-                accept="image/*"
-                onChange={handleFileChange}
-                className="signup-profile-input"
-                />
-            </div>
-            </div>
-          <input
-            className="signup-name"
-            type="text"
-            placeholder="이름"
-            value={name}
-            onChange={(e) => setName(e.target.value)}
-            required
-          />
+        {errMsg && <div className="state state--error">{errMsg}</div>}
 
-          <input
-            className="signup-phone"
-            type="tel"
-            placeholder="전화번호"
-            value={phone}
-            onChange={(e) => setPhone(e.target.value)}
-            required
-          />
-          <input
-            className="signup-email"
-            type="email"
-            placeholder="이메일"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            required
-          />
-          <input
-            className="signup-nickname"
-            type="text"
-            placeholder="닉네임"
-            value={nickname}
-            onChange={(e) => setNickname(e.target.value)}
-            required
-          />
-          <input
-            className="signup-password"
-            type="password"
-            placeholder="비밀번호"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            required
-          />
-
-          <button className="signup-btn" type="submit">
-            회원가입
-          </button>
-        </form>
+        {isEmpty ? (
+          <div className="empty">
+            <div className="empty__emoji">🫥</div>
+            <div className="empty__title">구독 중인 주최자가 없어요</div>
+            <div className="empty__desc">관심 있는 주최자를 구독하면 여기에서 모아볼 수 있어요.</div>
+          </div>
+        ) : (
+          <InfiniteScroll
+            dataLength={organizers?.length ?? 0}
+            next={loadMore}
+            hasMore={hasMore}
+            loader={<div className="state state--loading">불러오는 중…</div>}
+            endMessage={<div className="state state--end">마지막입니다.</div>}
+          >
+            <ul className="org-grid">
+              {(Array.isArray(organizers) ? organizers : []).map((org, idx) => (
+                <HostCard key={org?.id ?? idx} host={org} />
+              ))}
+            </ul>
+          </InfiniteScroll>
+        )}
       </div>
-    </div>
+    </Layout>
   );
-};
-
-export default SignupPage;
+}

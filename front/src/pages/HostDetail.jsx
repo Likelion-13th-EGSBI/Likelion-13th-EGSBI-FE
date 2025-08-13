@@ -126,8 +126,16 @@ export default function HostDetail() {
               className={`pill-subscribe ${isSubscribed ? 'on' : ''}`}
               onClick={toggleSubscribe}
               disabled={subscribing}
+              aria-live="polite"
             >
-              {isSubscribed ? '구독 중' : '구독하기'}
+              {isSubscribed ? (
+                <>
+                  <span className="ps-label-default">구독 중</span>
+                  <span className="ps-label-hover">구독 해제</span>
+                </>
+              ) : (
+                '구독하기'
+              )}
             </button>
           </section>
 
