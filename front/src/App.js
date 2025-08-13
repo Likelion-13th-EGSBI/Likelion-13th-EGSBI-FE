@@ -11,7 +11,6 @@ import NotificationPage from './pages/NotificationPage';
 import SubscribePage from './pages/SubscribePage';        
 import BookmarkedEvents from './pages/BookmarkedEvents';  
 import JoinedEvents from './pages/JoinedEvents';
-// import MyUploadedEvents from './pages/MyUploadedEvents';  // /my-upload-event  ← 이미 존재한다고 했음
 
 function App() {
   return (
@@ -30,7 +29,6 @@ function App() {
         <Route path="/bookmarks" element={<BookmarkedEvents />} />
         <Route path="/subscribes" element={<SubscribePage />} />
         <Route path="/joined" element={<JoinedEvents />} />
-        {/* <Route path="/my-upload-event" element={<MyUploadedEvents />} /> */}
 
 
         {/* 알림 */}
