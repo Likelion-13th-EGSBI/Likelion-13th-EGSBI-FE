@@ -116,7 +116,7 @@ const BookmarkedEvents = () => {
             position: pos,
             content: content,
             yAnchor: 1.47, // 마커보다 위
-            xAnchor: 0.29, // 왼쪽으로 살짝 이동
+            xAnchor: 0.29, // 왼쪽으로 이동
             zIndex: 10000,
           });
           overlayRef.current.setMap(map);
