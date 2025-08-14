@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Calendar, Clock, MapPin, Users, DollarSign, FileText, ArrowLeft, Check, ChevronRight } from 'lucide-react';
-import Layout from '../components/Layout';
+import Layout from '../components/Layout'; 
 import '../css/eventupload.css';
 
 const EventUpload = () => {
