@@ -1,5 +1,5 @@
-import React, { useState, useEffect, useRef } from 'react';
-import { Calendar, Clock, MapPin, Users, DollarSign, FileText, ArrowLeft, Check, ChevronRight, Upload, X } from 'lucide-react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
+import { Calendar, Clock, MapPin, Users, DollarSign, FileText, ArrowLeft, Check, ChevronRight, Upload, X, Hash } from 'lucide-react';
 import Layout from '../components/Layout';
 import '../css/eventupload.css';
 
@@ -119,8 +119,10 @@ const EventUpload = () => {
     fee: '',
     address: '',
     latitude: null,
-    longitude: null
+    longitude: null,
+    hashtags: [] // 해시태그 배열 추가
   });
+  const [hashtagInput, setHashtagInput] = useState(''); // 해시태그 입력 상태
   const [aiGeneratedContent, setAiGeneratedContent] = useState('');
   const [isEditing, setIsEditing] = useState(false);
   const [showStep, setShowStep] = useState(false);
@@ -150,8 +152,66 @@ const EventUpload = () => {
     { id: 'location', title: '어디서 진행하시나요?', type: 'address', placeholder: '주소를 검색하세요' },
     { id: 'participantLimit', title: '몇 명까지 참여할 수 있나요?', type: 'number', placeholder: '예: 50' },
     { id: 'fee', title: '참가비가 있나요?', type: 'text', placeholder: '무료인 경우 0 입력' },
+    { id: 'hashtags', title: '행사를 표현하는 해시태그를 추가해주세요', type: 'hashtags', placeholder: '예: 음악, 축제, 무료' },
+    { id: 'description', title: '행사에 대해 자세히 설명해주세요', type: 'textarea', placeholder: '참가자들이 알아야 할 내용을 작성해주세요' },
     { id: 'image', title: '행사 포스터 이미지를 선택해주세요', type: 'image' }
   ];
+
+  // 해시태그 추가 함수 - setHashtagInput 제거
+  const addHashtag = useCallback((tag) => {
+    const cleanTag = tag.replace(/^#/, '').trim();
+    if (cleanTag && !formData.hashtags.includes(cleanTag) && formData.hashtags.length < 5) {
+      setFormData(prev => ({
+        ...prev,
+        hashtags: [...prev.hashtags, cleanTag]
+      }));
+    }
+  }, [formData.hashtags]);
+
+  // 해시태그 제거 함수
+  const removeHashtag = useCallback((tagToRemove) => {
+    setFormData(prev => ({
+      ...prev,
+      hashtags: prev.hashtags.filter(tag => tag !== tagToRemove)
+    }));
+  }, []);
+
+  // 해시태그 입력 처리
+  const handleHashtagInput = useCallback((value) => {
+    setHashtagInput(value);
+  }, []);
+
+  // IME 조합 상태 추적
+  const [isComposing, setIsComposing] = useState(false);
+
+  // 한글 조합 시작
+  const handleCompositionStart = useCallback(() => {
+    setIsComposing(true);
+  }, []);
+
+  // 한글 조합 끝
+  const handleCompositionEnd = useCallback(() => {
+    setIsComposing(false);
+  }, []);
+
+  // 키 입력 처리 - IME 조합 상태 고려
+  const handleHashtagKeyDown = useCallback((e) => {
+    // IME 조합 중이면 Enter 키 무시
+    if (isComposing) return;
+    
+    if (e.key === 'Enter' || e.key === ',') {
+      e.preventDefault();
+      e.stopPropagation();
+      
+      const value = e.target.value.trim();
+      if (value) {
+        addHashtag(value);
+        setHashtagInput(''); // 여기서만 입력 필드 초기화
+      }
+    } else if (e.key === 'Backspace' && !e.target.value && formData.hashtags.length > 0) {
+      removeHashtag(formData.hashtags[formData.hashtags.length - 1]);
+    }
+  }, [addHashtag, removeHashtag, formData.hashtags, isComposing]);
 
   // 모바일 체크
   useEffect(() => {
@@ -403,7 +463,7 @@ const EventUpload = () => {
       
       console.log('Formatted DateTime:', { startDateTime, endDateTime });
       
-      // 이벤트 데이터 JSON 객체 생성
+      // 이벤트 데이터 JSON 객체 생성 (해시태그 포함)
       const eventJson = {
         name: eventData.eventName,
         startTime: startDateTime,
@@ -414,7 +474,8 @@ const EventUpload = () => {
         entryFee: parseInt(eventData.fee) || 0,
         address: eventData.address || eventData.location,
         description: eventData.description || '',
-        participantLimit: parseInt(eventData.participantLimit) || 0
+        participantLimit: parseInt(eventData.participantLimit) || 0,
+        hashtags: eventData.hashtags || [] // 해시태그 배열 추가
       };
       
       console.log('Event JSON:', eventJson);
@@ -566,8 +627,10 @@ ${formData.fee === '0' ? '무료로 진행되는' : `참가비 ${formData.fee}�
       fee: '',
       address: '',
       latitude: null,
-      longitude: null
+      longitude: null,
+      hashtags: []
     });
+    setHashtagInput('');
     setAiGeneratedContent('');
     setIsEditing(false);
     setShowStep(true);
@@ -602,6 +665,10 @@ ${formData.fee === '0' ? '무료로 진행되는' : `참가비 ${formData.fee}�
         return formData.participantLimit !== '';
       case 'fee':
         return formData.fee !== '';
+      case 'hashtags':
+        return formData.hashtags.length > 0; // 최소 1개 해시태그 필요
+      case 'description':
+        return formData.description.trim() !== ''; // 행사 설명 필수
       case 'image':
         return selectedImage !== null;
       default:
@@ -620,104 +687,124 @@ ${formData.fee === '0' ? '무료로 진행되는' : `참가비 ${formData.fee}�
         </div>
 
         <div className={`eventupload-step-content ${showStep ? 'show' : ''}`}>
-        <div className="eventupload-ai-result">
-  <div className="eventupload-ai-scroll-container">
-    <h1 className="eventupload-title">AI가 행사 소개를 작성했어요</h1>
+          <div className="eventupload-ai-result">
+            <div className="eventupload-ai-scroll-container">
+              <h1 className="eventupload-title">AI가 행사 소개를 작성했어요</h1>
 
-    <div className="eventupload-ai-content-card">
-      {isEditing ? (
-        <div className="eventupload-edit-container">
-          <textarea
-            className="eventupload-edit-textarea"
-            value={aiGeneratedContent}
-            onChange={(e) => setAiGeneratedContent(e.target.value)}
-            rows={6}
-          />
-          <div className="eventupload-edit-buttons">
-            <button onClick={() => setIsEditing(false)} className="eventupload-edit-save">
-              <Check size={16} />
-              저장
-            </button>
-            <button onClick={() => setIsEditing(false)} className="eventupload-edit-cancel">
-              취소
-            </button>
+              <div className="eventupload-ai-content-card">
+                {isEditing ? (
+                  <div className="eventupload-edit-container">
+                    <textarea
+                      className="eventupload-edit-textarea"
+                      value={aiGeneratedContent}
+                      onChange={(e) => setAiGeneratedContent(e.target.value)}
+                      rows={6}
+                    />
+                    <div className="eventupload-edit-buttons">
+                      <button onClick={() => setIsEditing(false)} className="eventupload-edit-save">
+                        <Check size={16} />
+                        저장
+                      </button>
+                      <button onClick={() => setIsEditing(false)} className="eventupload-edit-cancel">
+                        취소
+                      </button>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="eventupload-ai-content">
+                    <p className="eventupload-ai-text">{aiGeneratedContent}</p>
+                    <button onClick={() => setIsEditing(true)} className="eventupload-edit-button">
+                      수정하기
+                    </button>
+                  </div>
+                )}
+              </div>
+
+              <div className="eventupload-summary-card">
+                <h3 className="eventupload-summary-title">행사 정보</h3>
+                <div className="eventupload-summary-list">
+                  <div className="eventupload-summary-item">
+                    <span className="eventupload-summary-label">행사명</span>
+                    <span className="eventupload-summary-value">{formData.eventName}</span>
+                  </div>
+                  <div className="eventupload-summary-item">
+                    <span className="eventupload-summary-label">시작일시</span>
+                    <span className="eventupload-summary-value">
+                      {formData.startDate} {formData.startTime}
+                    </span>
+                  </div>
+                  <div className="eventupload-summary-item">
+                    <span className="eventupload-summary-label">종료일시</span>
+                    <span className="eventupload-summary-value">
+                      {formData.endDate} {formData.endTime}
+                    </span>
+                  </div>
+                  <div className="eventupload-summary-item">
+                    <span className="eventupload-summary-label">장소</span>
+                    <span className="eventupload-summary-value">{formData.location}</span>
+                  </div>
+                  <div className="eventupload-summary-item">
+                    <span className="eventupload-summary-label">참가인원</span>
+                    <span className="eventupload-summary-value">{formData.participantLimit}명</span>
+                  </div>
+                  <div className="eventupload-summary-item">
+                    <span className="eventupload-summary-label">참가비</span>
+                    <span className="eventupload-summary-value">
+                      {formData.fee === '0' ? '무료' : `${formData.fee}원`}
+                    </span>
+                  </div>
+                  {formData.hashtags.length > 0 && (
+                    <div className="eventupload-summary-item">
+                      <span className="eventupload-summary-label">해시태그</span>
+                      <div className="eventupload-hashtag-display">
+                        {formData.hashtags.map((tag, index) => (
+                          <span key={index} className="eventupload-hashtag-chip">#{tag}</span>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                  {formData.description && (
+                    <div className="eventupload-summary-item">
+                      <span className="eventupload-summary-label">행사 설명</span>
+                      <span className="eventupload-summary-value eventupload-summary-description">
+                        {formData.description.length > 100 
+                          ? formData.description.slice(0, 100) + '...' 
+                          : formData.description
+                        }
+                      </span>
+                    </div>
+                  )}
+                  {imagePreview && (
+                    <div className="eventupload-summary-item">
+                      <span className="eventupload-summary-label">포스터</span>
+                      <img src={imagePreview} alt="선택된 이미지" className="eventupload-summary-image" />
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              <div className="eventupload-bottom">
+                <div className="eventupload-button-group">
+                  <button
+                    className="eventupload-back-button"
+                    onClick={() => {
+                      setCurrentStep(steps.length - 1); // 마지막 스텝(이미지 업로드)으로 돌아가기
+                      setShowStep(true);
+                    }}
+                  >
+                    이전
+                  </button>
+                  <button 
+                    onClick={handleAiConfirm} 
+                    className="eventupload-next-button active" 
+                    disabled={isSubmitting}
+                  >
+                    {isSubmitting ? '등록 중...' : '행사 등록하기'}
+                  </button>
+                </div>
+              </div>
+            </div>
           </div>
-        </div>
-      ) : (
-        <div className="eventupload-ai-content">
-          <p className="eventupload-ai-text">{aiGeneratedContent}</p>
-          <button onClick={() => setIsEditing(true)} className="eventupload-edit-button">
-            수정하기
-          </button>
-        </div>
-      )}
-    </div>
-
-    <div className="eventupload-summary-card">
-      <h3 className="eventupload-summary-title">행사 정보</h3>
-      <div className="eventupload-summary-list">
-        <div className="eventupload-summary-item">
-          <span className="eventupload-summary-label">행사명</span>
-          <span className="eventupload-summary-value">{formData.eventName}</span>
-        </div>
-        <div className="eventupload-summary-item">
-          <span className="eventupload-summary-label">시작일시</span>
-          <span className="eventupload-summary-value">
-            {formData.startDate} {formData.startTime}
-          </span>
-        </div>
-        <div className="eventupload-summary-item">
-          <span className="eventupload-summary-label">종료일시</span>
-          <span className="eventupload-summary-value">
-            {formData.endDate} {formData.endTime}
-          </span>
-        </div>
-        <div className="eventupload-summary-item">
-          <span className="eventupload-summary-label">장소</span>
-          <span className="eventupload-summary-value">{formData.location}</span>
-        </div>
-        <div className="eventupload-summary-item">
-          <span className="eventupload-summary-label">참가인원</span>
-          <span className="eventupload-summary-value">{formData.participantLimit}명</span>
-        </div>
-        <div className="eventupload-summary-item">
-          <span className="eventupload-summary-label">참가비</span>
-          <span className="eventupload-summary-value">
-            {formData.fee === '0' ? '무료' : `${formData.fee}원`}
-          </span>
-        </div>
-        {imagePreview && (
-          <div className="eventupload-summary-item">
-            <span className="eventupload-summary-label">포스터</span>
-            <img src={imagePreview} alt="선택된 이미지" className="eventupload-summary-image" />
-          </div>
-        )}
-      </div>
-    </div>
-
-    <div className="eventupload-bottom">
-        <div className="eventupload-button-group">
-          <button
-            className="eventupload-back-button"
-            onClick={() => {
-              setCurrentStep(steps.length - 1); // 마지막 스텝(이미지 업로드)으로 돌아가기
-              setShowStep(true);
-            }}
-          >
-            이전
-          </button>
-          <button 
-            onClick={handleAiConfirm} 
-            className="eventupload-next-button active" 
-            disabled={isSubmitting}
-          >
-            {isSubmitting ? '등록 중...' : '행사 등록하기'}
-          </button>
-        </div>
-      </div>
-  </div>
-</div>
-
         </div>
       </div>
     );
@@ -786,6 +873,75 @@ ${formData.fee === '0' ? '무료로 진행되는' : `참가비 ${formData.fee}�
                 onChange={(e) => handleInputChange(currentStepData.id, e.target.value)}
                 autoFocus
               />
+            </div>
+          )}
+
+          {currentStepData.type === 'textarea' && (
+            <div className="eventupload-input-group">
+              <textarea
+                className="eventupload-textarea"
+                placeholder={currentStepData.placeholder}
+                value={formData[currentStepData.id]}
+                onChange={(e) => handleInputChange(currentStepData.id, e.target.value)}
+                rows={6}
+                autoFocus
+              />
+            </div>
+          )}
+
+          {currentStepData.type === 'hashtags' && (
+            <div className="eventupload-input-group">
+              <div className="eventupload-hashtag-container">
+                <div className="eventupload-hashtag-input-wrapper">
+                  <div className="eventupload-hashtag-list">
+                    {formData.hashtags.map((tag, index) => (
+                      <div key={index} className="eventupload-hashtag-tag">
+                        <Hash size={12} />
+                        <span>{tag}</span>
+                        <button
+                          type="button"
+                          onClick={() => removeHashtag(tag)}
+                          className="eventupload-hashtag-remove"
+                        >
+                          <X size={12} />
+                        </button>
+                      </div>
+                    ))}
+                    <input
+                      className="eventupload-hashtag-input"
+                      type="text"
+                      placeholder={formData.hashtags.length === 0 ? currentStepData.placeholder : "더 추가하려면 입력하세요"}
+                      value={hashtagInput}
+                      onChange={(e) => handleHashtagInput(e.target.value)}
+                      onKeyDown={handleHashtagKeyDown}
+                      onCompositionStart={handleCompositionStart}
+                      onCompositionEnd={handleCompositionEnd}
+                      disabled={formData.hashtags.length >= 5}
+                      autoFocus
+                    />
+                  </div>
+                </div>
+                <div className="eventupload-hashtag-info">
+                  <p className="eventupload-hashtag-tip">
+                    💡 엔터나 쉼표로 구분하여 입력하세요 (최대 5개)
+                  </p>
+                  <p className="eventupload-hashtag-count">
+                    {formData.hashtags.length}/5
+                  </p>
+                </div>
+                {formData.hashtags.length > 0 && (
+                  <div className="eventupload-hashtag-preview">
+                    <p className="eventupload-hashtag-preview-title">미리보기:</p>
+                    <div className="eventupload-hashtag-preview-list">
+                      {formData.hashtags.map((tag, index) => (
+                        <span key={index} className="eventupload-hashtag-preview-item">
+                          #{tag}
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </div>
             </div>
           )}
 
@@ -897,18 +1053,6 @@ ${formData.fee === '0' ? '무료로 진행되는' : `참가비 ${formData.fee}�
                   </button>
                 </div>
               )}
-            </div>
-          )}
-
-          {selectedMode === 'direct' && currentStep === steps.length - 1 && (
-            <div className="eventupload-input-group">
-              <textarea
-                className="eventupload-textarea"
-                placeholder="행사에 대해 자세히 설명해주세요"
-                value={formData.description}
-                onChange={(e) => handleInputChange('description', e.target.value)}
-                rows={4}
-              />
             </div>
           )}
         </div>

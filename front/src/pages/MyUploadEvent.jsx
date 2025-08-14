@@ -81,10 +81,12 @@ const MyUploadEvent = () => {
         console.log('북마크 토글:', eventId);
     };
 
-    const handleEditEvent = (eventId) => {
-        // 행사 수정 페이지로 이동
-        console.log('행사 수정:', eventId);
-        navigate(`/event-edit/${eventId}`);
+    const handleEditEvent = (event) => {
+        // 행사 수정 페이지로 이동 - 행사 데이터를 state로 전달
+        console.log('행사 수정:', event);
+        navigate(`/event-edit/${event.id}`, { 
+            state: { eventData: event } 
+        });
     };
 
     const handleViewReviews = (eventId) => {
@@ -178,7 +180,7 @@ const MyUploadEvent = () => {
                                         ) : (
                                             <button 
                                                 className="myuploadevent-action-btn edit-btn"
-                                                onClick={() => handleEditEvent(event.id)}
+                                                onClick={() => handleEditEvent(event)}
                                             >
                                                 수정하기
                                             </button>
