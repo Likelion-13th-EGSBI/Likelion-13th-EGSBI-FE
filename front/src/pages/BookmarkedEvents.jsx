@@ -91,6 +91,54 @@ const BookmarkedEvents = () => {
     myPosCssInjectedRef.current = true;
   };
 
+  // 인포윈도우(커스텀 오버레이) CSS 1회 주입
+  const infoCssInjectedRef = useRef(false);
+  const injectInfoCSS = () => {
+    if (infoCssInjectedRef.current) return;
+    const style = document.createElement("style");
+    style.id = "infowindow-style";
+    style.textContent = `
+      .custom-infowindow{
+        position:relative;
+        max-width: 280px;
+        background: var(--card, #fff);
+        color: var(--fg, #111);
+        border-radius: 12px;
+        box-shadow: 0 8px 24px rgba(0,0,0,.18);
+        padding: 12px 12px 12px 12px;
+        touch-action: auto;
+      }
+      .custom-infowindow::after{
+        content:"";
+        position:absolute; left:24px; bottom:-10px;
+        width: 0; height: 0;
+        border-left:10px solid transparent;
+        border-right:10px solid transparent;
+        border-top:10px solid var(--card, #fff);
+        filter: drop-shadow(0 -1px 0 rgba(0,0,0,.05));
+      }
+      .custom-infowindow .title{
+        font-weight: 700; line-height: 1.3; margin-bottom: 4px;
+      }
+      .custom-infowindow .desc{
+        font-size: .9rem; color: #666; margin-bottom: 2px;
+      }
+      .custom-infowindow .sub{
+        font-size: .85rem; color: #888; margin-bottom: 10px;
+      }
+      .custom-infowindow .outline-btn{
+        padding: 6px 10px;
+        border:1px solid #ddd; border-radius: 999px;
+        background: transparent; cursor: pointer;
+      }
+      @media (max-width:640px){
+        .custom-infowindow{max-width: 84vw;}
+      }
+    `;
+    document.head.appendChild(style);
+    infoCssInjectedRef.current = true;
+  };
+
   // 서버에서 가져오기 (정렬/마감 포함/거리 정렬 시 좌표 전달)
   const loadEvents = async (opts = {}) => {
     const flag = opts.includeClosed ?? includeClosed;
@@ -302,6 +350,7 @@ const BookmarkedEvents = () => {
 
       container.innerHTML = "";
       injectMyPosCSS();
+      injectInfoCSS();
 
       const primary =
         getComputedStyle(document.documentElement)
@@ -346,6 +395,61 @@ const BookmarkedEvents = () => {
           yAnchor: 1.0,
         });
         marker.setMap(map);
+
+        // 🔔 마커 클릭 → 인포윈도우(커스텀 오버레이) 오픈
+        wrap.querySelector(".km-pin")?.addEventListener("click", () => {
+          if (!isAlive()) return;
+
+          const content = document.createElement("div");
+          content.className = "custom-infowindow";
+          const feeText =
+            typeof ev.fee === "string"
+              ? ev.fee
+              : ev.fee
+              ? `${Number(ev.fee).toLocaleString()}원`
+              : "무료";
+
+          content.innerHTML = `
+            <div class="meta">
+              <div class="title">${ev.title}</div>
+              <div class="desc">${ev.location ?? ""}</div>
+              <div class="sub">${ev.date} · ${ev.time ?? ""} · ${feeText}</div>
+              <button class="outline-btn" type="button">상세보기</button>
+            </div>
+          `;
+
+          // 지도 제스처와 버블링 차단
+          const block = (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            window.kakao?.maps?.event?.preventMap?.(e);
+          };
+          ["click","mousedown","mouseup","touchstart","touchend"].forEach((t) => {
+            content.addEventListener(t, block);
+          });
+
+          // 상세보기 버튼 → SPA 네비
+          content.querySelector(".outline-btn")?.addEventListener("click", (e) => {
+            block(e);
+            try {
+              navigate(`/events/${ev.id}`);
+            } catch {
+              window.location.assign(`/events/${ev.id}`);
+            }
+          });
+
+          // 기존 오버레이 닫고 새로 열기
+          overlayRef.current?.setMap(null);
+          overlayRef.current = new window.kakao.maps.CustomOverlay({
+            position: pos,
+            content,
+            yAnchor: 1.47, // 말풍선 꼬리 보정(상단 배치)
+            xAnchor: 0.29,
+            zIndex: 10000,
+            clickable: false,
+          });
+          overlayRef.current.setMap(map);
+        });
       });
 
       // --- 내 위치 렌더 & 뷰 결정 ---
