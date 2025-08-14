@@ -7,7 +7,7 @@ import '../css/subscribe.css';
 
 const PAGE_SIZE = 20;
 const baseURL = process.env.REACT_APP_API_URL ?? '';
-const DEV_MOCK = true; // ✅ UI 확인용
+const DEV_MOCK = true;
 
 const MOCK_ORGANIZERS = [
   { id: 1, name: '라이언 스튜디오', profileImage: null },
@@ -29,14 +29,14 @@ export default function SubscribePage() {
       setErrMsg('');
 
       try {
-        // ✅ DEV 목업: 깜빡임 없이 바로 채우고 끝
+
         if (DEV_MOCK || !baseURL) {
           setOrganizers(MOCK_ORGANIZERS);
           setHasMore(false);
+          setPage(1);
           return;
         }
 
-        // 실 API
         const res = await axios.get(`${baseURL}/api/organizers`, {
           params: { page: nextPage, size: PAGE_SIZE },
         });
@@ -44,13 +44,14 @@ export default function SubscribePage() {
         const items = Array.isArray(res.data?.data)
           ? res.data.data
           : Array.isArray(res.data?.items)
-          ? res.data.items
-          : Array.isArray(res.data)
-          ? res.data
-          : [];
+            ? res.data.items
+            : Array.isArray(res.data)
+              ? res.data
+              : [];
 
         setOrganizers(prev => (nextPage === 1 ? items : [...prev, ...items]));
         setHasMore(items.length === PAGE_SIZE);
+        setPage(nextPage);
       } catch (e) {
         console.error(e);
         setErrMsg('구독 목록을 불러오는 중 문제가 발생했어요.');
@@ -68,12 +69,10 @@ export default function SubscribePage() {
 
   const loadMore = async () => {
     if (!hasMore || loading) return;
-    const next = page + 1;
-    await fetchOrganizers(next);
-    setPage(next);
+    await fetchOrganizers(page + 1);
   };
 
-  // ✅ HostCard에서 성공적으로 해제되면 여기서 리스트에서 제거
+
   const handleUnsubscribe = (id) => {
     setOrganizers(prev => prev.filter(o => (o?.id ?? o?.organizerId) !== id));
   };
@@ -82,7 +81,8 @@ export default function SubscribePage() {
   const isEmpty = count === 0 && !loading && !errMsg;
 
   return (
-    <Layout pageTitle="구독" activeMenuItem="home">
+
+    <Layout pageTitle="구독">
       <div className="subscribe-page">
         <div className="subscribe-header">
           <h2>구독한 주최자</h2>
@@ -104,7 +104,12 @@ export default function SubscribePage() {
                 dataLength={count}
                 next={loadMore}
                 hasMore={hasMore}
-                loader={loading && hasMore ? <div className="state state--loading">불러오는 중…</div> : null}
+                loader={
+                  loading && hasMore ? (
+                    <div className="state state--loading">불러오는 중…</div>
+                  ) : null
+                }
+                style={{ overflow: 'visible' }}
               >
                 <ul className="org-grid">
                   {(Array.isArray(organizers) ? organizers : []).map((org, idx) => (
@@ -121,6 +126,8 @@ export default function SubscribePage() {
                 </ul>
               </InfiniteScroll>
             )}
+            {!hasMore && !loading && count > 0 && (
+              <div className="state state--end">🌟 더 많은 주최자를 구독하고 다양한 행사를 만나보세요</div>)}
           </>
         )}
       </div>

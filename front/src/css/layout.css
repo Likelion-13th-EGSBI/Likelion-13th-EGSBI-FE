@@ -1,94 +1,49 @@
-:root {
-  --sidebar-w: 240px;
-  --topbar-h: 64px;
+:root{
+  --sidebar-width: 336px;
+  --topbar-height: 64px;
+  --topbar-height-mobile: 56px;
 
-
-  --gutter-d: 40px;
-  --gutter-t: 24px;
-  --gutter-m: 16px;
-  --content-max: 1180px;
+  /* ✅ 모든 페이지 공통 최대 폭/패딩 */
+  --content-max-width: 1200px;
+  --content-padding-x: 24px;
 }
 
-.layout-container {
-  display: flex;
-  height: 100vh;
-  overflow: hidden;
+/* 전역: 기본 마진/수평 스크롤 제거 */
+html, body { margin: 0; padding: 0; width: 100%; overflow-x: hidden; }
+
+.layout-container{ min-height: 100vh; position: relative; }
+.layout-main-content,
+.layout-container { overflow-x: hidden; }
+
+/* 데스크탑: 탑바 공간 확보 */
+.layout-main-content{
+  min-height: calc(100vh - var(--topbar-height));
+  padding-top: var(--topbar-height);
 }
 
-
-.layout-main-content {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  overflow: auto;
-  background: #fff;
-}
-
-
-.layout-main-content.with-layout {
-  margin-left: var(--sidebar-w);
-  padding-top: var(--topbar-h);
-  padding-left: var(--gutter-d);
-  padding-right: var(--gutter-d);
-}
-
-
-.layout-main-content.without-layout {
-  margin-left: 0;
-  padding-top: 0;
-  padding-left: var(--gutter-m);
-  padding-right: var(--gutter-m);
-}
-
-
-.layout-main-content.with-layout>.subscribe-page,
-.layout-main-content.with-layout>.host-detail,
-.layout-main-content.with-layout>.dashboard-page,
-.layout-main-content.with-layout>.page-root {
+/* ✅ 중앙 정렬 컨테이너 */
+.layout-inner{
+  max-width: var(--content-max-width);
   width: 100%;
-  max-width: var(--content-max);
-  margin-inline: auto;
+  margin: 0 auto;
+  padding: 0 var(--content-padding-x);
+  box-sizing: border-box;
 }
 
-.layout-main-content.without-layout>.subscribe-page,
-.layout-main-content.without-layout>.host-detail,
-.layout-main-content.without-layout>.dashboard-page,
-.layout-main-content.without-layout>.page-root {
-  width: 100%;
-  max-width: var(--content-max);
-  margin-inline: auto;
+/* PC: 사이드바 fixed → 왼쪽 패딩 */
+@media (min-width: 769px){
+  .layout-main-content.with-layout{ padding-left: var(--sidebar-width); }
 }
 
-
-@media (max-width: 1024px) {
-  .layout-main-content.with-layout {
-    margin-left: 0;
-    padding-top: var(--topbar-h);
-    padding-left: var(--gutter-t);
-    padding-right: var(--gutter-t);
+/* 모바일: 사이드바 없음 + 모바일 탑바 높이/안전영역 포함 */
+@media (max-width: 768px){
+  .layout-main-content{
+    min-height: calc(100vh - (var(--topbar-height-mobile) + env(safe-area-inset-top, 0px)));
+    padding-top: calc(var(--topbar-height-mobile) + env(safe-area-inset-top, 0px));
+    padding-left: 0;
   }
+  .layout-inner{ padding: 0 16px; }
 }
 
-@media (max-width: 768px) {
-
-  .layout-main-content.with-layout,
-  .layout-main-content.without-layout {
-    margin-left: 0;
-    padding-top: 0;
-    padding-left: var(--gutter-m);
-    padding-right: var(--gutter-m);
-  }
-}
-
-
-@media (min-width: 1440px) {
-  :root {
-    --content-max: 1240px;
-  }
-}
-
-@media (min-width: 1680px) {
-  :root {
-    --content-max: 1320px;
-  }
-}
+/* 레이아웃 없는 페이지 */
+.layout-main-content.without-layout{ padding-top: 0; padding-left: 0; }

@@ -1,94 +1,101 @@
-import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { Home, FileText, QrCode, Calendar, User, MapPin, LogOut, Bell } from 'lucide-react';
+
+import React, { useMemo } from 'react';
+import { useNavigate, useLocation } from 'react-router-dom';
+import { Home, FileText, ThumbsUp, Heart, UploadCloud, CalendarCheck, User, MapPin, LogOut } from 'lucide-react';
+import logo from '../imgs/mainlogo.png';
 import '../css/sidebar.css';
 
-const Sidebar = ({ activeMenuItem = 'home' }) => {
-  const [activeMenu, setActiveMenu] = useState(activeMenuItem);
+const Sidebar = ({ activeMenuItem, user = { name: '김민지' } }) => {
   const navigate = useNavigate();
+  const location = useLocation();
 
-  // 사진 메뉴 전체 정리
-  const mainMenuItems = [
-    { id: 'home', icon: Home, label: '홈', route: '/dashboard' },
-    { id: 'event-upload', icon: FileText, label: '행사 등록', route: '/event-upload' },
-    { id: 'qr', icon: QrCode, label: 'QR 체크인', route: '/qr' },
-    { id: 'notifications', icon: Bell, label: '알림', route: '/notifications', badge: 3 },
+  const mainMenuItems = useMemo(
+    () => [
+      { id: 'home',              icon: Home,        label: '홈',               route: '/dashboard' },
+      { id: 'event-upload',      icon: FileText,    label: '행사 업로드',       route: '/event-upload' },
+      { id: 'subscriptions',     icon: ThumbsUp,    label: '구독',             route: '/subscribe' },
+      { id: 'bookmarks',         icon: Heart,       label: '내가 관심있는 행사', route: '/bookmarks' },
+      { id: 'my-uploads',        icon: UploadCloud, label: '내가 업로드한 행사', route: '/my-uploads' },
+      { id: 'my-participations', icon: CalendarCheck,label: '내가 참여한 행사',  route: '/my-participations' },
+    ],
+    []
+  );
+
+  const personalMenuItems = [
+    { id: 'mypage',   icon: User,   label: '마이페이지', route: '/mypage' },
+    { id: 'location', icon: MapPin, label: '위치 설정',  route: '/location' },
   ];
 
-  const myMenuItems = [
-    { id: 'mypage', icon: User, label: '마이페이지', route: '/mypage' },
-    { id: 'event-manage', icon: Calendar, label: '내 행사 관리', route: '/event-manage' },
-    { id: 'location', icon: MapPin, label: '위치 설정', route: '/location' },
-  ];
+  const routeToId = useMemo(() => {
+    const map = new Map();
+    [...mainMenuItems, ...personalMenuItems].forEach(m => map.set(m.route, m.id));
+    return map;
+  }, [mainMenuItems]);
 
-  const handleMenuClick = (menuId, route) => {
-    setActiveMenu(menuId);
-    if(route) navigate(route);
-  };
+  const activeFromPath = routeToId.get(location.pathname);
+  const active = activeMenuItem || activeFromPath || 'home';
+
+  const go = (route) => route && navigate(route);
 
   return (
-    <div className="sidebar-container">
-      {/* 사용자 정보 헤더 */}
-      <div className="sidebar-header">
-        <div className="sidebar-user-info">
-          <div className="sidebar-user-avatar">김</div>
+    <aside className="sidebar-container" aria-label="사이드바">
+      {/* 상단: 로고 + 프로필 */}
+      <div className="sidebar-top">
+        <div className="sidebar-brand" onClick={() => go('/dashboard')} role="button" tabIndex={0}>
+          <img src={logo} alt="서비스 로고" className="sidebar-logo" />
+        </div>
+
+  
+        <div className="sidebar-user-card rich">
+          <div className="sidebar-user-avatar xl">김</div>
           <div className="sidebar-user-details">
-            <span className="sidebar-user-name">김민지</span>
+            <span className="sidebar-user-name xl">{user?.name ?? '사용자'}</span>
+            <span className="sidebar-meta-text strong">온라인</span>
           </div>
         </div>
       </div>
 
-      {/* 행사 등록 버튼(사진 기준 강조) */}
-      <div className="sidebar-section">
-        <button
-          className="sidebar-create-btn"
-          onClick={() => handleMenuClick('event-upload', '/event-upload')}
-        >
-          <FileText size={16} />
-          <span>행사 등록</span>
-        </button>
-      </div>
-
       {/* 메인 메뉴 */}
-      <nav className="sidebar-nav">
-        {mainMenuItems.map((item) => (
-          <div
-            key={item.id}
-            className={`sidebar-nav-item ${activeMenu === item.id ? 'active' : ''}`}
-            onClick={() => handleMenuClick(item.id, item.route)}
+      <nav className="sidebar-nav" aria-label="메인 메뉴">
+        {mainMenuItems.map(({ id, icon: Icon, label, route }) => (
+          <button
+            key={id}
+            type="button"
+            className={`sidebar-nav-item ${active === id ? 'active' : ''}`}
+            onClick={() => go(route)}
+            aria-current={active === id ? 'page' : undefined}
           >
-            <item.icon size={20} />
-            <span className="sidebar-nav-label">{item.label}</span>
-            {item.badge && (
-              <span className="sidebar-nav-badge">{item.badge}</span>
-            )}
-          </div>
+            <Icon size={18} />
+            <span className="sidebar-nav-label">{label}</span>
+          </button>
         ))}
       </nav>
 
-      {/* 개인 설정 및 행사 관리 메뉴 */}
-      <div className="sidebar-section">
-        <h3 className="sidebar-section-title">개인 설정</h3>
-        {myMenuItems.map((item) => (
-          <div
-            key={item.id}
-            className={`sidebar-nav-item ${activeMenu === item.id ? 'active' : ''}`}
-            onClick={() => handleMenuClick(item.id, item.route)}
+      {/* 개인 메뉴 */}
+      <div className="sidebar-section compact">
+        <h3 className="sidebar-section-title">개인</h3>
+        {personalMenuItems.map(({ id, icon: Icon, label, route }) => (
+          <button
+            key={id}
+            type="button"
+            className={`sidebar-nav-item ${active === id ? 'active' : ''}`}
+            onClick={() => go(route)}
+            aria-current={active === id ? 'page' : undefined}
           >
-            <item.icon size={20} />
-            <span className="sidebar-nav-label">{item.label}</span>
-          </div>
+            <Icon size={18} />
+            <span className="sidebar-nav-label">{label}</span>
+          </button>
         ))}
       </div>
 
       {/* 하단 로그아웃 */}
-      <div className="sidebar-footer">
-        <button className="sidebar-logout-btn" onClick={() => navigate('/login')}>
+      <div className="sidebar-bottom">
+        <button type="button" className="sidebar-logout-btn" onClick={() => go('/login')}>
           <LogOut size={16} />
           <span>로그아웃</span>
         </button>
       </div>
-    </div>
+    </aside>
   );
 };
 
