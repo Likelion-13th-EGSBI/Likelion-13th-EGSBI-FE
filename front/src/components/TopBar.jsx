@@ -15,28 +15,33 @@ const TopBar = () => {
     return () => window.removeEventListener('resize', handleResize);
   }, []);
 
- // switch문으로 경로별 제목 결정
-const getTitle = (path) => {
-  switch (path) {
-    case '/':
-      return '메인페이지';
-    case '/event-upload':
-      return '행사 등록';
-    case '/mypage':
-      return '마이페이지';
-    case '/mypage/edit':
-      return '프로필 수정';
-    case '/notifications':
-      return '알림';
-    case '/settings':
-      return '설정';
-    case '/bookmarks':
-      return '북마크한 행사';
-    // 필요에 따라 케이스 추가
-    default:
-      return '페이지 제목';
-  }
-};
+  // switch문으로 경로별 제목 결정
+  const getTitle = (path) => {
+    const isEventDetail = /^\/events\/\d+$/.test(path); // /events/숫자
+
+    switch (true) {
+      case path === '/':
+        return '메인페이지';
+      case path === '/event-upload':
+        return '행사 등록';
+      case path === '/mypage':
+        return '마이페이지';
+      case path === '/mypage/edit':
+        return '프로필 수정';
+      case path === '/notifications':
+        return '알림';
+      case path === '/settings':
+        return '설정';
+      case path === '/bookmarks':
+        return '북마크한 행사';
+      case path === '/events': // 행사 목록
+        return '행사 목록';
+      case isEventDetail: // 행사 상세
+        return '행사 상세';
+      default:
+        return '페이지 제목';
+    }
+  };
 
   const title = getTitle(location.pathname);
 
@@ -65,7 +70,10 @@ const getTitle = (path) => {
     } else {
       return (
         <div className="topbar-mobile-container">
-          <div className="topbar-mobile-content" style={{ justifyContent: 'flex-start' }}>
+          <div
+            className="topbar-mobile-content"
+            style={{ justifyContent: 'flex-start' }}
+          >
             <button
               className="topbar-mobile-btn"
               onClick={() => navigate(-1)}

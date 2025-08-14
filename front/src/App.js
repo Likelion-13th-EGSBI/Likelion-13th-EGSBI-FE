@@ -31,7 +31,7 @@ function App() {
         <Route path="/signup" element={<SignupPage />} />
         <Route path="/event-upload" element={<EventUpload />} /> 
         <Route path="/mypage" element={<MyPage />} />
-        <Route path="/profile" element={<EditProfile />} />
+        <Route path="/mypage/edit" element={<EditProfile />} />
         <Route path="/bookmarks" element={<BookmarkedEvents />} />
         <Route path="/subscribes" element={<SubscribePage />} />
         <Route path="/joined" element={<JoinedEvents />} />

@@ -1,35 +1,108 @@
 /* =========================
    상단바 & 공통 변수
    ========================= */
-:root{
+:root {
   --topbar-height: 64px;
   --topbar-height-mobile: 56px;
-  --bg:#fff; --fg:#222; --card:#fff; --primary:#5E936C;
-  --shadow-0:0 1px 2px rgba(0,0,0,.06);
-  --shadow-1:0 6px 18px rgba(0,0,0,.06),0 2px 6px rgba(0,0,0,.04);
+
+  /* 사이드바 폭 (데스크톱 기준) */
+  --sidebar-width: 240px;
+
+  /* 콘텐츠 좌우 패딩 */
+  --page-pad: clamp(16px, 2vw, 28px);
+
+  /* 토글(버튼바) 높이 */
+  --toggle-height: 56px;
+  --toggle-height-mobile: 52px;
+
+  /* 상단바와 토글 사이 간격 (요청값) */
+  --toggle-gap: 21px;
+  --toggle-gap-mobile: -8px;
+
+  --bg: #fff;
+  --fg: #222;
+  --card: #fff;
+  --primary: #5E936C;
+  --shadow-0: 0 1px 2px rgba(0, 0, 0, .06);
+  --shadow-1: 0 6px 18px rgba(0, 0, 0, .06), 0 2px 6px rgba(0, 0, 0, .04);
 }
 
 /* =========================
    페이지 컨테이너
    ========================= */
-.events-page{
+.events-page {
   min-height: 100vh;
-  background:var(--bg); color:var(--fg);
-  font-family:'Pretendard',system-ui,-apple-system,Segoe UI,Roboto,sans-serif;
-  padding: clamp(16px, 2vw, 28px);
+  background: var(--bg);
+  color: var(--fg);
+  font-family: 'Pretendard', system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
+  padding: 0 var(--page-pad);
   padding-bottom: clamp(28px, 4vw, 48px);
   box-sizing: border-box;
 }
-.events-page.is-under-topbar{ padding-top: calc(var(--topbar-height) + 12px); }
-@media (max-width: 768px){
-  .events-page.is-under-topbar{ padding-top: calc(var(--topbar-height-mobile) + 8px); }
+
+/* ⬇️ 상단바 + (gap 최소 0) + 토글높이 만큼 예약 → 카드가 토글 뒤로 안 보임 */
+.events-page.is-under-topbar {
+  padding-top: calc(var(--topbar-height) + clamp(0px, var(--toggle-gap), 200px) + var(--toggle-height));
+}
+@media (max-width: 768px) {
+  .events-page.is-under-topbar {
+    padding-top: calc(var(--topbar-height-mobile) + clamp(0px, var(--toggle-gap-mobile), 200px) + var(--toggle-height-mobile));
+  }
 }
 
 /* =========================
-   헤더 / 버튼
+   토글 바 (상단바 아래 고정 + 사이드바 미침범)
    ========================= */
-.events-header{ margin: 0 0 12px; }
+.events-toggle {
+  position: fixed;
+  top: calc(var(--topbar-height) + var(--toggle-gap));
+  /* 🖥️ 데스크톱 전체화면 기준값 (요청값) */
+  left: calc(var(--sidebar-width) + 0.0645%);
+  right: 0.75%;
 
+  z-index: 1000;
+  background: var(--bg);
+  padding: 12px var(--page-pad);
+  display: flex;
+  gap: 8px;
+  box-shadow: 0 1px 0 rgba(0, 0, 0, .06);
+}
+
+/* 🖥️ 데스크톱 중간폭(1281~1599px): 살짝 여백 조정 */
+@media (max-width: 1599px) and (min-width: 1281px) {
+  .events-toggle {
+    left: calc(var(--sidebar-width) + 0.20%);
+    right: 1.00%;
+  }
+}
+
+/* 🖥️ 데스크톱 반틈화면(1025~1280px): 더 타이트하게 */
+@media (max-width: 1280px) and (min-width: 1025px) {
+  .events-toggle {
+    left: calc(var(--sidebar-width) + 0.35%);
+    right: 1.25%;
+  }
+}
+
+/* 📱 태블릿/반쪽 화면(<=1024px): 사이드바 축소/숨김 가정 → 좌우 균일 */
+@media (max-width: 1024px) {
+  .events-toggle {
+    left: 2%;
+    right: 2%;
+  }
+}
+
+/* 📱 모바일(<=768px): 모바일 상단바/갭 적용 + vw 여백 */
+@media (max-width: 768px) {
+  .events-toggle {
+    top: calc(var(--topbar-height-mobile) + var(--toggle-gap-mobile));
+    left: 2.5vw;
+    right: 2.5vw;
+    padding: 10px var(--page-pad);
+  }
+}
+
+/* 버튼 */
 .pill-btn {
   border: 1px solid rgba(0, 0, 0, .08);
   background: var(--card);
@@ -46,11 +119,14 @@
 /* =========================
    카드 그리드
    ========================= */
-.events-grid{
-  display: grid; align-items: start; overflow: visible;
-  gap: 28px; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+.events-grid {
+  display: grid;
+  align-items: start;
+  overflow: visible;
+  gap: 28px;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
 }
-.events-grid .event-card{ width: 100% !important; max-width: 440px; margin: 0 auto; }
+.events-grid .event-card { width: 100% !important; max-width: 440px; margin: 0 auto; }
 @media (min-width: 800px){ .events-grid{ grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 28px; } }
 @media (min-width: 1200px){ .events-grid{ grid-template-columns: repeat(auto-fit, minmax(340px, 1fr)); } }
 @media (min-width: 1440px){ .events-grid{ grid-template-columns: repeat(auto-fit, minmax(360px, 1fr)); } }
@@ -75,95 +151,79 @@
   width: 100%; height: min(70vh, 720px);
   border-radius: 16px; border: 1px solid rgba(0,0,0,.08);
   background: #f8f9fa; overflow: hidden;
-  touch-action: auto; /* 모바일 제스처 방해 방지 */
+  touch-action: auto;
+  position: relative;
 }
 
 /* =========================
-   커스텀 핀 (이미지 없음)
+   커스텀 핀
    ========================= */
 .km-pin-wrap{
   position: relative;
-  width: 40px; height: 52px;           /* SVG와 동일 */
-  transform: translate(-50%, -100%);   /* 좌표 기준 중앙 하단 정렬 */
-  pointer-events: none;                 /* 드래그 방해 금지 */
+  width: 40px; height: 52px;
+  transform: translate(-50%, -100%);
+  pointer-events: none;
 }
 .km-pin{
   position: relative; width: 40px; height: 52px;
-  pointer-events: auto;                 /* 핀만 클릭 가능 */
+  pointer-events: auto;
 }
-.km-pin .pin-bg{
-  position: absolute; left: 0; top: 0; display: block;
-}
+.km-pin .pin-bg{ position: absolute; left: 0; top: 0; display: block; }
 
 /* =========================
-   CustomOverlay 기반 인포윈도우(둥근 프레임 + 초록 테두리)
+   CustomOverlay 인포윈도우
    ========================= */
 .custom-infowindow{
   position: relative;
   background: #fff;
-  border: 2px solid var(--primary);     /* 메인 초록 테두리 */
-  border-radius: 16px;                  /* 둥글게 */
+  border: 2px solid var(--primary);
+  border-radius: 16px;
   box-shadow: 0 10px 26px rgba(0,0,0,.12);
   padding: 12px 14px;
   min-width: 220px;
   max-width: 300px;
+  z-index: 10000;
+  pointer-events: auto;
 }
-
-/* 말풍선 화살표 (아래) */
 .custom-infowindow::after{
   content:"";
-  position:absolute; left: 40px;        /* 화살표 x 위치 (핀과의 정렬은 JS xAnchor로도 보정 가능) */
-  bottom:-10px;
+  position:absolute; left: 40px; bottom:-10px;
   width:0; height:0;
   border-left:10px solid transparent;
   border-right:10px solid transparent;
-  border-top:10px solid #fff;           /* 내부색 */
+  border-top:10px solid #fff;
   filter: drop-shadow(0 -1px 0 var(--primary));
 }
 .custom-infowindow::before{
   content:"";
-  position:absolute; left: 40px;
-  bottom:-12px;
+  position:absolute; left: 40px; bottom:-12px;
   width:0; height:0;
   border-left:11px solid transparent;
   border-right:11px solid transparent;
-  border-top:12px solid var(--primary); /* 테두리색(외곽) */
+  border-top:12px solid var(--primary);
   z-index: -1;
 }
+.custom-infowindow .meta{ display:flex; flex-direction:column; gap:6px; width:100%; }
+.custom-infowindow .title{ font-size:15px; font-weight:800; color:#1e1e1e; line-height:1.3; word-break: keep-all; }
+.custom-infowindow .desc{ font-size:12px; color:#5b5b5b; line-height:1.3; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+.custom-infowindow .sub{ font-size:12px; color:#3a3a3a; line-height:1.3; }
 
-/* 내부 콘텐츠 */
-.custom-infowindow .meta{
-  display:flex; flex-direction:column; gap:6px; width:100%;
-}
-.custom-infowindow .title{
-  font-size:15px; font-weight:800; color:#1e1e1e; line-height:1.3;
-  word-break: keep-all;
-}
-.custom-infowindow .desc{
-  font-size:12px; color:#5b5b5b; line-height:1.3;
-  white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
-}
-.custom-infowindow .sub{
-  font-size:12px; color:#3a3a3a; line-height:1.3;
-}
-
-/* 버튼 – 본문과 간격, 둥글게, 초록 테두리 */
+/* 버튼 */
 .custom-infowindow .outline-btn{
-  align-self:flex-start;
-  margin-top: 10px;                     /* 본문과 버튼 띄우기 */
-  border:1.5px solid var(--primary);
-  background:#fff; color:#1f3d2a;
-  border-radius:10px;
-  padding:6px 10px;
-  font-size:12px; font-weight:600;
-  cursor:pointer;
+  align-self:flex-start; margin-top: 10px;
+  border:1.5px solid var(--primary); background:#fff; color:#1f3d2a;
+  border-radius:10px; padding:6px 10px;
+  font-size:12px; font-weight:600; cursor:pointer;
   transition: transform .06s ease, box-shadow .12s ease, background .12s ease, color .12s ease, border-color .12s ease;
 }
 .custom-infowindow .outline-btn:hover{
-  transform: translateY(-1px);
-  box-shadow: var(--shadow-0);
+  transform: translateY(-1px); box-shadow: var(--shadow-0);
   background: rgba(94,147,108,.08);
   border-color: color-mix(in srgb, var(--primary) 88%, #000 12%);
+}
+.custom-infowindow .outline-btn:focus-visible{
+  outline: 2px solid color-mix(in srgb, var(--primary) 60%, #000 40%);
+  outline-offset: 2px;
 }
 
 /* =========================
