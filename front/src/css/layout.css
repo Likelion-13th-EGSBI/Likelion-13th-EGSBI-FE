@@ -1,49 +1,70 @@
+/* src/css/layout.css */
 :root{
   --sidebar-width: 336px;
-  --topbar-height: 64px;
-  --topbar-height-mobile: 56px;
+  --topbar-height: 64px;        /* 데스크탑 탑바 */
+  --topbar-height-mobile: 56px; /* 모바일 탑바 */
+  --bottombar-height: 64px;     /* 모바일 하단바 (BottomBar와 동일) */
 
-  /* ✅ 모든 페이지 공통 최대 폭/패딩 */
   --content-max-width: 1200px;
   --content-padding-x: 24px;
 }
 
-/* 전역: 기본 마진/수평 스크롤 제거 */
-html, body { margin: 0; padding: 0; width: 100%; overflow-x: hidden; }
+/* 기본 리셋 */
+html, body, #root { height: 100%; }
+html, body { margin: 0; padding: 0; }
+* { box-sizing: border-box; }
 
+body { overflow-x: hidden; }     /* 가로 스크롤 방지 */
+
+/* 컨테이너 */
 .layout-container{ min-height: 100vh; position: relative; }
-.layout-main-content,
-.layout-container { overflow-x: hidden; }
-
-/* 데스크탑: 탑바 공간 확보 */
 .layout-main-content{
+  /* 데스크탑: 탑바 높이만큼만 위 패딩 */
   min-height: calc(100vh - var(--topbar-height));
   padding-top: var(--topbar-height);
+  box-sizing: border-box;
 }
-
-/* ✅ 중앙 정렬 컨테이너 */
 .layout-inner{
   max-width: var(--content-max-width);
   width: 100%;
   margin: 0 auto;
   padding: 0 var(--content-padding-x);
-  box-sizing: border-box;
+  overflow-x: clip;              /* 내부 컴포넌트가 잠깐 커져도 가로 스크롤 차단 */
 }
 
-/* PC: 사이드바 fixed → 왼쪽 패딩 */
 @media (min-width: 769px){
   .layout-main-content.with-layout{ padding-left: var(--sidebar-width); }
 }
 
-/* 모바일: 사이드바 없음 + 모바일 탑바 높이/안전영역 포함 */
+/* ===== 모바일 ===== */
 @media (max-width: 768px){
   .layout-main-content{
-    min-height: calc(100vh - (var(--topbar-height-mobile) + env(safe-area-inset-top, 0px)));
-    padding-top: calc(var(--topbar-height-mobile) + env(safe-area-inset-top, 0px));
+    min-height: calc(100dvh - var(--topbar-height-mobile));
+    padding-top: var(--topbar-height-mobile);
     padding-left: 0;
+    margin: 0 !important;
   }
+
+  /* 하단바가 fixed라서 내용이 가려지지 않도록 아래 패딩 추가 */
+  .layout-container.mobile .layout-main-content.with-layout{
+    padding-bottom: calc(var(--bottombar-height) + env(safe-area-inset-bottom, 0px));
+  }
+
   .layout-inner{ padding: 0 16px; }
 }
 
-/* 레이아웃 없는 페이지 */
-.layout-main-content.without-layout{ padding-top: 0; padding-left: 0; }
+/* 레이아웃 비적용 페이지(로그인 등) */
+.layout-main-content.without-layout{
+  padding-top: 0;
+  padding-left: 0;
+}
+
+/* ===== 페이지별 중복 top-padding을 전역에서 무력화 (모바일) ===== */
+@media (max-width: 768px){
+  .layout-main-content .eventupload-container{ padding-top: 0 !important; }
+  .layout-main-content .host-detail{           padding-top: 0 !important; }
+  .layout-main-content .subscribe-page{        padding-top: 0 !important; }
+}
+
+/* 첫 요소가 불필요한 margin-top을 갖는 경우 대비 */
+.layout-inner > *:first-child{ margin-top: 0; }
