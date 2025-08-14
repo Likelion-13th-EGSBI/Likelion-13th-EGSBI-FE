@@ -1,0 +1,35 @@
+[33m9631317[m[33m ([m[1;36mHEAD[m[33m -> [m[1;32mfeat/layout-update[m[33m, [m[1;31morigin/feat/organizer-page[m[33m, [m[1;32mfeat/organizer-page[m[33m)[m [feat(layout)] : 레이아웃 구조 변경 및 하단바 신규 추가, 페이지 비율 수정
+[33m23e3f94[m [feat] : 회원가입 페이지 복구
+[33m29a10b3[m [feat] : 구독 페이지, 행사 상세페이지, 행사 카드 UI
+[33m2c955b6[m 이벤트 카드 UI 수정 및 상세페이지와 연결
+[33m7b5074f[m feat: HostDetail, EventCard UI 업데이트
+[33mde2436e[m design: 레이아웃 변경
+[33m485c915[m feat:구독 해제 기능 추가
+[33m6f938ce[m feat:카테고리, 한줄소개 삭제
+[33mb881b79[m design: 모바일 페이지 비율 수정
+[33m2a2996d[m chore(subscribe): endMessage 정리
+[33mf6b5897[m feat(subscribe): 구독 페이지, HostCard 컴포넌트, subscribe.css 추가
+[33m4fe97b2[m feat: 구독 페이지 구현 (SubscribePage)
+[33m72d2666[m[33m ([m[1;32mdevelop[m[33m)[m Merge pull request #44 from Likelion-13th-EGSBI/feat/mypage
+[33m032b703[m refactor: 마이페이지 구조변경
+[33me17936b[m Merge pull request #43 from Likelion-13th-EGSBI/feat/eventupload-ui
+[33m2192ec3[m Merge branch 'develop' into feat/eventupload-ui
+[33m68faed8[m design: 행사 등록 페이지 및 사이드바, 상단바 구현 완료
+[33m52f5b33[m Merge pull request #41 from Likelion-13th-EGSBI/feat/mypage
+[33m80b3c15[m 클래스명 수정
+[33mfc4aab4[m 마이페이지 구성 수정
+[33m41e6dc5[m Merge pull request #42 from Likelion-13th-EGSBI/chore/PR
+[33m0ef6311[m chore: PR 템플릿 수정
+[33md180730[m 페이지 디자인 세부사항 수정
+[33maace7b1[m 마이페이지 초기구성 완료
+[33md133b85[m Add Mypage.jsx
+[33m853faa1[m Merge pull request #40 from Likelion-13th-EGSBI/feat/auth-ui
+[33m1fc4629[m design: 로그인 및 회원가입 페이지 작업 완료
+[33m20d471a[m Merge pull request #8 from Likelion-13th-EGSBI/chore/projectrouteinit
+[33m78cfa00[m 🎉 chore: project 라우팅 설정 및 초기 파일 생성
+[33mcc040fb[m Merge pull request #2 from Likelion-13th-EGSBI/chore/reactinit
+[33ma774486[m  chore: react project init
+[33mbf708d1[m Merge pull request #1 from Likelion-13th-EGSBI/chore/template
+[33mc483984[m chore: PR 템플릿 수정
+[33m059a4eb[m chore: 이슈 및 PR 템플릿 생성
+[33m2169a53[m[33m ([m[1;31morigin/main[m[33m)[m Initial commit
