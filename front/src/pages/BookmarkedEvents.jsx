@@ -91,54 +91,6 @@ const BookmarkedEvents = () => {
     myPosCssInjectedRef.current = true;
   };
 
-  // 인포윈도우(커스텀 오버레이) CSS 1회 주입
-  const infoCssInjectedRef = useRef(false);
-  const injectInfoCSS = () => {
-    if (infoCssInjectedRef.current) return;
-    const style = document.createElement("style");
-    style.id = "infowindow-style";
-    style.textContent = `
-      .custom-infowindow{
-        position:relative;
-        max-width: 280px;
-        background: var(--card, #fff);
-        color: var(--fg, #111);
-        border-radius: 12px;
-        box-shadow: 0 8px 24px rgba(0,0,0,.18);
-        padding: 12px 12px 12px 12px;
-        touch-action: auto;
-      }
-      .custom-infowindow::after{
-        content:"";
-        position:absolute; left:24px; bottom:-10px;
-        width: 0; height: 0;
-        border-left:10px solid transparent;
-        border-right:10px solid transparent;
-        border-top:10px solid var(--card, #fff);
-        filter: drop-shadow(0 -1px 0 rgba(0,0,0,.05));
-      }
-      .custom-infowindow .title{
-        font-weight: 700; line-height: 1.3; margin-bottom: 4px;
-      }
-      .custom-infowindow .desc{
-        font-size: .9rem; color: #666; margin-bottom: 2px;
-      }
-      .custom-infowindow .sub{
-        font-size: .85rem; color: #888; margin-bottom: 10px;
-      }
-      .custom-infowindow .outline-btn{
-        padding: 6px 10px;
-        border:1px solid #ddd; border-radius: 999px;
-        background: transparent; cursor: pointer;
-      }
-      @media (max-width:640px){
-        .custom-infowindow{max-width: 84vw;}
-      }
-    `;
-    document.head.appendChild(style);
-    infoCssInjectedRef.current = true;
-  };
-
   // 서버에서 가져오기 (정렬/마감 포함/거리 정렬 시 좌표 전달)
   const loadEvents = async (opts = {}) => {
     const flag = opts.includeClosed ?? includeClosed;
@@ -350,7 +302,6 @@ const BookmarkedEvents = () => {
 
       container.innerHTML = "";
       injectMyPosCSS();
-      injectInfoCSS();
 
       const primary =
         getComputedStyle(document.documentElement)
@@ -392,11 +343,11 @@ const BookmarkedEvents = () => {
           position: pos,
           content: wrap,
           xAnchor: 0.5,
-          yAnchor: 1.0,
+          yAnchor: 1.0, // 핀 끝이 좌표에 딱 붙음
         });
         marker.setMap(map);
 
-        // 🔔 마커 클릭 → 인포윈도우(커스텀 오버레이) 오픈
+        // 마커 클릭 → 인포윈도우 오픈
         wrap.querySelector(".km-pin")?.addEventListener("click", () => {
           if (!isAlive()) return;
 
@@ -418,7 +369,7 @@ const BookmarkedEvents = () => {
             </div>
           `;
 
-          // 지도 제스처와 버블링 차단
+          // 지도 제스처/버블링 차단
           const block = (e) => {
             e.preventDefault();
             e.stopPropagation();
@@ -428,7 +379,7 @@ const BookmarkedEvents = () => {
             content.addEventListener(t, block);
           });
 
-          // 상세보기 버튼 → SPA 네비
+          // 상세보기 → SPA 네비
           content.querySelector(".outline-btn")?.addEventListener("click", (e) => {
             block(e);
             try {
@@ -489,14 +440,14 @@ const BookmarkedEvents = () => {
       // 한 번 쓰고 끄기
       focusMyPosRef.current = false;
 
-      // 지도 우측 상단 컨트롤: 내 위치 버튼(수동 재시도 + 즉시 포커스)
+      // 지도 우측 상단 컨트롤: 내 위치 버튼
       const ctrl = document.createElement("div");
       ctrl.style.position = "absolute";
       ctrl.style.top = "12px";
       ctrl.style.right = "12px";
       ctrl.style.zIndex = "10001";
       ctrl.innerHTML = `
-        <button class="pill-btn" aria-label="내 위치 가져오기" style="padding:8px 12px;border-radius:20px;">
+        <button class="pill-btn" aria-label="내 위치 가져오기" style="padding:0 12px;">
           내 위치
         </button>
       `;
@@ -507,11 +458,9 @@ const BookmarkedEvents = () => {
         e.stopPropagation();
         focusMyPosRef.current = true; // 이번에는 내 위치로 포커스
         fetchMyLocation(false, (p) => {
-          // 거리순이면 서버 데이터도 갱신
           if (sortMode === "distance") {
             loadEvents({ includeClosed, sortMode: "distance", pos: p });
           }
-          // 지도 즉시 센터 이동(UX 보강)
           if (window.kakao?.maps && mapInstanceRef.current) {
             const latlng = new window.kakao.maps.LatLng(p.lat, p.lng);
             mapInstanceRef.current.setLevel(6);
@@ -609,7 +558,6 @@ const BookmarkedEvents = () => {
               className="pill-select"
               value={sortMode}
               onChange={(e) => setSortMode(e.target.value)} // 바뀌면 useEffect에서 서버 재요청
-              style={{ padding: "8px 12px", borderRadius: 999, border: "1px solid #ddd", background: "var(--card)" }}
             >
               <option value="recent">최신순</option>
               <option value="distance">거리순</option>
