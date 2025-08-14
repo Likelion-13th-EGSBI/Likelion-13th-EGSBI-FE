@@ -119,19 +119,20 @@
     background: #4a7857;
 }
 
-/* ==================== EventCard 그리드 레이아웃 (280px 고정) ==================== */
 .myuploadevent-events-grid {
     display: grid;
-    grid-template-columns: repeat(4, 280px); /* 4열 고정, 각각 280px */
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
     gap: 20px;
-    padding: 20px;
-    grid-auto-rows: min-content;
+    padding-top: 20px;
+    /* 모든 그리드 아이템이 동일한 높이를 가지도록 설정 */
+    grid-auto-rows: 1fr;
 }
 
 /* ==================== 이벤트 래퍼 및 액션 버튼 ==================== */
 .myuploadevent-event-wrapper {
     display: flex;
     width: 280px;
+    height: 100%; /* 부모 그리드 셀의 전체 높이 사용 */
     flex-direction: column;
     background: white;
     border-radius: 12px;
@@ -153,12 +154,27 @@
     border: none !important;
     border-radius: 0 !important;
     margin: 0 !important;
+    flex: 1; /* 남은 공간을 모두 차지하도록 설정 */
+    display: flex;
+    flex-direction: column;
+}
+
+/* EventCard 내부 컨텐츠가 flex로 늘어나도록 */
+.myuploadevent-event-wrapper .event-card > * {
+    flex-shrink: 0; /* 컨텐츠가 줄어들지 않도록 */
+}
+
+/* 마지막 요소(설명이나 여백)가 남은 공간을 차지하도록 */
+.myuploadevent-event-wrapper .event-card > *:last-child {
+    flex: 1;
 }
 
 .myuploadevent-action-buttons {
     padding: 12px 16px;
     border-top: 1px solid #f1f3f4;
     background: #fafbfc;
+    margin-top: auto; /* 버튼을 항상 하단에 고정 */
+    flex-shrink: 0; /* 버튼 영역이 줄어들지 않도록 */
 }
 
 .myuploadevent-action-btn {
@@ -205,6 +221,7 @@
         gap: 18px;
         padding: 18px;
         justify-content: center; /* 중앙 정렬 */
+        grid-auto-rows: 1fr; /* 동일한 높이 유지 */
     }
 
     .myuploadevent-action-buttons {
@@ -253,6 +270,7 @@
         gap: 16px;
         padding: 16px;
         justify-content: center; /* 280px 카드를 중앙 정렬 */
+        grid-auto-rows: 1fr; /* 동일한 높이 유지 */
     }
 
     .myuploadevent-action-buttons {

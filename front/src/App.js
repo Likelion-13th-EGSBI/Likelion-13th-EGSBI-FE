@@ -17,6 +17,7 @@ import NotificationPage from './pages/NotificationPage';
 import BookmarkedEvents from './pages/BookmarkedEvents';
 import EditProfile from './pages/EditProfile';
 import JoinedEvents from './pages/JoinedEvents';
+import EventEdit from './pages/EventEdit';
 
 
 function App() {
@@ -39,7 +40,7 @@ function App() {
       <Route path="/event-card" element={<EventCard />} />
       <Route path="/host-card" element={<HostCard />} />
       <Route path="/my-upload-event" element={<MyUploadEvent/>} />
-
+      <Route path="/event-edit/:eventId" element={<EventEdit />} />
 
 
 

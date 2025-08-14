@@ -1,0 +1,987 @@
+/* EventEdit.css */
+
+.event-edit-container {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    margin: 0;
+    padding: 0;
+    width: 100%;
+    box-sizing: border-box;
+  }
+  
+  .event-edit-container *,
+  .event-edit-container *::before,
+  .event-edit-container *::after {
+    box-sizing: inherit;
+  }
+  
+  /* PC 버전 스타일 (769px 이상) */
+  @media (min-width: 769px) {
+    .event-edit-container {
+      width: 100%;
+      min-width: 340px;
+      margin: 0 auto;
+      padding-top: 20px;
+      overflow: hidden;
+      background: white;
+    }
+  
+    .event-edit-header {
+      position: sticky;
+      top: 0;
+      background: white;
+      padding: 24px 32px;
+      border-bottom: 1px solid #f0f0f0;
+      display: flex;
+      align-items: center;
+      gap: 20px;
+      z-index: 100;
+    }
+  
+    .event-edit-back-button {
+      background: none;
+      border: none;
+      cursor: pointer;
+      padding: 8px;
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      color: #495057;
+      transition: all 0.2s ease;
+    }
+  
+    .event-edit-back-button:hover {
+      background: #f8f9fa;
+      color: #5E936C;
+    }
+  
+    .event-edit-title {
+      font-size: 28px;
+      font-weight: 700;
+      line-height: 1.3;
+      color: #191f28;
+      margin: 0;
+      word-break: keep-all;
+    }
+  
+    .event-edit-form {
+      padding: 40px 32px 120px;
+      display: flex;
+      flex-direction: column;
+      gap: 40px;
+    }
+  
+    .event-edit-section {
+      background: white;
+      border: 1px solid #e9ecef;
+      border-radius: 20px;
+      padding: 32px;
+      transition: all 0.3s ease;
+    }
+  
+    .event-edit-section:hover {
+      box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
+    }
+  
+    .event-edit-section-title {
+      font-size: 20px;
+      font-weight: 600;
+      color: #191f28;
+      margin-bottom: 24px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+  
+    .event-edit-field-group {
+      margin-bottom: 24px;
+    }
+  
+    .event-edit-field-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 20px;
+      margin-bottom: 24px;
+    }
+  
+    .event-edit-field {
+      display: flex;
+      flex-direction: column;
+    }
+  
+    .event-edit-label {
+      font-size: 16px;
+      font-weight: 600;
+      color: #495057;
+      margin-bottom: 8px;
+    }
+  
+    .event-edit-input {
+      width: 100%;
+      padding: 16px 20px;
+      font-size: 16px;
+      border: 2px solid #e9ecef;
+      border-radius: 12px;
+      background: white;
+      transition: all 0.2s ease;
+      outline: none;
+    }
+  
+    .event-edit-input:focus {
+      border-color: #5E936C;
+      box-shadow: 0 0 0 3px rgba(94, 147, 108, 0.1);
+    }
+  
+    .event-edit-input:disabled {
+      background-color: #f8f9fa;
+      color: #9ca3af;
+      cursor: not-allowed;
+    }
+  
+    .event-edit-textarea {
+      width: 100%;
+      padding: 20px;
+      font-size: 16px;
+      border: 2px solid #e9ecef;
+      border-radius: 12px;
+      background: white;
+      transition: all 0.2s ease;
+      outline: none;
+      resize: vertical;
+      min-height: 140px;
+      font-family: inherit;
+    }
+  
+    .event-edit-textarea:focus {
+      border-color: #5E936C;
+      box-shadow: 0 0 0 3px rgba(94, 147, 108, 0.1);
+    }
+  
+    .event-edit-actions {
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      width: 100%;
+      padding: 24px 32px;
+      background: white;
+      border-top: 1px solid #f0f0f0;
+      display: flex;
+      gap: 16px;
+      justify-content: flex-end;
+    }
+  
+    .event-edit-cancel-button {
+      padding: 12px 24px;
+      border: 2px solid #e9ecef;
+      border-radius: 12px;
+      background: white;
+      color: #495057;
+      font-size: 16px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      min-width: 120px;
+    }
+  
+    .event-edit-cancel-button:hover {
+      border-color: #5E936C;
+      color: #5E936C;
+      transform: translateY(-1px);
+    }
+  
+    .event-edit-submit-button {
+      padding: 12px 24px;
+      border: none;
+      border-radius: 12px;
+      background: #5E936C;
+      color: white;
+      font-size: 16px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      min-width: 140px;
+      justify-content: center;
+    }
+  
+    .event-edit-submit-button:hover {
+      background: #4a7a57;
+      transform: translateY(-1px);
+    }
+  
+    .event-edit-submit-button:disabled {
+      background: #e9ecef;
+      color: #adb5bd;
+      cursor: not-allowed;
+      transform: none;
+    }
+  }
+  
+  /* 모바일 버전 스타일 (768px 이하) */
+  @media (max-width: 768px) {
+    .event-edit-container {
+      width: 100%;
+      background: white;
+    }
+  
+    .event-edit-header {
+      position: sticky;
+      top: 0;
+      background: white;
+      padding: 16px 20px;
+      border-bottom: 1px solid #f0f0f0;
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      z-index: 100;
+    }
+  
+    .event-edit-back-button {
+      background: none;
+      border: none;
+      cursor: pointer;
+      padding: 8px;
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      color: #495057;
+      transition: all 0.2s ease;
+    }
+  
+    .event-edit-back-button:hover {
+      background: #f8f9fa;
+    }
+  
+    .event-edit-back-button:active {
+      background: #e9ecef;
+      transform: scale(0.95);
+    }
+  
+    .event-edit-title {
+      font-size: 22px;
+      font-weight: 700;
+      line-height: 1.4;
+      color: #191f28;
+      margin: 0;
+      word-break: keep-all;
+    }
+  
+    .event-edit-form {
+      padding: 32px 20px 40px;
+      display: flex;
+      flex-direction: column;
+      gap: 32px;
+    }
+  
+    .event-edit-section {
+      background: white;
+      border: 1px solid #e9ecef;
+      border-radius: 16px;
+      padding: 20px;
+    }
+  
+    .event-edit-section-title {
+      font-size: 18px;
+      font-weight: 600;
+      color: #191f28;
+      margin-bottom: 20px;
+    }
+  
+    .event-edit-field-group {
+      margin-bottom: 20px;
+    }
+  
+    .event-edit-field-row {
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+      margin-bottom: 20px;
+    }
+  
+    .event-edit-field {
+      display: flex;
+      flex-direction: column;
+    }
+  
+    .event-edit-label {
+      font-size: 14px;
+      font-weight: 600;
+      color: #495057;
+      margin-bottom: 8px;
+    }
+  
+    .event-edit-input {
+      width: 100%;
+      padding: 16px 18px;
+      font-size: 16px;
+      border: 2px solid #e9ecef;
+      border-radius: 12px;
+      background: white;
+      transition: border-color 0.2s ease;
+      outline: none;
+      -webkit-appearance: none;
+    }
+  
+    .event-edit-input:focus {
+      border-color: #5E936C;
+    }
+  
+    .event-edit-textarea {
+      width: 100%;
+      padding: 18px;
+      font-size: 16px;
+      border: 2px solid #e9ecef;
+      border-radius: 12px;
+      background: white;
+      transition: border-color 0.2s ease;
+      outline: none;
+      resize: vertical;
+      min-height: 120px;
+      font-family: inherit;
+      -webkit-appearance: none;
+    }
+  
+    .event-edit-textarea:focus {
+      border-color: #5E936C;
+    }
+  
+    .event-edit-actions {
+      background: white;
+      padding: 20px 0;
+      border-top: 1px solid #f0f0f0;
+      display: flex;
+      gap: 12px;
+      margin-top: 32px;
+    }
+  
+    .event-edit-cancel-button {
+      width: 30%;
+      height: 48px;
+      border: 2px solid #e9ecef;
+      border-radius: 12px;
+      background: white;
+      color: #495057;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+  
+    .event-edit-cancel-button:hover {
+      background-color: #f8f9fa;
+    }
+  
+    .event-edit-cancel-button:active {
+      background-color: #e9ecef;
+      transform: scale(0.95);
+    }
+  
+    .event-edit-submit-button {
+      width: 70%;
+      height: 48px;
+      border: none;
+      border-radius: 12px;
+      background: #5E936C;
+      color: white;
+      font-size: 16px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+    }
+  
+    .event-edit-submit-button.active {
+      background: #5E936C;
+      color: white;
+      cursor: pointer;
+    }
+  
+    .event-edit-submit-button:active {
+      transform: scale(0.98);
+    }
+  
+    .event-edit-submit-button:disabled {
+      background: #e9ecef;
+      color: #adb5bd;
+      cursor: not-allowed;
+    }
+  }
+  
+  /* 주소 관련 스타일 */
+  .event-edit-address-container {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+  
+  .event-edit-selected-address {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 12px 16px;
+    background: #f8fbf9;
+    border: 1px solid #e3f2e6;
+    border-radius: 12px;
+    color: #5E936C;
+  }
+  
+  .event-edit-address-text {
+    flex: 1;
+    font-size: 14px;
+    font-weight: 500;
+  }
+  
+  .event-edit-clear-address {
+    background: none;
+    border: none;
+    color: #666;
+    cursor: pointer;
+    padding: 4px;
+    border-radius: 4px;
+    transition: color 0.2s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  
+  .event-edit-clear-address:hover {
+    color: #dc3545;
+  }
+  
+  /* 해시태그 스타일 */
+  .event-edit-hashtag-container {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+  }
+  
+  .event-edit-hashtag-input-wrapper {
+    border: 2px solid #e9ecef;
+    border-radius: 12px;
+    padding: 16px;
+    background: white;
+    transition: border-color 0.2s ease;
+  }
+  
+  .event-edit-hashtag-input-wrapper:focus-within {
+    border-color: #5E936C;
+  }
+  
+  .event-edit-hashtag-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    align-items: center;
+    min-height: 26px;
+  }
+  
+  .event-edit-hashtag-tag {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    background: #5E936C;
+    color: white;
+    padding: 6px 12px;
+    border-radius: 20px;
+    font-size: 14px;
+    font-weight: 500;
+    transition: all 0.2s ease;
+  }
+  
+  .event-edit-hashtag-tag:hover {
+    background: #4a7a57;
+  }
+  
+  .event-edit-hashtag-remove {
+    background: rgba(255, 255, 255, 0.2);
+    border: none;
+    cursor: pointer;
+    padding: 2px;
+    border-radius: 50%;
+    color: white;
+    transition: all 0.2s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 16px;
+    height: 16px;
+  }
+  
+  .event-edit-hashtag-remove:hover {
+    background: rgba(255, 255, 255, 0.3);
+  }
+  
+  .event-edit-hashtag-input {
+    border: none;
+    outline: none;
+    padding: 4px 8px;
+    flex: 1;
+    min-width: 150px;
+    font-size: 16px;
+    background: transparent;
+  }
+  
+  .event-edit-hashtag-input::placeholder {
+    color: #adb5bd;
+  }
+  
+  .event-edit-hashtag-info {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+  
+  .event-edit-hashtag-tip {
+    font-size: 14px;
+    color: #666;
+    margin: 0;
+  }
+  
+  .event-edit-hashtag-count {
+    font-size: 14px;
+    color: #5E936C;
+    margin: 0;
+    font-weight: 600;
+  }
+  
+  /* 이미지 업로드 스타일 */
+  .event-edit-image-upload {
+    width: 100%;
+  }
+  
+  .event-edit-file-input {
+    display: none;
+  }
+  
+  .event-edit-upload-area {
+    border: 2px dashed #e9ecef;
+    border-radius: 16px;
+    padding: 48px 24px;
+    text-align: center;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    background: #fafbfc;
+  }
+  
+  .event-edit-upload-area:hover {
+    border-color: #5E936C;
+    background: #f8fbf9;
+  }
+  
+  .event-edit-upload-icon {
+    color: #adb5bd;
+    margin-bottom: 16px;
+    display: flex;
+    justify-content: center;
+  }
+  
+  .event-edit-upload-text {
+    font-size: 18px;
+    font-weight: 600;
+    color: #495057;
+    margin: 0 0 8px 0;
+  }
+  
+  .event-edit-upload-desc {
+    font-size: 14px;
+    color: #6c757d;
+    margin: 0;
+  }
+  
+  .event-edit-image-preview {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 16px;
+  }
+  
+  .event-edit-preview-image {
+    width: 100%;
+    max-width: 500px;
+    height: auto;
+    border-radius: 16px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    background: #f8f9fa;
+  }
+  
+  .event-edit-remove-image {
+    position: absolute;
+    top: 8px;
+    right: 8px;
+    background: rgba(0, 0, 0, 0.6);
+    color: white;
+    border: none;
+    border-radius: 50%;
+    width: 32px;
+    height: 32px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background-color 0.2s ease;
+  }
+  
+  .event-edit-remove-image:hover {
+    background: rgba(0, 0, 0, 0.8);
+  }
+  
+  .event-edit-change-image {
+    background: white;
+    border: 2px solid #5E936C;
+    color: #5E936C;
+    padding: 12px 24px;
+    border-radius: 12px;
+    cursor: pointer;
+    font-size: 14px;
+    font-weight: 600;
+    transition: all 0.2s ease;
+  }
+  
+  .event-edit-change-image:hover {
+    background: #5E936C;
+    color: white;
+  }
+  
+  .event-edit-change-text {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+  
+  /* 주소 검색 모달 스타일 */
+  .event-edit-postcode-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.5);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+    padding: 20px;
+  }
+  
+  .event-edit-postcode-container {
+    background: white;
+    border-radius: 16px;
+    width: 100%;
+    max-width: 500px;
+    max-height: 80vh;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+  }
+  
+  .event-edit-postcode-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 20px;
+    border-bottom: 1px solid #e9ecef;
+  }
+  
+  .event-edit-postcode-title {
+    font-size: 18px;
+    font-weight: 600;
+    color: #191f28;
+    margin: 0;
+  }
+  
+  .event-edit-postcode-close {
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 8px;
+    border-radius: 8px;
+    color: #666;
+    transition: background-color 0.2s ease;
+  }
+  
+  .event-edit-postcode-close:hover {
+    background: #f8f9fa;
+  }
+  
+  .event-edit-address-search-content {
+    padding: 20px;
+    flex: 1;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+  }
+  
+  .event-edit-address-search-input {
+    width: 100%;
+    padding: 16px;
+    font-size: 16px;
+    border: 2px solid #e9ecef;
+    border-radius: 12px;
+    outline: none;
+    transition: border-color 0.2s ease;
+    margin-bottom: 16px;
+  }
+  
+  .event-edit-address-search-input:focus {
+    border-color: #5E936C;
+  }
+  
+  .event-edit-search-loading {
+    text-align: center;
+    padding: 20px;
+    color: #666;
+    font-size: 14px;
+  }
+  
+  .event-edit-address-results {
+    flex: 1;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+  
+  .event-edit-address-result-item {
+    padding: 16px;
+    border: 1px solid #e9ecef;
+    border-radius: 12px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    background: white;
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+  }
+  
+  .event-edit-address-result-item:hover {
+    border-color: #5E936C;
+    background: #f8fbf9;
+  }
+  
+  .event-edit-address-result-main {
+    flex: 1;
+  }
+  
+  .event-edit-place-name {
+    font-size: 16px;
+    font-weight: 600;
+    color: #191f28;
+    margin: 0 0 4px 0;
+  }
+  
+  .event-edit-address-result-address {
+    font-size: 14px;
+    color: #666;
+    margin: 0 0 4px 0;
+  }
+  
+  .event-edit-address-result-phone {
+    font-size: 13px;
+    color: #888;
+    margin: 0;
+  }
+  
+  .event-edit-address-result-category {
+    font-size: 12px;
+    color: #5E936C;
+    background: #f8fbf9;
+    padding: 4px 8px;
+    border-radius: 8px;
+    white-space: nowrap;
+  }
+  
+  .event-edit-no-results {
+    text-align: center;
+    padding: 32px 20px;
+    color: #666;
+  }
+  
+  .event-edit-no-results-text {
+    font-size: 16px;
+    font-weight: 600;
+    margin: 0 0 8px 0;
+  }
+  
+  .event-edit-no-results-desc {
+    font-size: 14px;
+    margin: 0 0 16px 0;
+  }
+  
+  .event-edit-manual-address-btn {
+    background: #5E936C;
+    color: white;
+    border: none;
+    padding: 12px 24px;
+    border-radius: 8px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background-color 0.2s ease;
+  }
+  
+  .event-edit-manual-address-btn:hover {
+    background: #4a7a57;
+  }
+  
+  .event-edit-search-guide {
+    padding: 20px;
+    background: #f8f9fa;
+    border-radius: 12px;
+    border: 1px solid #e9ecef;
+  }
+  
+  .event-edit-guide-title {
+    font-size: 14px;
+    font-weight: 600;
+    color: #333;
+    margin: 0 0 8px 0;
+  }
+  
+  .event-edit-guide-list {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+  
+  .event-edit-guide-item {
+    font-size: 13px;
+    color: #666;
+    margin: 4px 0;
+  }
+  
+  .event-edit-sdk-error {
+    font-size: 14px;
+    color: #dc3545;
+    text-align: center;
+    margin: 0;
+  }
+  
+  /* 로딩 스타일 */
+  .event-edit-loading {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 300px;
+    gap: 12px;
+  }
+  
+  .event-edit-loading-dot {
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    background: #5E936C;
+    animation: event-edit-loading-bounce 1.4s ease-in-out infinite both;
+  }
+  
+  .event-edit-loading-dot:nth-child(1) {
+    animation-delay: -0.32s;
+  }
+  
+  .event-edit-loading-dot:nth-child(2) {
+    animation-delay: -0.16s;
+  }
+  
+  @keyframes event-edit-loading-bounce {
+    0%, 80%, 100% {
+      transform: scale(0.8);
+      opacity: 0.5;
+    }
+    40% {
+      transform: scale(1.2);
+      opacity: 1;
+    }
+  }
+  
+  /* 공통 스타일 */
+  .event-edit-input::placeholder,
+  .event-edit-textarea::placeholder {
+    color: #adb5bd;
+  }
+  
+  /* 스크롤바 스타일 */
+  .event-edit-address-search-content::-webkit-scrollbar {
+    width: 6px;
+  }
+  
+  .event-edit-address-search-content::-webkit-scrollbar-track {
+    background: #f1f1f1;
+    border-radius: 3px;
+  }
+  
+  .event-edit-address-search-content::-webkit-scrollbar-thumb {
+    background: #c1c1c1;
+    border-radius: 3px;
+  }
+  
+  .event-edit-address-search-content::-webkit-scrollbar-thumb:hover {
+    background: #a8a8a8;
+  }
+  
+  /* 태블릿 버전 스타일 (769px - 1023px) */
+  @media (min-width: 769px) and (max-width: 1023px) {
+    .event-edit-container {
+      padding-top: 16px;
+    }
+  
+    .event-edit-header {
+      padding: 20px 24px;
+    }
+  
+    .event-edit-title {
+      font-size: 24px;
+    }
+  
+    .event-edit-form {
+      padding: 32px 24px 40px;
+      gap: 32px;
+    }
+  
+    .event-edit-section {
+      padding: 24px;
+    }
+  
+    .event-edit-section-title {
+      font-size: 18px;
+      margin-bottom: 20px;
+    }
+  
+    .event-edit-field-row {
+      gap: 16px;
+    }
+  
+    .event-edit-actions {
+      position: static;
+      width: auto;
+      padding: 20px 0;
+      border-top: 1px solid #f0f0f0;
+      margin-top: 32px;
+      display: flex;
+      gap: 16px;
+    }
+  
+    .event-edit-cancel-button {
+      flex: 1;
+      min-width: 0;
+      height: 48px;
+      padding: 12px 16px;
+    }
+  
+    .event-edit-submit-button {
+      flex: 1;
+      min-width: 0;
+      height: 48px;
+      padding: 12px 16px;
+    }
+  
+    .event-edit-upload-area {
+      padding: 40px 24px;
+    }
+  }
