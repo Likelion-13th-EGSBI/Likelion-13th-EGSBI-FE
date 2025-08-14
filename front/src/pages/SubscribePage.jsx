@@ -7,7 +7,7 @@ import '../css/subscribe.css';
 
 const PAGE_SIZE = 20;
 const baseURL = process.env.REACT_APP_API_URL ?? '';
-const DEV_MOCK = true; // ✅ UI 확인용
+const DEV_MOCK = true; 
 
 const MOCK_ORGANIZERS = [
   { id: 1, name: '라이언 스튜디오', profileImage: null },
@@ -29,7 +29,7 @@ export default function SubscribePage() {
       setErrMsg('');
 
       try {
-        // ✅ DEV 목업: 깜빡임 없이 바로 채우고 끝
+        // 개발 모드에서는 목업 데이터 사용
         if (DEV_MOCK || !baseURL) {
           setOrganizers(MOCK_ORGANIZERS);
           setHasMore(false);
@@ -73,7 +73,8 @@ export default function SubscribePage() {
     setPage(next);
   };
 
-  // ✅ HostCard에서 성공적으로 해제되면 여기서 리스트에서 제거
+  // 구독 해제 핸들러
+  // 실제 API 호출은 없고, 목업 데이터에서만 동작
   const handleUnsubscribe = (id) => {
     setOrganizers(prev => prev.filter(o => (o?.id ?? o?.organizerId) !== id));
   };
@@ -82,7 +83,7 @@ export default function SubscribePage() {
   const isEmpty = count === 0 && !loading && !errMsg;
 
   return (
-    <Layout pageTitle="구독" activeMenuItem="home">
+    <Layout pageTitle="구독" activeMenuItem="subscrib">
       <div className="subscribe-page">
         <div className="subscribe-header">
           <h2>구독한 주최자</h2>

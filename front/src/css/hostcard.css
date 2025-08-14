@@ -11,13 +11,14 @@
   gap: 12px;
   transition: transform .12s ease, box-shadow .12s ease, background .12s ease;
   cursor: pointer;
+  touch-action: manipulation;
 }
 .org-card:hover {
   background: #fafafa;
   transform: translateY(-1px);
   box-shadow: 0 4px 14px rgba(0,0,0,0.04);
 }
-.org-card.is-mock { cursor: default; } /* 목업카드는 클릭 이동 없음 */
+.org-card.is-mock { cursor: default; }
 
 /* 헤더: 아바타+이름 / 버튼 */
 .org-card__header {
@@ -25,14 +26,18 @@
   align-items: center;
   justify-content: space-between;
   gap: 12px;
+  /* 이름은 넓게, 버튼은 줄어들지 않게 */
 }
 .org-card__info {
   display: flex;
   align-items: center;
   gap: 12px;
-  min-width: 0; /* 이름 ellipsis */
+  min-width: 0;     /* ← ellipsis 작동용 */
+  flex: 1 1 auto;   /* ← 남는 공간 다 쓰기 */
 }
+.unsubscribe-btn { flex: 0 0 auto; } /* ← 버튼은 줄어들지 않게 */
 
+/* 아바타 */
 .org-card__avatar {
   width: 44px;
   height: 44px;
@@ -51,16 +56,18 @@
   object-fit: cover;
 }
 
+/* 이름 */
 .org-card__name {
   font-weight: 700;
-  font-size: 1rem;
+  font-size: 1rem;      /* ≈16px */
   line-height: 1.2;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+  max-width: 100%;
 }
 
-/* 구독 상태 버튼: 기본 '구독중' / hover '구독 해제' */
+/* 구독 상태 버튼 */
 .unsubscribe-btn {
   position: relative;
   display: inline-flex;
@@ -82,7 +89,6 @@
   border-color: #BDB7A6;
   transform: translateY(-1px);
 }
-
 .unsubscribe-btn .label-default { display: inline; }
 .unsubscribe-btn .label-hover   { display: none; }
 .unsubscribe-btn:hover .label-default,
@@ -94,4 +100,33 @@
 @media (hover: none) {
   .unsubscribe-btn .label-default { display: inline !important; }
   .unsubscribe-btn .label-hover   { display: none !important; }
+}
+
+/* ===== 반응형(모바일에서 더 작게 & 깔끔하게) ===== */
+@media (max-width: 768px){
+  .org-card { padding: 12px; gap: 10px; }
+  .org-card__header { gap: 10px; }
+
+  .org-card__avatar {
+    width: 40px; height: 40px; flex-basis: 40px;
+    font-size: 0.9rem;
+  }
+  .org-card__name { font-size: 0.95rem; }          /* ≈15px */
+
+  .unsubscribe-btn {
+    padding: 6px 10px;
+    font-size: 12px;
+    gap: 4px;
+    border-radius: 999px;
+  }
+}
+
+@media (max-width: 380px){
+  .org-card { padding: 10px; }
+  .org-card__avatar {
+    width: 36px; height: 36px; flex-basis: 36px;
+    font-size: 0.85rem;
+  }
+  .org-card__name { font-size: 0.9rem; }           /* ≈14px */
+  .unsubscribe-btn { padding: 5px 9px; font-size: 11.5px; }
 }

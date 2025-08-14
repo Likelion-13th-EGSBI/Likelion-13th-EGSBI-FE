@@ -10,8 +10,7 @@ import EventCard from './components/EventCard';
 import EventDetail from './pages/EventDetail';
 import HostCard from './components/HostCard';
 import HostDetail from './pages/HostDetail';
-
-
+import Sidebar from './components/Sidebar';
 
 function App() {
   return (

@@ -10,90 +10,73 @@ const TopBar = () => {
   const navigate = useNavigate();
 
   useEffect(() => {
-    const handleResize = () => setIsMobile(window.innerWidth <= 768);
-    window.addEventListener('resize', handleResize);
-    return () => window.removeEventListener('resize', handleResize);
+    const onResize = () => setIsMobile(window.innerWidth <= 768);
+    window.addEventListener('resize', onResize);
+    return () => window.removeEventListener('resize', onResize);
   }, []);
 
-  // switch문으로 경로별 제목 결정
-  const getTitle = (path) => {
-    switch (path) {
-      case '/':
-        return '메인페이지';
-      case '/event-upload':
-        return '행사 등록';
-      case '/profile':
-        return '내 프로필';
-      case '/settings':
-        return '설정';
-      // 필요에 따라 케이스 추가
-      default:
-        return '페이지 제목';
-    }
-  };
+  const isHome = location.pathname === '/' || location.pathname === '/dashboard';
+  const goBack = () => navigate(-1);
+  const goNotifications = () => navigate('/notifications');
+  const goQR = () => navigate('/qr');
 
-  const title = getTitle(location.pathname);
-
+  /* ===== 모바일 ===== */
   if (isMobile) {
-    if (location.pathname === '/') {
-      return (
-        <div className="topbar-mobile-container">
-          <div className="topbar-mobile-content">
-            <button className="topbar-mobile-btn topbar-mobile-qr">
-              <QrCode size={22} />
-            </button>
-            <div className="topbar-mobile-search">
-              <Search size={18} />
-              <input type="text" placeholder="행사 검색..." />
-            </div>
-            <button className="topbar-mobile-btn topbar-mobile-bell">
-              <Bell size={21} />
-              <span className="topbar-notification-badge">5</span>
-            </button>
-          </div>
-        </div>
-      );
-    } else {
-      return (
-        <div className="topbar-mobile-container">
-          <div className="topbar-mobile-content" style={{ justifyContent: 'flex-start' }}>
+    return (
+      <div className="topbar-mobile-container">
+        <div className="topbar-mobile-content">
+          {/* 좌측: 홈이면 로고, 그 외엔 뒤로가기 */}
+          {isHome ? (
             <button
-              className="topbar-mobile-btn"
-              onClick={() => navigate(-1)}
-              style={{ marginRight: 12 }}
-              aria-label="뒤로가기"
+              className="topbar-mobile-logo-btn"
+              aria-label="홈"
+              onClick={() => navigate('/dashboard')}
             >
+              <img src={logo} alt="로고" className="topbar-mobile-logo" />
+            </button>
+          ) : (
+            <button className="topbar-icon-btn" aria-label="뒤로가기" onClick={goBack}>
               <ArrowLeft size={22} />
             </button>
-            <h1 className="topbar-mobile-page-title">{title}</h1>
+          )}
+
+          {/* 중앙: 짧은 검색 (모바일 아이콘 20px 고정) */}
+          <div className="topbar-search topbar-search--mobile">
+            <Search size={20} className="topbar-search-icon" />
+            <input type="text" placeholder="검색" aria-label="검색" />
+          </div>
+
+          {/* 우측: 알림/QR */}
+          <div className="topbar-mobile-right">
+            <button className="topbar-icon-btn" aria-label="알림" onClick={goNotifications}>
+              <Bell size={20} />
+              <span className="topbar-badge">5</span>
+            </button>
+            <button className="topbar-icon-btn" aria-label="QR" onClick={goQR}>
+              <QrCode size={21} />
+            </button>
           </div>
         </div>
-      );
-    }
+      </div>
+    );
   }
 
-  // PC 레이아웃
+  /* ===== 데스크탑 ===== */
   return (
     <div className="topbar-container">
       <div className="topbar-content">
-        <div className="topbar-left">
-          <div className="topbar-logo">
-            <img src={logo} alt="로고" className="topbar-logo-img" />
-          </div>
-        </div>
         <div className="topbar-center">
-          <h1 className="topbar-page-title">{title}</h1>
+          <div className="topbar-search topbar-search--desktop">
+            <Search size={18} className="topbar-search-icon" />
+            <input type="text" placeholder="검색" aria-label="검색" />
+          </div>
         </div>
         <div className="topbar-right">
-          <div className="topbar-search-bar">
-            <Search size={18} />
-            <input type="text" placeholder="행사를 검색해보세요..." />
-          </div>
-          <button className="topbar-notification-btn">
+          <button className="topbar-icon-btn" aria-label="알림" onClick={goNotifications}>
             <Bell size={20} />
-            <span className="topbar-notification-badge">5</span>
+            <span className="topbar-badge">5</span>
           </button>
-          <button className="topbar-qr-btn">
+          <button className="topbar-icon-btn" aria-label="QR" onClick={goQR}>
             <QrCode size={22} />
           </button>
         </div>

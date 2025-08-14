@@ -1,6 +1,6 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
 import Layout from '../components/Layout';
+import { useParams, useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import '../css/hostdetail.css';
 import EventCard from "../components/EventCard";
@@ -19,9 +19,9 @@ const MOCK_HOST = {
 };
 
 const MOCK_EVENTS = [
-  { id: 1, title: "행사 1", image: null, date: "2025-10-01", time: "10:00", location: "서울", fee: "무료", hashtags: ["디자인", "IT", "커뮤니티"] },
-  { id: 2, title: "행사 2", image: null, date: "2025-11-01", time: "15:00", location: "부산", fee: "10,000원" },
-  { id: 3, title: "행사 3", image: null, date: "2025-12-10", time: "09:00", location: "대구", fee: "무료" },
+  { id: 1, title: "행사 1", image: null, date: "2025.10.01", time: "10:00", location: "서울", fee: "무료", hashtags: ["디자인", "IT", "커뮤니티"] },
+  { id: 2, title: "행사 2", image: null, date: "2025.11.01", time: "15:00", location: "부산", fee: "10,000원" },
+  { id: 3, title: "행사 3", image: null, date: "2025.12.10", time: "09:00", location: "대구", fee: "무료" },
   { id: 4, title: "행사 4", image: null, date: "2026-01-15", time: "13:00", location: "광주", fee: "5,000원" },
   { id: 5, title: "행사 5", image: null, date: "2026-02-20", time: "14:00", location: "인천", fee: "무료" },
   { id: 6, title: "행사 6", image: null, date: "2026-03-05", time: "11:00", location: "제주", fee: "무료" },
@@ -100,7 +100,7 @@ export default function HostDetail() {
   };
 
   return (
-    <Layout pageTitle="주최자" activeMenuItem="subscribe">
+    <Layout pageTitle="주최자" activeMenuItem="subscriptions">
       <div className="host-detail">
         <div className="hd-inner">
           {/* 프로필 카드 */}

@@ -1,94 +1,72 @@
-:root {
-  --sidebar-w: 240px;
-  --topbar-h: 64px;
+/* src/css/layout.css */
+:root{
+  --sidebar-width: 336px;
+  --topbar-height: 64px;        /* 데스크탑 탑바 */
+  --topbar-height-mobile: 56px; /* 모바일 탑바 */
+  --bottombar-height: 64px;     /* 모바일 하단바 (BottomBar와 동일) */
 
-
-  --gutter-d: 40px;
-  --gutter-t: 24px;
-  --gutter-m: 16px;
-  --content-max: 1180px;
+  --content-max-width: 1200px;
+  --content-padding-x: 24px;
 }
 
-.layout-container {
-  display: flex;
-  height: 100vh;
-  overflow: hidden;
+/* 기본 리셋 */
+html, body, #root { height: 100%; }
+html, body { margin: 0; padding: 0; }
+* { box-sizing: border-box; }
+
+body { overflow-x: hidden; }     /* 가로 스크롤 방지 */
+
+/* 컨테이너 */
+.layout-container{ min-height: 100vh; position: relative; }
+.layout-main-content{
+  /* 데스크탑: 탑바 높이만큼만 위 패딩 */
+  min-height: calc(100vh - var(--topbar-height));
+  padding-top: var(--topbar-height);
+  box-sizing: border-box;
+}
+.layout-inner{
+  max-width: var(--content-max-width);
+  width: 100%;
+  margin: 0 auto;
+  padding: 0 var(--content-padding-x);
+  overflow-x: clip;              /* 내부 컴포넌트가 잠깐 커져도 가로 스크롤 차단 */
 }
 
-
-.layout-main-content {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  overflow: auto;
-  background: #fff;
+/* 데스크탑: 사이드바 fixed → 왼쪽 여백 필요 */
+@media (min-width: 769px){
+  .layout-main-content.with-layout{ padding-left: var(--sidebar-width); }
 }
 
+/* ===== 모바일 ===== */
+@media (max-width: 768px){
+  .layout-main-content{
+    /* 모바일 브라우저 주소창 변화 대응: 100dvh 사용 */
+    min-height: calc(100dvh - var(--topbar-height-mobile));
+    padding-top: var(--topbar-height-mobile);
+    padding-left: 0;
+    margin: 0 !important;
+  }
 
-.layout-main-content.with-layout {
-  margin-left: var(--sidebar-w);
-  padding-top: var(--topbar-h);
-  padding-left: var(--gutter-d);
-  padding-right: var(--gutter-d);
+  /* 하단바가 fixed라서 내용이 가려지지 않도록 아래 패딩 추가 */
+  .layout-container.mobile .layout-main-content.with-layout{
+    padding-bottom: calc(var(--bottombar-height) + env(safe-area-inset-bottom, 0px));
+  }
+
+  .layout-inner{ padding: 0 16px; }
 }
 
-
-.layout-main-content.without-layout {
-  margin-left: 0;
+/* 레이아웃 비적용 페이지(로그인 등) */
+.layout-main-content.without-layout{
   padding-top: 0;
-  padding-left: var(--gutter-m);
-  padding-right: var(--gutter-m);
+  padding-left: 0;
 }
 
-
-.layout-main-content.with-layout>.subscribe-page,
-.layout-main-content.with-layout>.host-detail,
-.layout-main-content.with-layout>.dashboard-page,
-.layout-main-content.with-layout>.page-root {
-  width: 100%;
-  max-width: var(--content-max);
-  margin-inline: auto;
+/* ===== 페이지별 중복 top-padding을 전역에서 무력화 (모바일) ===== */
+@media (max-width: 768px){
+  .layout-main-content .eventupload-container{ padding-top: 0 !important; }
+  .layout-main-content .host-detail{           padding-top: 0 !important; }
+  .layout-main-content .subscribe-page{        padding-top: 0 !important; }
 }
 
-.layout-main-content.without-layout>.subscribe-page,
-.layout-main-content.without-layout>.host-detail,
-.layout-main-content.without-layout>.dashboard-page,
-.layout-main-content.without-layout>.page-root {
-  width: 100%;
-  max-width: var(--content-max);
-  margin-inline: auto;
-}
-
-
-@media (max-width: 1024px) {
-  .layout-main-content.with-layout {
-    margin-left: 0;
-    padding-top: var(--topbar-h);
-    padding-left: var(--gutter-t);
-    padding-right: var(--gutter-t);
-  }
-}
-
-@media (max-width: 768px) {
-
-  .layout-main-content.with-layout,
-  .layout-main-content.without-layout {
-    margin-left: 0;
-    padding-top: 0;
-    padding-left: var(--gutter-m);
-    padding-right: var(--gutter-m);
-  }
-}
-
-
-@media (min-width: 1440px) {
-  :root {
-    --content-max: 1240px;
-  }
-}
-
-@media (min-width: 1680px) {
-  :root {
-    --content-max: 1320px;
-  }
-}
+/* 첫 요소가 불필요한 margin-top을 갖는 경우 대비 */
+.layout-inner > *:first-child{ margin-top: 0; }

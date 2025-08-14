@@ -1,8 +1,10 @@
+/* eventupload.css — 가로 스크롤 제거용 사이즈/레이아웃 수정본 (JSX 변경 불필요) */
 .eventupload-container {
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
   margin: 0;
   padding: 0;
   box-sizing: border-box;
+  overflow-x: hidden; /* 🔒 이 페이지에서만 수평 스크롤 방지 */
 }
 
 .eventupload-container *,
@@ -11,21 +13,24 @@
   box-sizing: inherit;
 }
 
-/* PC 버전 스타일 */
+/* =============== PC =============== */
 @media (min-width: 769px) {
-   .eventupload-container {    
-    width: 90vw;           
+  .eventupload-container {
+    /* ⬇️ 90vw 제거 → 레이아웃 최대폭 레일 안으로 */
+    max-width: var(--content-max-width, 1200px);
+    width: 100%;
     min-width: 340px;
     margin: 0 auto;
     padding-top: 20px;
-    overflow: hidden;
-
+    padding-left: var(--content-padding-x, 24px);
+    padding-right: var(--content-padding-x, 24px);
+    overflow-x: hidden;
   }
 
   /* PC 헤더 */
   .eventupload-header {
     position: sticky;
-    top: 0;
+    top: 0; /* 필요 시 var(--topbar-height)로 조정 가능 */
     background: white;
     padding: 24px 32px;
     border-bottom: 1px solid #f0f0f0;
@@ -45,16 +50,12 @@
     justify-content: center;
     border-radius: 12px;
     transition: all 0.2s ease;
-
   }
-
-  .eventupload-back-button:hover {
-
-    transform: translateY(-1px);
-  }
+  .eventupload-back-button:hover { transform: translateY(-1px); }
 
   /* PC 스텝 콘텐츠 */
   .eventupload-step-content {
+    position: relative;           /* ✅ 하단바 absolute 기준점 */
     padding: 40px 32px 120px;
     opacity: 0;
     transform: translateY(20px);
@@ -62,16 +63,16 @@
     min-height: 500px;
     display: flex;
     flex-direction: column;
+    overflow-x: hidden;           /* 안전장치 */
   }
-
   .eventupload-step-content.show {
     opacity: 1;
     transform: translateY(0);
   }
 
-  /* 제목 크기 고정 */
+  /* 제목 */
   .eventupload-title {
-    font-size: 28px; 
+    font-size: 28px;
     font-weight: 700;
     line-height: 1.3;
     color: #191f28;
@@ -85,7 +86,6 @@
     grid-template-columns: 1fr 1fr;
     gap: 20px;
   }
-
   .eventupload-mode-card {
     padding: 32px 24px;
     border: 2px solid #e9ecef;
@@ -100,14 +100,12 @@
     gap: 16px;
     min-height: 200px;
   }
-
   .eventupload-mode-card:hover {
     border-color: #5E936C;
     background: #f8fbf9;
     transform: translateY(-2px);
     box-shadow: 0 8px 24px rgba(94, 147, 108, 0.15);
   }
-
   .eventupload-mode-card.selected {
     border-color: #5E936C;
     background: #f8fbf9;
@@ -116,22 +114,7 @@
   }
 
   /* PC 입력 필드 */
-  .eventupload-input {
-    width: 100%;
-    padding: 24px;
-    font-size: 20px;
-    border: 2px solid #e9ecef;
-    border-radius: 16px;
-    background: white;
-    transition: all 0.2s ease;
-    outline: none;
-  }
-
-  .eventupload-input:focus {
-    border-color: #5E936C;
-    box-shadow: 0 0 0 3px rgba(94, 147, 108, 0.1);
-  }
-
+  .eventupload-input,
   .eventupload-textarea {
     width: 100%;
     padding: 24px;
@@ -141,22 +124,26 @@
     background: white;
     transition: all 0.2s ease;
     outline: none;
+  }
+  .eventupload-input:focus,
+  .eventupload-textarea:focus {
+    border-color: #5E936C;
+    box-shadow: 0 0 0 3px rgba(94, 147, 108, 0.1);
+  }
+  .eventupload-textarea {
     resize: vertical;
     min-height: 140px;
     font-family: inherit;
   }
 
-  .eventupload-textarea:focus {
-    border-color: #5E936C;
-    box-shadow: 0 0 0 3px rgba(94, 147, 108, 0.1);
-  }
-
-  /* PC 하단 버튼 */
+  /* ✅ PC 하단 버튼 바: 컨테이너 너비만큼만 */
   .eventupload-bottom {
     position: absolute;
     bottom: 0;
     left: 0;
-    width: 100%;
+    right: 0;               /* ✅ width:auto와 세트 → padding 포함해도 오버플로우 X */
+    width: auto;            /* ✅ 100% + padding으로 넘치던 문제 해결 */
+    box-sizing: border-box; /* ✅ 패딩 포함 계산 */
     padding: 24px 32px;
     background: white;
     border-top: 1px solid #f0f0f0;
@@ -179,14 +166,12 @@
     justify-content: center;
     gap: 8px;
   }
-
   .eventupload-next-button.active {
     background: #5E936C;
     color: white;
     cursor: pointer;
     box-shadow: 0 4px 16px rgba(94, 147, 108, 0.3);
   }
-
   .eventupload-next-button.active:hover {
     background: #4a7a57;
     transform: translateY(-2px);
@@ -194,20 +179,22 @@
   }
 }
 
-/* 모바일 버전 스타일 */
+/* =============== 모바일 =============== */
 @media (max-width: 768px) {
   .eventupload-container {
     width: 100%;
     background: white;
     border-radius: 0;
-     padding-top: 48px
+    padding-top: 48px;
+    padding-left: 16px;   /* 레이아웃 여백과 일치 */
+    padding-right: 16px;
+    overflow-x: hidden;
   }
-
 
   /* 모바일 헤더 */
   .eventupload-header {
     position: sticky;
-    top: 0;
+    top: 0; /* 필요 시 calc(var(--topbar-height-mobile) + env(safe-area-inset-top, 0px)) */
     background: white;
     padding: 16px 20px;
     border-bottom: 1px solid #f0f0f0;
@@ -230,11 +217,7 @@
     transition: background-color 0.2s ease;
     color: #495057;
   }
-
-  .eventupload-back-button:hover {
-    background-color: #f8f9fa;
-  }
-
+  .eventupload-back-button:hover { background-color: #f8f9fa; }
   .eventupload-back-button:active {
     background-color: #e9ecef;
     transform: scale(0.95);
@@ -242,6 +225,7 @@
 
   /* 모바일 스텝 콘텐츠 */
   .eventupload-step-content {
+    position: relative;           /* ✅ 하단바 anchor */
     padding: 32px 20px 120px;
     opacity: 0;
     transform: translateY(20px);
@@ -249,14 +233,14 @@
     min-height: calc(100vh - 120px);
     display: flex;
     flex-direction: column;
+    overflow-x: hidden;
   }
-
   .eventupload-step-content.show {
     opacity: 1;
     transform: translateY(0);
   }
 
-  /* 제목 크기 고정 */
+  /* 제목 */
   .eventupload-title {
     font-size: 22px;
     font-weight: 700;
@@ -272,9 +256,6 @@
     flex-direction: column;
     gap: 12px;
   }
-
-
-
   .eventupload-mode-card {
     padding: 20px;
     border: 2px solid #e9ecef;
@@ -287,16 +268,11 @@
     gap: 16px;
     font-size: 10px;
   }
-
-  .eventupload-mode-card:active {
-    transform: scale(0.98);
-  }
-
+  .eventupload-mode-card:active { transform: scale(0.98); }
   .eventupload-mode-card:hover {
     border-color: #5E936C;
     background: #f8fbf9;
   }
-
   .eventupload-mode-card.selected {
     border-color: #5E936C;
     background: #f8fbf9;
@@ -304,22 +280,7 @@
   }
 
   /* 모바일 입력 필드 */
-  .eventupload-input {
-    width: 100%;
-    padding: 18px;
-    font-size: 16px;
-    border: 2px solid #e9ecef;
-    border-radius: 12px;
-    background: white;
-    transition: border-color 0.2s ease;
-    outline: none;
-    -webkit-appearance: none;
-  }
-
-  .eventupload-input:focus {
-    border-color: #5E936C;
-  }
-
+  .eventupload-input,
   .eventupload-textarea {
     width: 100%;
     padding: 18px;
@@ -329,16 +290,31 @@
     background: white;
     transition: border-color 0.2s ease;
     outline: none;
-    resize: vertical;
-    min-height: 120px;
-    font-family: inherit;
     -webkit-appearance: none;
   }
-
+  .eventupload-input:focus,
   .eventupload-textarea:focus {
     border-color: #5E936C;
   }
+  .eventupload-textarea {
+    resize: vertical;
+    min-height: 120px;
+    font-family: inherit;
+  }
 
+  /* ✅ 모바일 하단 버튼 바도 부모 폭에 맞춤 */
+  .eventupload-bottom {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;           /* ✅ */
+    width: auto;        /* ✅ */
+    box-sizing: border-box;
+    padding: 16px 20px;
+    background: white;
+    border-top: 1px solid #f0f0f0;
+    border-radius: 0 0 16px 16px;
+  }
 
   .eventupload-next-button {
     width: 100%;
@@ -354,19 +330,15 @@
     justify-content: center;
     gap: 8px;
   }
-
   .eventupload-next-button.active {
     background: #5E936C;
     color: white;
     cursor: pointer;
   }
-
-  .eventupload-next-button:active {
-    transform: scale(0.98);
-  }
+  .eventupload-next-button:active { transform: scale(0.98); }
 }
 
-/* 공통 스타일 */
+/* =============== 공통 =============== */
 .eventupload-progress-bar {
   flex: 1;
   height: 4px;
@@ -374,7 +346,6 @@
   border-radius: 2px;
   overflow: hidden;
 }
-
 .eventupload-progress-fill {
   height: 100%;
   background: #5E936C;
@@ -382,27 +353,14 @@
   transition: width 0.3s ease;
 }
 
-.eventupload-question {
-  flex: 1;
-}
-
-.eventupload-input-group {
-  margin-top: 8px;
-}
+.eventupload-question { flex: 1; }
+.eventupload-input-group { margin-top: 8px; }
 
 .eventupload-input::placeholder,
-.eventupload-textarea::placeholder {
-  color: #adb5bd;
-}
+.eventupload-textarea::placeholder { color: #adb5bd; }
 
-.eventupload-mode-icon {
-  color: #5E936C;
-  flex-shrink: 0;
-}
-
-.eventupload-ai-icon {
-  font-size: 32px;
-}
+.eventupload-mode-icon { color: #5E936C; flex-shrink: 0; }
+.eventupload-ai-icon { font-size: 32px; }
 
 .eventupload-mode-title {
   font-size: 15px;
@@ -410,17 +368,13 @@
   color: #191f28;
   margin-bottom: 4px;
 }
-
 .eventupload-mode-desc {
   font-size: 14px;
   color: #8b95a1;
   line-height: 1.4;
 }
 
-.eventupload-ai-result {
-  flex: 1;
-}
-
+.eventupload-ai-result { flex: 1; }
 .eventupload-ai-content-card {
   background: white;
   border: 1px solid #e9ecef;
@@ -428,11 +382,7 @@
   padding: 24px;
   margin-bottom: 24px;
 }
-
-.eventupload-ai-content {
-  position: relative;
-}
-
+.eventupload-ai-content { position: relative; }
 .eventupload-ai-text {
   font-size: 16px;
   line-height: 1.6;
@@ -450,18 +400,9 @@
   cursor: pointer;
   transition: all 0.2s ease;
 }
+.eventupload-edit-button:hover { background: #5E936C; color: white; }
 
-.eventupload-edit-button:hover {
-  background: #5E936C;
-  color: white;
-}
-
-.eventupload-edit-container {
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-}
-
+.eventupload-edit-container { display: flex; flex-direction: column; gap: 12px; }
 .eventupload-edit-textarea {
   width: 100%;
   padding: 16px;
@@ -473,48 +414,20 @@
   outline: none;
   font-family: inherit;
 }
+.eventupload-edit-textarea:focus { border-color: #5E936C; }
 
-.eventupload-edit-textarea:focus {
-  border-color: #5E936C;
-}
-
-.eventupload-edit-buttons {
-  display: flex;
-  gap: 8px;
-}
-
+.eventupload-edit-buttons { display: flex; gap: 8px; }
 .eventupload-edit-save {
-  background: #5E936C;
-  color: white;
-  border: none;
-  padding: 8px 16px;
-  border-radius: 6px;
-  font-size: 14px;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  gap: 4px;
-  transition: background-color 0.2s ease;
+  background: #5E936C; color: white; border: none;
+  padding: 8px 16px; border-radius: 6px; font-size: 14px; cursor: pointer;
+  display: flex; align-items: center; gap: 4px; transition: background-color 0.2s ease;
 }
-
-.eventupload-edit-save:hover {
-  background: #4a7a57;
-}
-
+.eventupload-edit-save:hover { background: #4a7a57; }
 .eventupload-edit-cancel {
-  background: white;
-  color: #666;
-  border: 1px solid #e9ecef;
-  padding: 8px 16px;
-  border-radius: 6px;
-  font-size: 14px;
-  cursor: pointer;
-  transition: all 0.2s ease;
+  background: white; color: #666; border: 1px solid #e9ecef;
+  padding: 8px 16px; border-radius: 6px; font-size: 14px; cursor: pointer; transition: all 0.2s ease;
 }
-
-.eventupload-edit-cancel:hover {
-  background: #f8f9fa;
-}
+.eventupload-edit-cancel:hover { background: #f8f9fa; }
 
 .eventupload-summary-card {
   background: #f8fbf9;
@@ -523,57 +436,18 @@
   padding: 24px;
   margin-bottom: 32px;
 }
-
-.eventupload-summary-title {
-  font-size: 18px;
-  font-weight: 600;
-  color: #333;
-  margin-bottom: 16px;
-}
-
-.eventupload-summary-list {
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-}
-
+.eventupload-summary-title { font-size: 18px; font-weight: 600; color: #333; margin-bottom: 16px; }
+.eventupload-summary-list { display: flex; flex-direction: column; gap: 12px; }
 .eventupload-summary-item {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 12px 0;
-  border-bottom: 1px solid #e9ecef;
+  display: flex; justify-content: space-between; align-items: center;
+  padding: 12px 0; border-bottom: 1px solid #e9ecef;
 }
-
-.eventupload-summary-item:last-child {
-  border-bottom: none;
-}
-
-.eventupload-summary-label {
-  font-size: 14px;
-  color: #666;
-  font-weight: 500;
-}
-
-.eventupload-summary-value {
-  font-size: 16px;
-  color: #333;
-  font-weight: 600;
-}
+.eventupload-summary-item:last-child { border-bottom: none; }
+.eventupload-summary-label { font-size: 14px; color: #666; font-weight: 500; }
+.eventupload-summary-value { font-size: 16px; color: #333; font-weight: 600; }
 
 .eventupload-submit-button {
-  width: 100%;
-  padding: 18px;
-  background: #5E936C;
-  color: white;
-  border: none;
-  border-radius: 12px;
-  font-size: 16px;
-  font-weight: 600;
-  cursor: pointer;
-  transition: background-color 0.2s ease;
+  width: 100%; padding: 18px; background: #5E936C; color: white; border: none;
+  border-radius: 12px; font-size: 16px; font-weight: 600; cursor: pointer; transition: background-color 0.2s ease;
 }
-
-.eventupload-submit-button:hover {
-  background: #4a7a57;
-}
+.eventupload-submit-button:hover { background: #4a7a57; }
