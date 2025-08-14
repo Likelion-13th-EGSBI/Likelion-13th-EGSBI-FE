@@ -35,6 +35,9 @@ const MyPage = ({ onPageChange, onLogout, user }) => {
       case "joined":
         navigate("/joined");
         break;
+      case "uploaded":
+        navigate("/my-upload-event");
+        break;
       default:
         onPageChange?.(key);
         break;
