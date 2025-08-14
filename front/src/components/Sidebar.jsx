@@ -1,4 +1,4 @@
-// src/components/Sidebar.jsx
+
 import React, { useMemo } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { Home, FileText, ThumbsUp, Heart, UploadCloud, CalendarCheck, User, MapPin, LogOut } from 'lucide-react';
@@ -45,7 +45,7 @@ const Sidebar = ({ activeMenuItem, user = { name: '김민지' } }) => {
           <img src={logo} alt="서비스 로고" className="sidebar-logo" />
         </div>
 
-        {/* ✅ 프로필 카드 (상단) */}
+  
         <div className="sidebar-user-card rich">
           <div className="sidebar-user-avatar xl">김</div>
           <div className="sidebar-user-details">
@@ -71,7 +71,7 @@ const Sidebar = ({ activeMenuItem, user = { name: '김민지' } }) => {
         ))}
       </nav>
 
-      {/* ✅ 개인 섹션 복구 */}
+      {/* 개인 메뉴 */}
       <div className="sidebar-section compact">
         <h3 className="sidebar-section-title">개인</h3>
         {personalMenuItems.map(({ id, icon: Icon, label, route }) => (

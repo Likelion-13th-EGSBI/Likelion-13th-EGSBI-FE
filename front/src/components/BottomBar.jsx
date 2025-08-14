@@ -1,57 +1,46 @@
+// src/components/BottomBar.jsx
 import React, { useMemo } from 'react';
-import { useNavigate, useLocation } from 'react-router-dom';
-import { Home, MapPin, ThumbsUp, User, Plus } from 'lucide-react'; // ← Plus 추가
+import { useLocation, useNavigate } from 'react-router-dom';
+import { Home, MapPin, PlusCircle, ThumbsUp, User } from 'lucide-react';
 import '../css/bottombar.css';
 
 export default function BottomBar() {
+  const location = useLocation();
   const navigate = useNavigate();
-  const { pathname } = useLocation();
 
   const items = useMemo(
     () => [
-      { id: 'home',         icon: Home,     label: '홈',   route: '/dashboard' },
-      { id: 'location',     icon: MapPin,   label: '위치', route: '/location' },
-      { id: 'event-upload', icon: Plus,     label: '업로드', route: '/event-upload' }, // ← 여기!
-      { id: 'subscribe',    icon: ThumbsUp, label: '구독', route: '/subscribe' },
-      { id: 'mypage',       icon: User,     label: '마이', route: '/mypage' },
+      { id: 'home', label: '홈',        icon: Home,      route: '/' },
+      { id: 'location', label: '위치',  icon: MapPin,    route: '/location' },   // 라우트 없으면 추가 필요
+      { id: 'event-upload', label: '업로드', icon: PlusCircle, route: '/event-upload' },
+      { id: 'subscriptions', label: '구독', icon: ThumbsUp, route: '/subscribe' },
+      { id: 'mypage', label: '마이',    icon: User,      route: '/mypage' },
     ],
     []
   );
 
-  const routeToId = useMemo(
-    () =>
-      new Map([
-        ['/dashboard', 'home'],
-        ['/location', 'location'],
-        ['/event-upload', 'event-upload'],
-        ['/subscribe', 'subscribe'],
-        ['/mypage', 'mypage'],
-      ]),
-    []
-  );
-
-  const activeId = routeToId.get(pathname);
+  const isActive = (route) => {
+    if (route === '/') return location.pathname === '/' || location.pathname === '/dashboard';
+    return location.pathname.startsWith(route);
+  };
 
   return (
-    <>
-      <nav className="bottombar" role="navigation" aria-label="하단 내비게이션">
-        {items.map(({ id, icon: Icon, label, route }) => (
-          <button
-            key={id}
-            type="button"
-            className={`bottombar-item ${activeId === id ? 'active' : ''}`}
-            onClick={() => navigate(route)}
-            aria-current={activeId === id ? 'page' : undefined}
-          >
-            <span className="bottombar-icon-wrap">
-              <Icon size={22} />
-            </span>
-            <span className="bottombar-label">{label}</span>
-            <span className="bottombar-indicator" aria-hidden="true" />
-          </button>
-        ))}
-      </nav>
-      <div className="bottombar-spacer" />
-    </>
+    <nav className="bottombar" aria-label="하단 내비게이션">
+      {items.map(({ id, label, icon: Icon, route }) => (
+        <button
+          key={id}
+          type="button"
+          className={`bottombar-item ${isActive(route) ? 'active' : ''}`}
+          onClick={() => navigate(route)}
+          aria-label={label}
+          aria-current={isActive(route) ? 'page' : undefined}
+        >
+          <span className="bottombar-icon-wrap">
+            <Icon size={22} aria-hidden />
+          </span>
+          <span className="bottombar-label">{label}</span>
+        </button>
+      ))}
+    </nav>
   );
 }

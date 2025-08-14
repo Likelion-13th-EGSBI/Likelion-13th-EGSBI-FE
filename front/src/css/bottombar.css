@@ -1,24 +1,26 @@
+/* src/css/bottombar.css */
 :root{
-  --brand: #5E936C;         /* 기본 브랜드 초록 */
-  --active: #939E91;        /* 선택(활성) 색상 */
-  --ink: #191f28;
+  --brand: #5E936C;         /* 기본 초록 */
+  --active: #939E91;        /* 선택 색상 */
   --muted: #6c757d;
   --line: #e9ecef;
-  --bottombar-height: 64px;
+  --bottombar-height: 64px; /* 하단바 높이 */
 }
 
 /* 기본 숨김 */
 .bottombar,
 .bottombar-spacer { display: none; }
 
-@media (max-width: 768px){
+/* ===== 모바일/태블릿(<=1023px)에서만 표시 ===== */
+@media (max-width: 1023px){
   .bottombar-spacer{
     display: block;
     height: calc(var(--bottombar-height) + env(safe-area-inset-bottom, 0px));
   }
 
   .bottombar{
-    position: fixed; left: 0; right: 0; bottom: 0;
+    position: fixed;
+    left: 0; right: 0; bottom: 0;
     height: var(--bottombar-height);
     background: #fff;
     border-top: 1px solid var(--line);
@@ -30,24 +32,34 @@
   }
 
   .bottombar-item{
-    appearance: none; border: none; background: transparent;
+    appearance: none;
+    border: none;
+    background: transparent;
     height: 100%;
-    display: flex; flex-direction: column; align-items: center; justify-content: center;
-    gap: 6px; color: var(--muted); font-size: 11px; min-width: 0;
+    display: flex; flex-direction: column;
+    align-items: center; justify-content: center;
+    gap: 6px;
+    color: var(--muted);
+    font-size: 11px;
   }
-  .bottombar-item svg{ width: 22px; height: 22px; stroke-width: 2; }
-  .bottombar-icon-wrap{ display: grid; place-items: center; }
-  .bottombar-label{ line-height: 1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 76px; }
 
-  /* 활성 상태 */
-  .bottombar-item.active{ color: var(--active); font-weight: 700; }
-  .bottombar-item.active svg{ stroke: var(--active); }
-  .bottombar-indicator{
-    width: 22px; height: 3px; border-radius: 3px; background: transparent; margin-top: 2px;
+  .bottombar-item .bottombar-icon-wrap{
+    display: grid; place-items: center;
+    width: 28px; height: 28px;
   }
-  .bottombar-item.active .bottombar-indicator{ background: var(--active); }
+
+  .bottombar-item.active{
+    color: var(--active);
+  }
+  .bottombar-item.active svg{ stroke: var(--active); }
+
+  .bottombar-label{ line-height: 1; user-select: none; }
 }
 
-@media (min-width: 769px){
-  .bottombar, .bottombar-spacer{ display: none !important; }
+/* 데스크탑(>=1024px)은 확실히 숨김 */
+@media (min-width: 1024px){
+  .bottombar,
+  .bottombar-spacer{
+    display: none !important;
+  }
 }

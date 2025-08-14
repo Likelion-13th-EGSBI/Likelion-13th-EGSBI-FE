@@ -16,9 +16,11 @@ const Layout = ({ children, pageTitle = '페이지 제목', activeMenuItem, show
     return () => window.removeEventListener('resize', onResize);
   }, []);
 
+  // 경로 → 메뉴 id 매핑
   const routeToId = useMemo(
     () =>
       new Map([
+        ['/', 'home'],
         ['/dashboard', 'home'],
         ['/event-upload', 'event-upload'],
         ['/subscribe', 'subscriptions'],
@@ -27,7 +29,9 @@ const Layout = ({ children, pageTitle = '페이지 제목', activeMenuItem, show
         ['/my-participations', 'my-participations'],
         ['/mypage', 'mypage'],
         ['/location', 'location'],
-        ['/subscribepage', 'subscriptions'], // 과거 경로 호환
+
+        // 과거 경로 호환
+        ['/subscribepage', 'subscriptions'],
       ]),
     []
   );
@@ -41,12 +45,16 @@ const Layout = ({ children, pageTitle = '페이지 제목', activeMenuItem, show
         <>
           <TopBar />
           {isPc && <Sidebar activeMenuItem={resolvedActive} />}
+          {/* ✅ 모바일에서만 하단바 렌더 */}
           {!isPc && <BottomBar />}
         </>
       )}
 
       <main className={`layout-main-content ${showLayout ? 'with-layout' : 'without-layout'}`}>
         <div className="layout-inner">{children}</div>
+
+        {/* ✅ 모바일에서만 하단바 높이만큼 여백 확보 */}
+        {!isPc && <div className="bottombar-spacer" />}
       </main>
     </div>
   );

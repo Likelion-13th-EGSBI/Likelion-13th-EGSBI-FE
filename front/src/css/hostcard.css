@@ -1,6 +1,4 @@
-/* HostCard 전용 스타일 — 페이지 CSS와 분리 */
 
-/* 카드 */
 .org-card {
   background: #fff;
   border: 1px solid #E9ECEF;
@@ -102,7 +100,6 @@
   .unsubscribe-btn .label-hover   { display: none !important; }
 }
 
-/* ===== 반응형(모바일에서 더 작게 & 깔끔하게) ===== */
 @media (max-width: 768px){
   .org-card { padding: 12px; gap: 10px; }
   .org-card__header { gap: 10px; }
