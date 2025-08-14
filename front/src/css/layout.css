@@ -32,7 +32,6 @@ body { overflow-x: hidden; }     /* 가로 스크롤 방지 */
   overflow-x: clip;              /* 내부 컴포넌트가 잠깐 커져도 가로 스크롤 차단 */
 }
 
-/* 데스크탑: 사이드바 fixed → 왼쪽 여백 필요 */
 @media (min-width: 769px){
   .layout-main-content.with-layout{ padding-left: var(--sidebar-width); }
 }
@@ -40,7 +39,6 @@ body { overflow-x: hidden; }     /* 가로 스크롤 방지 */
 /* ===== 모바일 ===== */
 @media (max-width: 768px){
   .layout-main-content{
-    /* 모바일 브라우저 주소창 변화 대응: 100dvh 사용 */
     min-height: calc(100dvh - var(--topbar-height-mobile));
     padding-top: var(--topbar-height-mobile);
     padding-left: 0;
