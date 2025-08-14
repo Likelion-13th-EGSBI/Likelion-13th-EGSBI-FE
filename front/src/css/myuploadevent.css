@@ -1,0 +1,328 @@
+.myuploadevent-container {
+    width: 100%;
+    max-width: none;
+    margin: 0;
+    padding: 0;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Noto Sans KR', sans-serif;
+}
+
+/* ==================== 로딩 ==================== */
+.myuploadevent-loading {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 8px;
+    padding: 100px 0;
+}
+
+.myuploadevent-loading-dot {
+    width: 8px;
+    height: 8px;
+    background: #5E936C;
+    border-radius: 50%;
+    animation: loading-bounce 1.4s ease-in-out infinite both;
+}
+
+.myuploadevent-loading-dot:nth-child(1) { animation-delay: -0.32s; }
+.myuploadevent-loading-dot:nth-child(2) { animation-delay: -0.16s; }
+
+@keyframes loading-bounce {
+    0%, 80%, 100% { transform: scale(0); opacity: 0.5; }
+    40% { transform: scale(1); opacity: 1; }
+}
+
+/* ==================== 헤더 (통합) ==================== */
+.myuploadevent-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 20px;
+    border-bottom: 1px solid #f0f3f4;
+    background: white;
+    z-index: 10;
+}
+
+.myuploadevent-title {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: #1a1d21;
+    margin: 0;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.myuploadevent-count {
+    font-size: 1rem;
+    color: #5E936C;
+    font-weight: 600;
+}
+
+.myuploadevent-add-btn {
+    background: #5E936C;
+    color: white;
+    border: none;
+    border-radius: 8px;
+    padding: 10px 16px;
+    font-size: 0.9rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.myuploadevent-add-btn:hover {
+    background: #4a7857;
+    transform: translateY(-1px);
+}
+
+/* ==================== 빈 상태 ==================== */
+.myuploadevent-empty {
+    text-align: center;
+    padding: 80px 20px;
+    max-width: 400px;
+    margin: 0 auto;
+    grid-column: 1 / -1;
+}
+
+.myuploadevent-empty-icon {
+    font-size: 3rem;
+    margin-bottom: 16px;
+    opacity: 0.7;
+}
+
+.myuploadevent-empty-title {
+    font-size: 1.25rem;
+    font-weight: 600;
+    color: #1a1d21;
+    margin: 0 0 8px 0;
+}
+
+.myuploadevent-empty-desc {
+    font-size: 0.9rem;
+    color: #6b7684;
+    margin: 0 0 24px 0;
+}
+
+.myuploadevent-empty-button {
+    background: #5E936C;
+    color: white;
+    border: none;
+    border-radius: 8px;
+    padding: 12px 24px;
+    font-size: 0.9rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.myuploadevent-empty-button:hover {
+    background: #4a7857;
+}
+
+/* ==================== EventCard 그리드 레이아웃 (280px 고정) ==================== */
+.myuploadevent-events-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 280px); /* 4열 고정, 각각 280px */
+    gap: 20px;
+    padding: 20px;
+    grid-auto-rows: min-content;
+}
+
+/* ==================== 이벤트 래퍼 및 액션 버튼 ==================== */
+.myuploadevent-event-wrapper {
+    display: flex;
+    width: 280px;
+    flex-direction: column;
+    background: white;
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    transition: all 0.3s ease;
+    border: 1px solid #e5e7eb;
+}
+
+.myuploadevent-event-wrapper:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
+    border-color: #5E936C;
+}
+
+/* EventCard 내부의 기본 스타일 override */
+.myuploadevent-event-wrapper .event-card {
+    box-shadow: none !important;
+    border: none !important;
+    border-radius: 0 !important;
+    margin: 0 !important;
+}
+
+.myuploadevent-action-buttons {
+    padding: 12px 16px;
+    border-top: 1px solid #f1f3f4;
+    background: #fafbfc;
+}
+
+.myuploadevent-action-btn {
+    width: 100%;
+    padding: 10px 16px;
+    border: none;
+    border-radius: 6px;
+    font-size: 0.9rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.myuploadevent-action-btn.edit-btn {
+    background: #5E936C;
+    color: white;
+}
+
+.myuploadevent-action-btn.edit-btn:hover {
+    background: #4a7857;
+}
+
+.myuploadevent-action-btn.review-btn {
+    background: #e9ecef;
+    color: #495057;
+}
+
+.myuploadevent-action-btn.review-btn:hover {
+    background: #dee2e6;
+}
+
+/* ==================== 태블릿 (768px - 1024px) ==================== */
+@media (min-width: 768px) and (max-width: 1024px) {
+    .myuploadevent-header {
+        padding: 18px 20px;
+    }
+
+    .myuploadevent-title {
+        font-size: 1.4rem;
+    }
+
+    .myuploadevent-events-grid {
+        grid-template-columns: repeat(2, 280px); /* 태블릿에서 2열, 각각 280px */
+        gap: 18px;
+        padding: 18px;
+        justify-content: center; /* 중앙 정렬 */
+    }
+
+    .myuploadevent-action-buttons {
+        padding: 10px 14px;
+    }
+
+    .myuploadevent-action-btn {
+        padding: 8px 14px;
+        font-size: 0.85rem;
+    }
+
+    .myuploadevent-empty {
+        padding: 60px 18px;
+        grid-column: 1 / -1;
+    }
+}
+
+/* ==================== 모바일 (767px 이하) ==================== */
+@media (max-width: 767px) {
+    /* 헤더 최적화 */
+    .myuploadevent-header {
+        padding-bottom: 15px;
+        padding-left: 12px;
+        padding-right: 12px;
+    }
+
+    .myuploadevent-title {
+        font-size: 1.2rem;
+    }
+
+    .myuploadevent-count {
+        font-size: 0.85rem;
+        background: #f0f7f4;
+        padding: 2px 6px;
+        border-radius: 6px;
+    }
+
+    .myuploadevent-add-btn {
+        padding: 8px 12px;
+        font-size: 0.8rem;
+    }
+
+    /* 모바일에서도 280px 고정 크기 유지 */
+    .myuploadevent-events-grid {
+        grid-template-columns: 280px; /* 모바일에서 280px 고정 */
+        gap: 16px;
+        padding: 16px;
+        justify-content: center; /* 280px 카드를 중앙 정렬 */
+    }
+
+    .myuploadevent-action-buttons {
+        padding: 12px 16px;
+    }
+
+    .myuploadevent-action-btn {
+        padding: 12px 16px;
+        font-size: 0.9rem;
+    }
+
+    /* 빈 상태 최적화 */
+    .myuploadevent-empty {
+        padding: 50px 16px;
+        grid-column: 1 / -1;
+    }
+
+    .myuploadevent-empty-icon {
+        font-size: 2.5rem;
+    }
+
+    .myuploadevent-empty-title {
+        font-size: 1.1rem;
+    }
+
+    .myuploadevent-empty-desc {
+        font-size: 0.85rem;
+    }
+
+    .myuploadevent-empty-button {
+        padding: 10px 20px;
+        font-size: 0.85rem;
+    }
+}
+
+/* ==================== 애니메이션 ==================== */
+.myuploadevent-events-grid > * {
+    animation: fadeInUp 0.4s ease-out forwards;
+}
+
+.myuploadevent-events-grid > *:nth-child(1) { animation-delay: 0.05s; }
+.myuploadevent-events-grid > *:nth-child(2) { animation-delay: 0.1s; }
+.myuploadevent-events-grid > *:nth-child(3) { animation-delay: 0.15s; }
+.myuploadevent-events-grid > *:nth-child(4) { animation-delay: 0.2s; }
+.myuploadevent-events-grid > *:nth-child(5) { animation-delay: 0.25s; }
+.myuploadevent-events-grid > *:nth-child(6) { animation-delay: 0.3s; }
+
+@keyframes fadeInUp {
+    from {
+        opacity: 0;
+        transform: translateY(15px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* ==================== 접근성 ==================== */
+.myuploadevent-add-btn:focus,
+.myuploadevent-empty-button:focus,
+.myuploadevent-action-btn:focus {
+    outline: 2px solid #5E936C;
+    outline-offset: 2px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    * {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+    }
+}

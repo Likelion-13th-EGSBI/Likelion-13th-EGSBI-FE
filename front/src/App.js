@@ -12,6 +12,7 @@ import EventDetail from './pages/EventDetail';
 import HostDetail from './pages/HostDetail';
 import EventCard from './components/EventCard';
 import HostCard from './components/HostCard';
+import MyUploadEvent from './pages/MyUploadEvent';
 
 function App() {
   return (
@@ -27,7 +28,7 @@ function App() {
         <Route path="/events/:id" element={<EventDetail />} />
         <Route path="/event-card" element={<EventCard />} />
         <Route path="/host-card" element={<HostCard />} />
-
+        <Route path="/my-upload-event" element={<MyUploadEvent/>} />
 
       </Routes>
     </Router>
