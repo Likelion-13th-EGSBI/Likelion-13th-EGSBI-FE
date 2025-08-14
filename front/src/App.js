@@ -1,4 +1,3 @@
-// src/App.js
 import React from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import './App.css';
@@ -11,7 +10,6 @@ import MyPage from './pages/MyPage';
 import SubscribePage from './pages/SubscribePage';
 import EventDetail from './pages/EventDetail';
 import HostDetail from './pages/HostDetail';
-
 import EventCard from './components/EventCard';
 import HostCard from './components/HostCard';
 
@@ -20,16 +18,13 @@ function App() {
     <Router>
       <Routes>
         <Route path="/" element={<></>} />
-
         <Route path="/login" element={<LoginPage />} />
         <Route path="/signup" element={<SignupPage />} />
-
         <Route path="/event-upload" element={<EventUpload />} />
         <Route path="/mypage" element={<MyPage />} />
         <Route path="/subscribe" element={<SubscribePage />} />
         <Route path="/host/:id" element={<HostDetail />} />
         <Route path="/events/:id" element={<EventDetail />} />
-
         <Route path="/event-card" element={<EventCard />} />
         <Route path="/host-card" element={<HostCard />} />
 
