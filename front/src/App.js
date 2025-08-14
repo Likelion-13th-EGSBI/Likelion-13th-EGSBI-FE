@@ -13,6 +13,11 @@ import HostDetail from './pages/HostDetail';
 import EventCard from './components/EventCard';
 import HostCard from './components/HostCard';
 import MyUploadEvent from './pages/MyUploadEvent';
+import NotificationPage from './pages/NotificationPage';
+import BookmarkedEvents from './pages/BookmarkedEvents';
+import EditProfile from './pages/EditProfile';
+import JoinedEvents from './pages/JoinedEvents';
+
 
 function App() {
   return (
