@@ -1,0 +1,199 @@
+/* =========================================================
+   JoinedEvents 전용 보정 + 리뷰 모달 / 버튼 스타일 (전체 코드)
+   ========================================================= */
+
+/* 이 페이지에서는 북마크 버튼 숨김 */
+.joined-page .event-card .bookmark-btn {
+  display: none !important;
+}
+
+/* 카드 래퍼: 플로팅 버튼 기준점 */
+.joined-card-wrap {
+  position: relative; /* 중요: 리뷰 버튼 absolute 기준 */
+}
+
+/* 리뷰 작성 버튼 - 카드 우측 하단 플로팅 */
+.review-btn-float {
+  position: absolute;
+  bottom: 10px;
+  right: 10px;
+  z-index: 2;
+}
+.review-btn-float .btn.primary {
+  padding: 8px 14px;
+  font-size: 14px;
+  border-radius: 10px;
+}
+
+/* 공통 버튼 */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 10px 14px;
+  border-radius: 12px;
+  font-weight: 600;
+  border: 1px solid transparent;
+  background: #eee;
+  color: #222;
+  cursor: pointer;
+  transition: transform .06s ease, box-shadow .12s ease, background .12s ease;
+}
+.btn:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 6px 16px rgba(0,0,0,.06);
+}
+.btn:active {
+  transform: translateY(0);
+  box-shadow: none;
+}
+.btn:disabled,
+[aria-disabled="true"] {
+  opacity: .55;
+  cursor: not-allowed;
+  box-shadow: none !important;
+  transform: none !important;
+}
+.btn.outline {
+  background: #fff;
+  border-color: #ddd;
+}
+.btn.primary {
+  background: var(--primary, #5E936C);
+  color: #fff;
+}
+.btn.primary:disabled {
+  background: #c9d8ce;
+  color: #fff;
+}
+
+/* =========================================================
+   리뷰 모달
+   ========================================================= */
+.review-modal {
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: 'Pretendard', system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
+}
+.review-modal__backdrop {
+  position: absolute;
+  inset: 0;
+  background: rgba(0,0,0,.35);
+}
+.review-modal__panel {
+  position: relative;
+  width: min(720px, 92vw);
+  background: #fff;
+  border-radius: 16px;
+  box-shadow: 0 10px 40px rgba(0,0,0,.18);
+  display: flex;
+  flex-direction: column;
+  max-height: 86vh;
+  overflow: hidden;
+}
+
+/* 헤더 */
+.review-modal__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px 18px;
+  border-bottom: 1px solid #eee;
+}
+.review-modal__header .title {
+  font-size: 18px;
+  font-weight: 700;
+}
+.icon-btn {
+  border: 0;
+  background: transparent;
+  font-size: 18px;
+  cursor: pointer;
+  line-height: 1;
+  padding: 4px 6px;
+  border-radius: 8px;
+}
+.icon-btn:hover {
+  background: rgba(0,0,0,.06);
+}
+
+/* 바디 */
+.review-modal__body {
+  padding: 16px 18px;
+  overflow: auto;
+}
+.review-modal__body .event-title {
+  font-weight: 700;
+  margin-bottom: 10px;
+  line-height: 1.25;
+}
+
+.field-label {
+  display: block;
+  margin: 12px 0 8px;
+  font-weight: 600;
+  font-size: 14px;
+  color: #444;
+}
+
+/* 별점 */
+.stars {
+  display: flex;
+  gap: 6px;
+  user-select: none;
+}
+.star {
+  width: 28px;
+  height: 28px;
+  border: 0;
+  background: transparent;
+  cursor: pointer;
+  font-size: 22px;
+  line-height: 1;
+  color: #ddd;             /* 비활성 별 */
+  transition: transform .08s ease, color .08s ease;
+}
+.star.on {
+  color: #FFC107;          /* 활성 별: 노란색 */
+}
+.star:active {
+  transform: scale(.92);
+}
+
+/* 텍스트 영역 */
+.review-textarea {
+  width: 100%;
+  border: 1px solid #ddd;
+  border-radius: 12px;
+  padding: 12px 14px;
+  resize: vertical;
+  font-size: 14px;
+  line-height: 1.5;
+}
+.review-textarea:focus {
+  outline: none;
+  border-color: #c8d6cc;
+  box-shadow: var(--ring, 0 0 0 3px rgba(94,147,108,.22));
+}
+
+/* 푸터 */
+.review-modal__footer {
+  display: flex;
+  gap: 10px;
+  justify-content: flex-end;
+  padding: 14px 18px;
+  border-top: 1px solid #eee;
+  background: #fff;
+}
+
+/* =========================================================
+   반응형
+   ========================================================= */
+@media (max-width: 480px) {
+  .review-modal__panel { width: 94vw; }
+  .btn { padding: 10px 12px; }
+}
