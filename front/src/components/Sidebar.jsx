@@ -11,11 +11,11 @@ const Sidebar = ({ activeMenuItem, user = { name: '김민지' } }) => {
 
   const mainMenuItems = useMemo(
     () => [
-      { id: 'home',              icon: Home,        label: '홈',               route: '/dashboard' },
+      { id: 'home',              icon: Home,        label: '홈',               route: '/' },
       { id: 'event-upload',      icon: FileText,    label: '행사 업로드',       route: '/event-upload' },
       { id: 'subscriptions',     icon: ThumbsUp,    label: '구독',             route: '/subscribe' },
       { id: 'bookmarks',         icon: Heart,       label: '내가 관심있는 행사', route: '/bookmarks' },
-      { id: 'my-uploads',        icon: UploadCloud, label: '내가 업로드한 행사', route: '/my-uploads' },
+      { id: 'my-uploads',        icon: UploadCloud, label: '내가 업로드한 행사', route: '/my-upload-event' },
       { id: 'my-participations', icon: CalendarCheck,label: '내가 참여한 행사',  route: '/my-participations' },
     ],
     []
