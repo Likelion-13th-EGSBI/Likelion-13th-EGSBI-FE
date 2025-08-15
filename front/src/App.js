@@ -18,13 +18,14 @@ import BookmarkedEvents from './pages/BookmarkedEvents';
 import EditProfile from './pages/EditProfile';
 import JoinedEvents from './pages/JoinedEvents';
 import EventEdit from './pages/EventEdit';
+import MainPage from './pages/InitMain';
 
 
 function App() {
   return (
     <Router>
       <Routes>
-      <Route path="/" element={<></>} />
+      <Route path="/" element={<MainPage/>} />
       <Route path="/login" element={<LoginPage />} />
       <Route path="/signup" element={<SignupPage />} />
       <Route path="/event-upload" element={<EventUpload />} />
