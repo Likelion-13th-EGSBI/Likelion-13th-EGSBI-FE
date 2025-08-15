@@ -1,0 +1,54 @@
+# .github/workflows/deploy.yml
+name: Deploy to EC2
+
+on:
+  push:
+    branches: [ develop ]
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Deploy to EC2
+      uses: appleboy/ssh-action@v1.0.0
+      with:
+        host: ${{ secrets.EC2_HOST }}
+        username: ${{ secrets.EC2_USERNAME }}
+        key: ${{ secrets.EC2_SSH_KEY }}
+        script: |
+          # 프로젝트 루트 디렉토리로 이동
+          cd /home/ubuntu/Likelion-13th-EGSBI-FE/front
+          
+          # 최신 코드 가져오기
+          git pull origin develop
+          
+          
+          # 의존성 설치 (package.json이 변경된 경우에만)
+          npm ci
+          
+          # React 앱 빌드
+          npm run build
+          
+          # 임시 디렉토리에 새 빌드 준비
+          TEMP_DIR="/tmp/build-$(date +%Y%m%d_%H%M%S)"
+          mkdir -p $TEMP_DIR
+          cp -r build/* $TEMP_DIR/
+          
+          # 이전 빌드 백업 (빠른 롤백을 위해)
+          sudo mv /var/www/html /var/www/html.backup || true
+          
+          # 새 빌드를 원자적으로 교체 (무중단)
+          sudo mv $TEMP_DIR /var/www/html
+          
+          # 권한 설정
+          sudo chown -R www-data:www-data /var/www/html
+          sudo chmod -R 755 /var/www/html
+          
+          # Nginx 설정 리로드 (서비스 중단 없음)
+          sudo nginx -t && sudo systemctl reload nginx
+          
+    - name: Health Check
+      run: |
+        sleep 5
+        curl -f http://${{ secrets.EC2_HOST }} || exit 1
