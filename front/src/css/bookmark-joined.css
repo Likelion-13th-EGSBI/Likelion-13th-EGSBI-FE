@@ -1,264 +1,234 @@
-/* =========================
-   상단바 & 공통 변수
-   ========================= */
-:root {
-  --topbar-height: 64px;
-  --topbar-height-mobile: 56px;
+/* =========================================================
+   북마크 전용 스타일 (iPad/Tablet/데스크탑 대응, Page-scoped)
+   ========================================================= */
 
-  /* 사이드바 폭 (데스크톱 기준) */
-  --sidebar-width: 240px;
+:root { --map-offset: 0px; }
 
-  /* 콘텐츠 좌우 패딩 */
-  --page-pad: clamp(16px, 2vw, 28px);
+html, body { height: 100%; }
+body { margin: 0; }
 
-  /* 토글(버튼바) 높이 */
-  --toggle-height: 56px;
-  --toggle-height-mobile: 52px;
+/* 지도 모드에서 스크롤 잠금 */
+html.lock-scroll, body.lock-scroll { overflow: hidden; }
 
-  /* 상단바와 토글 사이 간격 (요청값) */
-  --toggle-gap: 21px;
-  --toggle-gap-mobile: -8px;
+/* 페이지 기본 */
+.events-page--bookmarked {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  background: var(--bg, #fff);
+  color: var(--fg, #222);
+  font-family: 'Pretendard', system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
+  box-sizing: border-box;
+  overflow-x: hidden;
+}
 
-  --bg: #fff;
-  --fg: #222;
-  --card: #fff;
-  --primary: #5E936C;
-  --shadow-0: 0 1px 2px rgba(0, 0, 0, .06);
-  --shadow-1: 0 6px 18px rgba(0, 0, 0, .06), 0 2px 6px rgba(0, 0, 0, .04);
+/* 상단 토글 */
+.events-page--bookmarked .events-toggle {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  align-items: center;
+  justify-content: space-between;
+  position: sticky;
+  top: calc(var(--topbar-height, 64px) - 80px);
+  z-index: 5;
+  background: var(--bg, #fff);
+  padding: 10px 14px;
+  margin: 8px 0 12px;
+  border-radius: 14px;
+  box-shadow: var(--shadow-0, 0 1px 2px rgba(0,0,0,.06));
+  border: 1px solid rgba(0,0,0,.06);
+}
+
+.events-page--bookmarked .toggle-options { display: flex; gap: 10px; align-items: center; }
+
+/* 버튼 & 셀렉트 */
+.events-page--bookmarked .pill-btn,
+.events-page--bookmarked .pill-select {
+  height: 38px;
+  padding: 0 14px;
+  border-radius: 9999px;
+  border: 1px solid #E5E7EB;
+  background-color: #fff;
+  color: #444;
+  cursor: pointer;
+  font-weight: 600;
+  font-size: 14px;
+  transition: box-shadow .15s, transform .05s, background-color .15s, color .15s, border-color .15s;
+  box-shadow: 0 1px 2px rgba(0,0,0,.04);
+}
+.events-page--bookmarked .pill-btn:hover, .events-page--bookmarked .pill-select:hover { background-color: #F9FAFB; color: #222; }
+.events-page--bookmarked .pill-btn:active { transform: translateY(1px); }
+.events-page--bookmarked .pill-btn.active {
+  background-color: var(--primary, #5E936C);
+  color: #fff; border-color: var(--primary, #5E936C);
+  box-shadow: 0 4px 10px rgba(94,147,108,.25);
+}
+.events-page--bookmarked .pill-select {
+  appearance: none;
+  background-image: linear-gradient(45deg, transparent 50%, #888 50%), linear-gradient(135deg, #888 50%, transparent 50%);
+  background-position: right 12px 55%, right 6px 55%;
+  background-size: 6px 6px, 6px 6px;
+  background-repeat: no-repeat;
+  padding-right: 28px;
 }
 
 /* 스크린리더 전용 */
-.sr-only {
-  position: absolute !important;
-  width: 1px; height: 1px;
-  padding: 0; margin: -1px;
-  overflow: hidden; clip: rect(0,0,0,0);
-  white-space: nowrap; border: 0;
+.events-page--bookmarked .sr-only {
+  position: absolute !important; width: 1px; height: 1px;
+  padding: 0; margin: -1px; overflow: hidden; clip: rect(0,0,0,0); border: 0;
 }
 
-/* =========================
-   페이지 컨테이너
-   ========================= */
-.events-page {
-  min-height: 100vh;
-  background: var(--bg);
-  color: var(--fg);
-  font-family: 'Pretendard', system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
-  padding: 0 var(--page-pad);
-  padding-bottom: clamp(28px, 4vw, 48px);
-  box-sizing: border-box;
-}
+/* 빈 상태 */
+.events-page--bookmarked .events-empty { text-align: center; padding: 60px 20px; color: #888; }
+.events-page--bookmarked .events-empty .emoji { font-size: 48px; margin-bottom: 8px; }
+.events-page--bookmarked .events-empty .title { font-size: 18px; font-weight: 700; margin-bottom: 4px; }
+.events-page--bookmarked .events-empty .desc { font-size: 14px; color: #aaa; }
 
-/* ⬇️ 상단바 + (gap 최소 0) + 토글높이 만큼 예약 → 카드가 토글 뒤로 안 보임 */
-.events-page.is-under-topbar {
-  padding-top: calc(var(--topbar-height) + clamp(0px, var(--toggle-gap), 200px) + var(--toggle-height));
-}
-@media (max-width: 768px) {
-  .events-page.is-under-topbar {
-    padding-top: calc(var(--topbar-height-mobile) + clamp(0px, var(--toggle-gap-mobile), 200px) + var(--toggle-height-mobile));
-  }
-}
-
-/* =========================
-   토글 바 (상단바 아래 고정 + 사이드바 미침범)
-   ========================= */
-.events-toggle {
-  position: fixed;
-  top: calc(var(--topbar-height) + var(--toggle-gap));
-  left: calc(var(--sidebar-width) + 0.0645%);
-  right: 0.75%;
-  z-index: 1000;
-  background: var(--bg);
-  padding: 12px var(--page-pad);
-  display: flex;
-  gap: 8px;
-  box-shadow: 0 1px 0 rgba(0, 0, 0, .06);
-}
-
-/* 🖥️ 데스크톱 중간폭(1281~1599px): 살짝 여백 조정 */
-@media (max-width: 1599px) and (min-width: 1281px) {
-  .events-toggle { left: calc(var(--sidebar-width) + 0.20%); right: 1.00%; }
-}
-
-/* 🖥️ 데스크톱 반틈화면(1025~1280px): 더 타이트하게 */
-@media (max-width: 1280px) and (min-width: 1025px) {
-  .events-toggle { left: calc(var(--sidebar-width) + 0.35%); right: 1.25%; }
-}
-
-/* 📱 태블릿/반쪽 화면(<=1024px): 좌우 균일 */
-@media (max-width: 1024px) {
-  .events-toggle { left: 2%; right: 2%; }
-}
-
-/* 📱 모바일(<=768px): 모바일 상단바/갭 적용 + vw 여백 */
-@media (max-width: 768px) {
-  .events-toggle {
-    top: calc(var(--topbar-height-mobile) + var(--toggle-gap-mobile));
-    left: 2.5vw;
-    right: 2.5vw;
-    padding: 10px var(--page-pad);
-  }
-}
-
-/* =========================
-   버튼 & 셀렉트 (한 줄 고정/높이 통일)
-   ========================= */
-.pill-btn,
-.pill-select {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  white-space: nowrap;          /* ✅ 두 줄 방지 */
-  height: 40px;                 /* ✅ 고정 높이 */
-  padding: 0 14px;              /* 상하 0, 좌우만 */
-  line-height: 1;
-  font-size: 14px;
-  border-radius: 999px;
-}
-
-.pill-btn {
-  border: 1px solid rgba(0, 0, 0, .08);
-  background: var(--card);
-  box-shadow: var(--shadow-0);
-  cursor: pointer;
-  transition: transform .06s ease, box-shadow .12s ease, background .12s ease, color .12s ease, border-color .12s ease;
-}
-.pill-btn:hover { transform: translateY(-1px); box-shadow: var(--shadow-1); }
-.pill-btn.active { background: var(--primary); color: #fff; border-color: transparent; }
-
-.pill-select {
-  border: 1px solid rgba(0,0,0,.08);
-  background: var(--card);
-  box-shadow: var(--shadow-0);
-  appearance: none;
-}
-
-@media (max-width: 480px) {
-  .pill-btn,
-  .pill-select {
-    height: 36px;
-    padding: 0 12px;
-    font-size: 13px;            /* ✅ 글자 살짝 축소 */
-  }
-}
-
-/* =========================
-   카드 그리드
-   ========================= */
-.events-grid {
+/* ===== 이벤트 그리드 ===== */
+.events-page--bookmarked .events-grid {
   display: grid;
-  align-items: start;
-  overflow: visible;
-  gap: 28px;
-  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  width: 100%;
+  margin: 0 auto;
+  gap: 24px;
+  padding: 0 16px;
+  box-sizing: border-box;
+  grid-template-columns: repeat(4, minmax(0, 1fr)); /* 기본: 넓은 데스크탑 */
 }
-.events-grid .event-card { width: 100% !important; max-width: 440px; margin: 0 auto; }
-@media (min-width: 800px){ .events-grid{ grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 28px; } }
-@media (min-width: 1200px){ .events-grid{ grid-template-columns: repeat(auto-fit, minmax(340px, 1fr)); } }
-@media (min-width: 1440px){ .events-grid{ grid-template-columns: repeat(auto-fit, minmax(360px, 1fr)); } }
-@media (min-width: 1800px){ .events-grid{ grid-template-columns: repeat(auto-fit, minmax(380px, 1fr)); } }
+.events-page--bookmarked .events-grid,
+.events-page--bookmarked .events-grid > * { min-width: 0; }
+.events-page--bookmarked .event-card { width: 100%; min-width: 0; }
+.events-page--bookmarked .event-card * { max-width: 100%; box-sizing: border-box; }
 
-/* =========================
-   빈 상태
-   ========================= */
-.events-empty{
-  display:flex; flex-direction:column; align-items:center; justify-content:center;
-  gap:10px; text-align:center; padding: 56px 16px;
-  background:#fff; border-radius:16px; border:1px solid rgba(0,0,0,.06); box-shadow: 0 1px 2px rgba(0,0,0,.06);
+/* 카드 이미지 */
+.events-page--bookmarked .event-image {
+  position: relative; width: 100%; padding-top: 62.5%;
+  background-color: #eee; background-size: cover; background-position: center;
+  border-radius: 12px; overflow: hidden;
 }
-.events-empty .emoji{ font-size:28px; }
-.events-empty .title{ font-weight:600; }
-.events-empty .desc{ opacity:.75; font-size:14px; }
-
-/* =========================
-   지도 영역
-   ========================= */
-.map-box{
-  width: 100%; height: min(70vh, 720px);
-  border-radius: 16px; border: 1px solid rgba(0,0,0,.08);
-  background: #f8f9fa; overflow: hidden;
-  touch-action: auto;
-  position: relative;
+.events-page--bookmarked .event-image img {
+  position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover;
 }
 
-/* =========================
-   커스텀 핀 (좌표 정밀: transform 제거)
-   ========================= */
-.km-pin-wrap{
-  position: relative;
-  width: 40px; height: 52px;
-  transform: translate(-50%, -100%); /* ← Kakao x/yAnchor와 중복되므로 제거
-  pointer-events: none;                     /* 래퍼는 클릭 통과 */
+/* ===== 지도 모드 ===== */
+.events-page--bookmarked .map-box {
+  width: 100%;
+  height: calc(100vh - var(--topbar-height, 64px) - var(--map-offset, 0px));
+  background: #f5f5f5;
+  touch-action: pan-x pan-y;
+  z-index: 0; /* 하단바가 항상 위 */
 }
-.km-pin{
-  position: relative;
-  width: 40px; height: 52px;
-  pointer-events: auto;                     /* 실제 클릭 타겟 */
-}
-.km-pin svg { display: block; }             /* 렌더링 흔들림 방지 */
+.events-page--bookmarked.is-map .has-mobile-bottom-nav { padding-bottom: 0 !important; }
 
-/* =========================
-   CustomOverlay 인포윈도우
-   ========================= */
-.custom-infowindow{
-  position: relative;
-  background: #fff;
-  border: 2px solid var(--primary);
-  border-radius: 16px;
-  box-shadow: 0 10px 26px rgba(0,0,0,.12);
-  padding: 12px 14px;
-  min-width: 220px;
-  max-width: 300px;
-  z-index: 10000;
-  pointer-events: auto;
-}
-.custom-infowindow::after{
-  content:"";
-  position:absolute; left: 40px; bottom:-10px;
-  width:0; height:0;
-  border-left:10px solid transparent;
-  border-right:10px solid transparent;
-  border-top:10px solid #fff;
-  filter: drop-shadow(0 -1px 0 var(--primary));
-}
-.custom-infowindow::before{
-  content:"";
-  position:absolute; left: 40px; bottom:-12px;
-  width:0; height:0;
-  border-left:11px solid transparent;
-  border-right:11px solid transparent;
-  border-top:12px solid var(--primary);
-  z-index: -1;
-}
-.custom-infowindow .meta{ display:flex; flex-direction:column; gap:6px; width:100%; }
-.custom-infowindow .title{ font-size:15px; font-weight:800; color:#1e1e1e; line-height:1.3; word-break: keep-all; }
-.custom-infowindow .desc{ font-size:12px; color:#5b5b5b; line-height:1.3; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
-.custom-infowindow .sub{ font-size:12px; color:#3a3a3a; line-height:1.3; }
+/* 마커/인포윈도우 */
+.km-pin-wrap { position: relative; display: inline-block; }
+.km-pin { position: relative; width: 40px; height: 52px; pointer-events: auto; }
+.km-pin svg { display: block; }
+.custom-infowindow { pointer-events: none; z-index: 10000; }
 
-/* 버튼 */
-.custom-infowindow .outline-btn{
-  align-self:flex-start; margin-top: 10px;
-  border:1.5px solid var(--primary); background:#fff; color:#1f3d2a;
-  border-radius:10px; padding:6px 10px;
-  font-size:12px; font-weight:600; cursor:pointer;
-  transition: transform .06s ease, box-shadow .12s ease, background .12s ease, color .12s ease, border-color .12s ease;
-}
-.custom-infowindow .outline-btn:hover{
-  transform: translateY(-1px); box-shadow: var(--shadow-0);
-  background: rgba(94,147,108,.08);
-  border-color: color-mix(in srgb, var(--primary) 88%, #000 12%);
-}
-.custom-infowindow .outline-btn:focus-visible{
-  outline: 2px solid color-mix(in srgb, var(--primary) 60%, #000 40%);
-  outline-offset: 2px;
+/* ===== 모바일 ===== */
+.events-page--bookmarked .has-mobile-bottom-nav { padding-bottom: 60px; }
+@media (max-width: 767.98px) {
+  .events-page--bookmarked.is-under-topbar { padding-left: 12px; padding-right: 12px; }
+  .events-page--bookmarked .events-toggle {
+    flex-wrap: nowrap; overflow-x: auto; -webkit-overflow-scrolling: touch; white-space: nowrap;
+    top: calc(var(--topbar-height, 64px) - 80px); margin: 8px 0; padding: 6px 8px; gap: 8px;
+  }
+  .events-page--bookmarked .events-toggle > div:first-child { flex: 0 0 auto; display: flex; gap: 6px; }
+  .events-page--bookmarked .toggle-options {
+    flex: 1 1 auto; display: flex; justify-content: flex-end; align-items: center;
+    gap: 8px; flex-wrap: nowrap; min-width: 0;
+  }
+  .events-page--bookmarked .pill-btn, .events-page--bookmarked .pill-select { height: 32px; padding: 0 10px; font-size: 12px; border-radius: 9999px; }
+  .events-page--bookmarked .pill-select {
+    background-position: right 10px center, right 5px center;
+    background-size: 6px 6px, 6px 6px; padding-right: 26px; max-width: 44vw;
+  }
+  .events-page--bookmarked label[for="toggleClosed"] { gap: 6px; }
+  .events-page--bookmarked #toggleClosed { width: 16px; height: 16px; }
+  .events-page--bookmarked label[for="toggleClosed"] span { font-size: 12px; }
+  .events-page--bookmarked .events-grid { padding: 0 8px; gap: 16px; grid-template-columns: repeat(1, 1fr); }
 }
 
-/* =========================
-   모바일 보정
-   ========================= */
-@media (max-width: 480px){
-  .events-grid{ gap: 20px; grid-template-columns: minmax(0, 1fr); }
-  .events-grid .event-card{ width: 92% !important; max-width: 380px; }
-  .custom-infowindow{ min-width: 200px; max-width: 260px; padding:10px 12px; border-radius:14px; }
-  .custom-infowindow .outline-btn{ padding:5px 9px; border-radius:9px; }
+/* =========================================================
+   데스크탑 반쪽보기(2열) — 사이드바 유지 여부는 Layout이 결정
+   ========================================================= */
+@media (min-width: 768px) and (max-width: 1366.98px) and (not (pointer: coarse)) {
+  .events-page--bookmarked .events-grid {
+    padding: 0 16px;
+    gap: 20px;
+    grid-template-columns: repeat(2, 1fr) !important;
+  }
+}
+
+/* =========================================================
+   iPad/Tablet 전용 — 하단바 표시 + 검색바 왼쪽 여백 제거
+   (744~1366 범위, 터치 디바이스)
+   ========================================================= */
+
+/* 안전 영역 */
+@supports (padding: max(0px)) {
+  :root { --safe-bottom: env(safe-area-inset-bottom); }
+}
+
+/* 1) 사이드바 공간으로 생기는 좌측 여백 제거 */
+@media (min-width: 744px) and (max-width: 1366.98px) and (pointer: coarse) {
+  /* 메인 영역 좌여백 제거 */
+  .layout-container.mobile .layout-main-content.with-layout {
+    margin-left: 0 !important;
+    max-width: none !important;
+    width: 100% !important;
+  }
+  .layout-container.mobile .layout-inner {
+    padding-left: 0 !important;
+    margin-left: 0 !important;
+    max-width: none !important;
+    width: 100% !important;
+  }
+
+  /* TopBar 내부 컨테이너 좌여백 최소화 */
+  :is(.topbar,.TopBar,.top-bar,.header,.Header) :is(.inner,.wrap,.container,[class*="container"]) {
+    margin-left: 0 !important;
+    padding-left: 12px !important;
+    max-width: none !important;
+    width: 100% !important;
+  }
+
+  /* 2) 태블릿에서 하단바 항상 고정 (Layout이 렌더한 BottomBar) */
+  :is(.bottom-bar, .bottombar, .BottomBar) {
+    position: fixed !important;
+    bottom: 0 !important;
+    left: 0 !important; right: 0 !important;
+    width: 100% !important;
+    margin: 0 !important;
+    transform: none !important;
+    display: flex !important;
+    justify-content: space-around !important;
+    align-items: center !important;
+    padding-inline: 12px !important;
+    padding-bottom: max(12px, var(--safe-bottom, 0px)) !important;
+    z-index: 10005 !important; /* 지도 위로 */
+    box-sizing: border-box !important;
+  }
+  .events-page--bookmarked .has-mobile-bottom-nav { padding-bottom: 72px !important; }
+
+  /* 3) iPad 카드 열수 — 세로 2열, 가로 4열 */
+  @media (orientation: portrait){
+    .events-page--bookmarked .events-grid{
+      grid-template-columns:repeat(2,minmax(0,1fr)) !important;
+      padding:0 16px !important; gap:20px !important;
+    }
+  }
+  @media (orientation: landscape){
+    .events-page--bookmarked .events-grid{
+      grid-template-columns:repeat(4,minmax(0,1fr)) !important;
+      padding:0 24px !important; gap:24px !important;
+    }
+  }
+}
+
+/* 넓은 데스크탑 */
+@media (min-width: 1367px) {
+  .events-page--bookmarked.is-under-topbar { padding-left: 16px; padding-right: 16px; }
+  .events-page--bookmarked .events-grid { padding: 0 24px; gap: 32px; grid-template-columns: repeat(4, 1fr); }
 }
