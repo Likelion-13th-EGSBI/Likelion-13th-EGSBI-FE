@@ -7,25 +7,43 @@
   display: none !important;
 }
 
-/* 카드 래퍼: 플로팅 버튼 기준점 */
-.joined-card-wrap {
-  position: relative; /* 중요: 리뷰 버튼 absolute 기준 */
+/* -------------------- 외곽 카드 -------------------- */
+.joined-card {
+  display: flex;
+  flex-direction: column;
+  background: #fff;
+  border: 1px solid #e9ecef;
+  border-radius: 16px;
+  overflow: hidden; /* 카드+액션을 한 덩어리처럼 */
+  box-shadow: var(--shadow-1, 0 6px 18px rgba(0,0,0,.06), 0 2px 6px rgba(0,0,0,.04));
 }
 
-/* 리뷰 작성 버튼 - 카드 우측 하단 플로팅 */
-.review-btn-float {
-  position: absolute;
-  bottom: 10px;
-  right: 10px;
-  z-index: 2;
-}
-.review-btn-float .btn.primary {
-  padding: 8px 14px;
-  font-size: 14px;
-  border-radius: 10px;
+/* 내부 EventCard는 외곽 카드와 이음매 없이 */
+.joined-page .joined-card .event-card {
+  border: 0 !important;
+  box-shadow: none !important;
+  border-radius: 0 !important;
+  margin: 0 !important;
 }
 
-/* 공통 버튼 */
+/* 하단 액션 바: 리뷰 버튼만 1열(꽉 채움) */
+.joined-card-actions {
+  display: flex;
+  padding: 16px 16px 18px;
+  border-top: 1px solid #f0f0f0;
+  background: #fff;
+}
+
+.joined-card-action-btn {
+  flex: 1;
+  height: 48px;
+  width: 100%;
+  border-radius: 12px;
+  font-size: 16px;
+  font-weight: 600;
+}
+
+/* ================= 공통 버튼 스타일 ================= */
 .btn {
   display: inline-flex;
   align-items: center;
@@ -39,14 +57,8 @@
   cursor: pointer;
   transition: transform .06s ease, box-shadow .12s ease, background .12s ease;
 }
-.btn:hover {
-  transform: translateY(-1px);
-  box-shadow: 0 6px 16px rgba(0,0,0,.06);
-}
-.btn:active {
-  transform: translateY(0);
-  box-shadow: none;
-}
+.btn:hover { transform: translateY(-1px); box-shadow: 0 6px 16px rgba(0,0,0,.06); }
+.btn:active { transform: translateY(0); box-shadow: none; }
 .btn:disabled,
 [aria-disabled="true"] {
   opacity: .55;
@@ -54,18 +66,9 @@
   box-shadow: none !important;
   transform: none !important;
 }
-.btn.outline {
-  background: #fff;
-  border-color: #ddd;
-}
-.btn.primary {
-  background: var(--primary, #5E936C);
-  color: #fff;
-}
-.btn.primary:disabled {
-  background: #c9d8ce;
-  color: #fff;
-}
+.btn.outline { background: #fff; border-color: #ddd; }
+.btn.primary { background: var(--primary, #5E936C); color: #fff; }
+.btn.primary:disabled { background: #c9d8ce; color: #fff; }
 
 /* =========================================================
    리뷰 모달
@@ -117,9 +120,7 @@
   padding: 4px 6px;
   border-radius: 8px;
 }
-.icon-btn:hover {
-  background: rgba(0,0,0,.06);
-}
+.icon-btn:hover { background: rgba(0,0,0,.06); }
 
 /* 바디 */
 .review-modal__body {

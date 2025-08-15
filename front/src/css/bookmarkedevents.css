@@ -150,9 +150,7 @@ html.lock-scroll, body.lock-scroll { overflow: hidden; }
   .events-page--bookmarked .events-grid { padding: 0 8px; gap: 16px; grid-template-columns: repeat(1, 1fr); }
 }
 
-/* =========================================================
-   데스크탑 반쪽보기(2열) — 사이드바 유지 여부는 Layout이 결정
-   ========================================================= */
+/* 데스크탑 반쪽보기(2열) */
 @media (min-width: 768px) and (max-width: 1366.98px) and (not (pointer: coarse)) {
   .events-page--bookmarked .events-grid {
     padding: 0 16px;
@@ -161,58 +159,27 @@ html.lock-scroll, body.lock-scroll { overflow: hidden; }
   }
 }
 
-/* =========================================================
-   iPad/Tablet 전용 — 하단바 표시 + 검색바 왼쪽 여백 제거
-   (744~1366 범위, 터치 디바이스)
-   ========================================================= */
-
-/* 안전 영역 */
+/* iPad/Tablet 전용 */
 @supports (padding: max(0px)) {
   :root { --safe-bottom: env(safe-area-inset-bottom); }
 }
-
-/* 1) 사이드바 공간으로 생기는 좌측 여백 제거 */
 @media (min-width: 744px) and (max-width: 1366.98px) and (pointer: coarse) {
-  /* 메인 영역 좌여백 제거 */
-  .layout-container.mobile .layout-main-content.with-layout {
-    margin-left: 0 !important;
-    max-width: none !important;
-    width: 100% !important;
-  }
-  .layout-container.mobile .layout-inner {
-    padding-left: 0 !important;
-    margin-left: 0 !important;
-    max-width: none !important;
-    width: 100% !important;
-  }
+  .layout-container.mobile .layout-main-content.with-layout { margin-left: 0 !important; max-width: none !important; width: 100% !important; }
+  .layout-container.mobile .layout-inner { padding-left: 0 !important; margin-left: 0 !important; max-width: none !important; width: 100% !important; }
 
-  /* TopBar 내부 컨테이너 좌여백 최소화 */
   :is(.topbar,.TopBar,.top-bar,.header,.Header) :is(.inner,.wrap,.container,[class*="container"]) {
-    margin-left: 0 !important;
-    padding-left: 12px !important;
-    max-width: none !important;
-    width: 100% !important;
+    margin-left: 0 !important; padding-left: 12px !important; max-width: none !important; width: 100% !important;
   }
 
-  /* 2) 태블릿에서 하단바 항상 고정 (Layout이 렌더한 BottomBar) */
   :is(.bottom-bar, .bottombar, .BottomBar) {
-    position: fixed !important;
-    bottom: 0 !important;
-    left: 0 !important; right: 0 !important;
-    width: 100% !important;
-    margin: 0 !important;
-    transform: none !important;
-    display: flex !important;
-    justify-content: space-around !important;
-    align-items: center !important;
-    padding-inline: 12px !important;
-    padding-bottom: max(12px, var(--safe-bottom, 0px)) !important;
-    z-index: 10005 !important; /* 지도 위로 */
-    box-sizing: border-box !important;
+    position: fixed !important; bottom: 0 !important; left: 0 !important; right: 0 !important;
+    width: 100% !important; margin: 0 !important; transform: none !important;
+    display: flex !important; justify-content: space-around !important; align-items: center !important;
+    padding-inline: 12px !important; padding-bottom: max(12px, var(--safe-bottom, 0px)) !important;
+    z-index: 10005 !important; box-sizing: border-box !important;
   }
   .events-page--bookmarked .has-mobile-bottom-nav { padding-bottom: 72px !important; }
 
-  /* 3) iPad 카드 열수 — 세로 2열, 가로 4열 */
   @media (orientation: portrait){
     .events-page--bookmarked .events-grid{
       grid-template-columns:repeat(2,minmax(0,1fr)) !important;
@@ -233,7 +200,7 @@ html.lock-scroll, body.lock-scroll { overflow: hidden; }
   .events-page--bookmarked .events-grid { padding: 0 24px; gap: 32px; grid-template-columns: repeat(4, 1fr); }
 }
 
-/* ===== Kakao Map InfoWindow (restore to original) ===== */
+/* ===== Kakao Map InfoWindow ===== */
 .custom-infowindow { pointer-events: none; z-index: 10000; }
 
 .custom-infowindow .inner{
@@ -246,30 +213,11 @@ html.lock-scroll, body.lock-scroll { overflow: hidden; }
   border: 1px solid rgba(0,0,0,.06);
 }
 
-.custom-infowindow .meta {
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-}
+.custom-infowindow .meta { display: flex; flex-direction: column; gap: 6px; }
+.custom-infowindow .title { font-weight: 800; font-size: 15px; line-height: 1.3; color:#222; }
+.custom-infowindow .desc { font-size: 13px; color: #6b7280; }
+.custom-infowindow .sub  { font-size: 12px; color: #9ca3af; }
 
-.custom-infowindow .title {
-  font-weight: 800;
-  font-size: 15px;
-  line-height: 1.3;
-  color:#222;
-}
-
-.custom-infowindow .desc {
-  font-size: 13px;
-  color: #6b7280;
-}
-
-.custom-infowindow .sub  {
-  font-size: 12px;
-  color: #9ca3af;
-}
-
-/* 버튼은 클릭 가능해야 하므로 pointer-events를 되살림 */
 .custom-infowindow .outline-btn {
   border: 1px solid var(--primary, #5E936C);
   background: transparent;
@@ -281,10 +229,8 @@ html.lock-scroll, body.lock-scroll { overflow: hidden; }
   pointer-events: auto;
   font-weight: 600;
 }
-
 .custom-infowindow .outline-btn:active { transform: translateY(1px); }
 
-/* 말풍선 꼬리 */
 .custom-infowindow .arrow{
   position: absolute;
   left: 50%;
@@ -296,3 +242,4 @@ html.lock-scroll, body.lock-scroll { overflow: hidden; }
   border-top: 8px solid #fff;
   filter: drop-shadow(0 -1px 1px rgba(0,0,0,.08));
 }
+
