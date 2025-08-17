@@ -18,7 +18,7 @@ import BookmarkedEvents from './pages/BookmarkedEvents';
 import EditProfile from './pages/EditProfile';
 import JoinedEvents from './pages/JoinedEvents';
 import EventEdit from './pages/EventEdit';
-import MainPage from './pages/InitMain';
+import MainPage from './pages/MainPage';
 import Eventall from './pages/EventAll';
 
 function App() {
