@@ -19,7 +19,7 @@ import EditProfile from './pages/EditProfile';
 import JoinedEvents from './pages/JoinedEvents';
 import EventEdit from './pages/EventEdit';
 import MainPage from './pages/InitMain';
-
+import Eventall from './pages/EventAll';
 
 function App() {
   return (
@@ -42,6 +42,7 @@ function App() {
       <Route path="/host-card" element={<HostCard />} />
       <Route path="/my-upload-event" element={<MyUploadEvent/>} />
       <Route path="/event-edit/:eventId" element={<EventEdit />} />
+      <Route path="/event-all" element={<Eventall />} />
 
 
 
