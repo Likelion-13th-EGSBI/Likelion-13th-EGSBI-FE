@@ -5,7 +5,7 @@ import Layout from "../components/Layout";
 import EventCard from "../components/EventCard";
 import BottomBar from "../components/BottomBar";
 import "../css/eventcard.css";
-import "../css/bookmark-joined.css";
+import "../css/bookmarkedevents.css";
 
 // --------- 더미 데이터 ----------
 const DUMMY = Array.from({ length: 50 }, (_, i) => ({

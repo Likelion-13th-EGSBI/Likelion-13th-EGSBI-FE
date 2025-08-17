@@ -1,0 +1,110 @@
+/* =========================================================
+   JoinedEvents (내가 참여한 행사) 전용 레이아웃/카드/버튼
+   ========================================================= */
+
+/* 이 페이지에서는 북마크 버튼 숨김 */
+.joined-page .event-card .bookmark-btn { display: none; }
+
+/* 바깥 프레임(둥근 모서리 + 그림자) */
+.joined-card {
+  display: flex;
+  flex-direction: column;
+  background: #fff;
+  border: 1px solid #e9ecef;
+  border-radius: 16px;
+  overflow: hidden; /* 내부도 같이 라운드 */
+  box-shadow: var(--shadow-1, 0 6px 18px rgba(0,0,0,.06), 0 2px 6px rgba(0,0,0,.04));
+}
+
+/* ── 내부 EventCard를 프레임에 맞춤 ── */
+.joined-page .joined-card .event-card {
+  width: 100%;          /* 고정폭(280px) 무시하고 셀 가득 */
+  background: transparent;
+  border-radius: 0;     /* 라운드는 바깥 프레임이 담당 */
+  box-shadow: none;     /* 내부 그림자 제거 */
+  margin: 0;
+}
+
+/* 내부 hover 상승/그림자 제거 */
+.joined-page .joined-card .event-card:hover {
+  transform: none;
+  box-shadow: none;
+}
+
+/* 이미지와 내부 블록도 프레임 라운드에 맞춤 */
+.joined-page .joined-card .event-image,
+.joined-page .joined-card .event-image img {
+  border-radius: 0;
+}
+
+/* 하단 액션 바 */
+.joined-card-actions {
+  display: flex;
+  padding: 16px 16px 18px;
+  border-top: 0;
+  background: #fff;
+}
+.joined-card-action-btn {
+  flex: 1;
+  height: 48px;
+  width: 100%;
+  border-radius: 12px;
+  font-size: 16px;
+  font-weight: 600;
+}
+
+/* ===== 카드 그리드 (모바일 1열 / 태블릿 2열 / 데스크탑 4열) ===== */
+
+/* 모바일 1열 */
+.joined-page .events-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 18px;
+  padding: 8px 8px 12px;
+  box-sizing: border-box;
+  min-width: 0;
+}
+
+/* 태블릿(iPad mini 768px 포함)~노트북: 2열 */
+@media (min-width: 768px) and (max-width: 1279.98px) {
+  .joined-page {
+    margin-left: 15px;   /* 음수 마진 제거 */
+    margin-right: 0;
+  }
+  .joined-page .events-grid {
+    /* 서브픽셀 잔여폭이 한쪽으로 몰리지 않도록 정확히 계산 */
+    /* gap: 16px 기준 → 총 100% - 16px 를 반으로 나눔 */
+    grid-template-columns: calc((100% - 16px) / 2) calc((100% - 16px) / 2);
+    gap: 16px;
+
+    /* 좌우 대칭 패딩으로 시각적 균형 보장 */
+    padding-left: 16px;
+    padding-right: 16px;
+
+    /* 혹시 남는 공간이 생겨도 중앙 정렬 유지 */
+    justify-content: center;
+    box-sizing: border-box;
+    width: 100%;
+  }
+}
+
+/* 데스크탑(≥1280px): 4열 */
+@media (min-width: 1280px) {
+  .joined-page {
+    margin-left: 0;
+    margin-right: 0;
+  }
+  .joined-page .events-grid {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 22px;
+    padding-left: 0;
+    padding-right: 0;
+  }
+}
+
+/* 카드가 셀을 꽉 채우도록(높이 균일) */
+.joined-page .events-grid > .joined-card {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+}
