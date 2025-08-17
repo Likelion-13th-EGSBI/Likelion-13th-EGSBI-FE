@@ -1,0 +1,639 @@
+/* 체크인 페이지 CSS */
+
+/* 키프레임 애니메이션 */
+@keyframes checkin-spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+  }
+  
+  @keyframes checkin-fadeIn {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+  
+  /* 기본 컨테이너 스타일 */
+  .checkin-page-container {
+    min-height: 100vh;
+    background-color: #ffffff;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    padding: 0;
+    margin: 0;
+  }
+  
+  .checkin-container {
+    min-height: 100vh;
+    background-color: #ffffff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 16px;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  }
+  
+  .checkin-content {
+    max-width: 600px;
+    margin: 0 auto;
+    padding: 32px 16px;
+    animation: checkin-fadeIn 0.6s ease-out;
+  }
+  
+  /* 로딩 카드 */
+  .checkin-loading-card {
+    background-color: white;
+    border-radius: 20px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+    border: 1px solid #e9ecef;
+    padding: 40px;
+    text-align: center;
+    max-width: 400px;
+    width: 100%;
+  }
+  
+  .checkin-spinner {
+    width: 48px;
+    height: 48px;
+    border: 4px solid #f3f3f3;
+    border-top: 4px solid #5E936C;
+    border-radius: 50%;
+    animation: checkin-spin 1s linear infinite;
+    margin: 0 auto 20px;
+  }
+  
+  .checkin-loading-title {
+    font-size: 20px;
+    font-weight: 600;
+    color: #333;
+    margin: 0 0 12px 0;
+  }
+  
+  .checkin-loading-text {
+    font-size: 16px;
+    color: #666;
+    margin: 0;
+  }
+  
+  /* 에러 카드 */
+  .checkin-error-card {
+    background-color: white;
+    border-radius: 20px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+    border: 1px solid #e9ecef;
+    padding: 40px;
+    text-align: center;
+    max-width: 400px;
+    width: 100%;
+  }
+  
+  .checkin-error-icon {
+    width: 60px;
+    height: 60px;
+    background-color: #dc3545;
+    color: white;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 28px;
+    font-weight: bold;
+    margin: 0 auto 20px;
+  }
+  
+  .checkin-error-title {
+    font-size: 20px;
+    font-weight: 600;
+    color: #333;
+    margin: 0 0 12px 0;
+  }
+  
+  .checkin-error-text {
+    font-size: 16px;
+    color: #666;
+    margin: 0 0 24px 0;
+    line-height: 1.5;
+  }
+  
+  .checkin-retry-button {
+    background-color: #dc3545;
+    color: white;
+    border: none;
+    padding: 14px 28px;
+    border-radius: 12px;
+    font-size: 16px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+  }
+  
+  .checkin-retry-button:hover {
+    background-color: #c82333;
+    transform: translateY(-2px);
+  }
+  
+  /* 헤더 스타일 */
+  .checkin-header {
+    text-align: center;
+    margin-bottom: 40px;
+  }
+  
+  .checkin-header-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    background-color: white;
+    border: 2px solid #5E936C;
+    border-radius: 25px;
+    padding: 12px 20px;
+    margin-bottom: 20px;
+  }
+  
+  .checkin-heart-icon {
+    color: #5E936C;
+    font-size: 18px;
+  }
+  
+  .checkin-badge-text {
+    font-size: 14px;
+    font-weight: 600;
+    color: #5E936C;
+  }
+  
+  .checkin-page-title {
+    font-size: 28px;
+    font-weight: 700;
+    color: #333;
+    margin: 0 0 12px 0;
+    line-height: 1.3;
+  }
+  
+  .checkin-page-subtitle {
+    font-size: 16px;
+    color: #666;
+    margin: 0;
+    line-height: 1.5;
+  }
+  
+  /* 이벤트 카드 */
+  .checkin-event-card {
+    background: white;
+    border-radius: 20px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+    border: 1px solid #e9ecef;
+    overflow: hidden;
+    margin-bottom: 32px;
+  }
+  
+  /* 포스터 스타일 */
+  .checkin-poster-container {
+    position: relative;
+    width: 100%;
+    height: 300px;
+    overflow: hidden;
+    background-color: #5E936C;
+  }
+  
+  .checkin-poster-image {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+  
+  .checkin-poster-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.3);
+  }
+  
+  .checkin-poster-title {
+    position: absolute;
+    bottom: 24px;
+    left: 24px;
+    right: 24px;
+  }
+  
+  .checkin-event-title {
+    color: white;
+    font-size: 24px;
+    font-weight: 700;
+    margin: 0;
+    text-shadow: 0 2px 10px rgba(0,0,0,0.5);
+    line-height: 1.3;
+  }
+  
+  .checkin-event-title-no-image {
+    font-size: 24px;
+    font-weight: 700;
+    color: #333;
+    margin: 0 0 24px 0;
+    line-height: 1.3;
+  }
+  
+  /* 카드 콘텐츠 */
+  .checkin-card-content {
+    padding: 32px;
+  }
+  
+  .checkin-info-container {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+  }
+  
+  .checkin-info-item {
+    display: flex;
+    align-items: flex-start;
+    gap: 16px;
+    padding: 20px;
+    border-radius: 12px;
+    border: 1px solid #e9ecef;
+    background-color: #f8f9fa;
+  }
+  
+  .checkin-info-icon {
+    font-size: 24px;
+    flex-shrink: 0;
+    margin-top: 2px;
+  }
+  
+  .checkin-info-content {
+    flex: 1;
+  }
+  
+  .checkin-info-label {
+    font-size: 14px;
+    font-weight: 600;
+    color: #666;
+    margin-bottom: 4px;
+  }
+  
+  .checkin-info-value {
+    font-size: 16px;
+    font-weight: 600;
+    color: #333;
+    line-height: 1.4;
+  }
+  
+  /* 설명 컨테이너 */
+  .checkin-description-container {
+    padding: 24px;
+    background-color: #f8f9fa;
+    border-radius: 12px;
+    border: 1px solid #e9ecef;
+  }
+  
+  .checkin-description-label {
+    font-size: 16px;
+    font-weight: 600;
+    color: #666;
+    margin-bottom: 12px;
+  }
+  
+  .checkin-description-text {
+    font-size: 15px;
+    color: #333;
+    line-height: 1.6;
+  }
+  
+  /* 해시태그 컨테이너 */
+  .checkin-hashtag-container {
+    padding: 24px;
+    background-color: #f8f9fa;
+    border-radius: 12px;
+    border: 1px solid #e9ecef;
+  }
+  
+  .checkin-hashtag-label {
+    font-size: 16px;
+    font-weight: 600;
+    color: #666;
+    margin-bottom: 12px;
+  }
+  
+  .checkin-hashtag-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+  
+  .checkin-hashtag {
+    background-color: #5E936C;
+    color: white;
+    padding: 6px 12px;
+    border-radius: 20px;
+    font-size: 13px;
+    font-weight: 600;
+  }
+  
+  /* 액션 컨테이너 */
+  .checkin-action-container {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    margin-bottom: 40px;
+  }
+  
+  /* 로그인 프롬프트 */
+  .checkin-login-prompt {
+    background: white;
+    border: 2px solid #5E936C;
+    border-radius: 16px;
+    padding: 32px;
+    text-align: center;
+  }
+  
+  .checkin-login-icon {
+    font-size: 48px;
+    margin-bottom: 16px;
+  }
+  
+  .checkin-login-title {
+    font-size: 20px;
+    font-weight: 700;
+    color: #333;
+    margin: 0 0 12px 0;
+  }
+  
+  .checkin-login-text {
+    font-size: 16px;
+    color: #666;
+    margin: 0 0 24px 0;
+    line-height: 1.5;
+  }
+  
+  .checkin-login-button {
+    background-color: #5E936C;
+    color: white;
+    border: none;
+    padding: 16px 32px;
+    border-radius: 12px;
+    font-size: 16px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+  }
+  
+  .checkin-login-button:hover {
+    background-color: #4a7a57;
+    transform: translateY(-2px);
+  }
+  
+  /* 상태 메시지 */
+  .checkin-status {
+    border-radius: 16px;
+    padding: 32px;
+    text-align: center;
+    background: white;
+    border: 2px solid #5E936C;
+  }
+  
+  .checkin-success-status {
+    border-color: #28a745;
+  }
+  
+  .checkin-warning-status {
+    border-color: #ffc107;
+  }
+  
+  .checkin-error-status {
+    border-color: #dc3545;
+  }
+  
+  .checkin-status-icon {
+    font-size: 48px;
+    margin-bottom: 16px;
+    display: block;
+  }
+  
+  .checkin-status-title {
+    font-size: 20px;
+    font-weight: 700;
+    color: #333;
+    margin: 0 0 12px 0;
+  }
+  
+  .checkin-status-text {
+    font-size: 16px;
+    color: #666;
+    margin: 0;
+    line-height: 1.5;
+  }
+  
+  /* 체크인 버튼 */
+  .checkin-button {
+    width: 100%;
+    background-color: #5E936C;
+    color: white;
+    border: none;
+    padding: 20px;
+    border-radius: 12px;
+    font-size: 18px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+  }
+  
+  .checkin-button:hover {
+    background-color: #4a7a57;
+    transform: translateY(-2px);
+  }
+  
+  .checkin-button:active {
+    transform: translateY(0);
+  }
+  
+  .checkin-button-disabled {
+    background: #6c757d;
+    cursor: not-allowed;
+    transform: none;
+  }
+  
+  .checkin-button-disabled:hover {
+    background: #6c757d;
+    transform: none;
+  }
+  
+  .checkin-button-spinner {
+    width: 20px;
+    height: 20px;
+    border: 2px solid rgba(255, 255, 255, 0.3);
+    border-top: 2px solid white;
+    border-radius: 50%;
+    animation: checkin-spin 1s linear infinite;
+  }
+  
+  /* 공유 버튼 */
+  .checkin-share-button {
+    width: 100%;
+    background: white;
+    color: #5E936C;
+    border: 2px solid #5E936C;
+    padding: 16px;
+    border-radius: 12px;
+    font-size: 16px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+  }
+  
+  .checkin-share-button:hover {
+    background-color: #5E936C;
+    color: white;
+    transform: translateY(-2px);
+  }
+  
+  .checkin-share-button:active {
+    transform: translateY(0);
+  }
+  
+  /* 푸터 */
+  .checkin-footer {
+    text-align: center;
+    margin-top: 40px;
+  }
+  
+  .checkin-footer-text {
+    font-size: 14px;
+    color: #999;
+    margin: 0;
+    font-style: italic;
+  }
+  
+  /* 반응형 디자인 */
+  @media (max-width: 768px) {
+    .checkin-content {
+      padding: 20px 12px;
+    }
+  
+    .checkin-page-title {
+      font-size: 24px;
+    }
+  
+    .checkin-page-subtitle {
+      font-size: 15px;
+    }
+  
+    .checkin-card-content {
+      padding: 24px;
+    }
+  
+    .checkin-event-title {
+      font-size: 20px;
+    }
+  
+    .checkin-event-title-no-image {
+      font-size: 20px;
+    }
+  
+    .checkin-info-item {
+      padding: 16px;
+    }
+  
+    .checkin-info-icon {
+      font-size: 20px;
+    }
+  
+    .checkin-info-value {
+      font-size: 15px;
+    }
+  
+    .checkin-description-container,
+    .checkin-hashtag-container {
+      padding: 20px;
+    }
+  
+    .checkin-login-prompt,
+    .checkin-status {
+      padding: 24px;
+    }
+  
+    .checkin-login-title,
+    .checkin-status-title {
+      font-size: 18px;
+    }
+  
+    .checkin-login-text,
+    .checkin-status-text {
+      font-size: 15px;
+    }
+  
+    .checkin-button {
+      padding: 18px;
+      font-size: 16px;
+    }
+  
+    .checkin-share-button {
+      padding: 14px;
+      font-size: 15px;
+    }
+  
+    .checkin-poster-container {
+      height: 250px;
+    }
+  
+    .checkin-poster-title {
+      bottom: 20px;
+      left: 20px;
+      right: 20px;
+    }
+  }
+  
+  @media (max-width: 480px) {
+    .checkin-content {
+      padding: 16px 8px;
+    }
+  
+    .checkin-page-title {
+      font-size: 22px;
+    }
+  
+    .checkin-card-content {
+      padding: 20px;
+    }
+  
+    .checkin-info-container {
+      gap: 12px;
+    }
+  
+    .checkin-info-item {
+      padding: 14px;
+      gap: 12px;
+    }
+  
+    .checkin-description-container,
+    .checkin-hashtag-container {
+      padding: 16px;
+    }
+  
+    .checkin-login-prompt,
+    .checkin-status {
+      padding: 20px;
+    }
+  
+    .checkin-poster-container {
+      height: 200px;
+    }
+  
+    .checkin-hashtag {
+      font-size: 12px;
+      padding: 5px 10px;
+    }
+  }
+  
+  /* 접근성 개선 */
+  .checkin-button:focus,
+  .checkin-share-button:focus,
+  .checkin-login-button:focus,
+  .checkin-retry-button:focus {
+    outline: 2px solid #5E936C;
+    outline-offset: 2px;
+  }

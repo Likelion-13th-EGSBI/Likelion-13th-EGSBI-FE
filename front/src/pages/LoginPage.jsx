@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import "../css/login.css";
 import logo from '../imgs/mainlogo.png';
 
@@ -8,6 +8,7 @@ const LoginPage = () => {
   const [password, setPassword] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const navigate = useNavigate();
+  const location = useLocation();
 
   // 토큰 갱신 함수
   const renewToken = async () => {
@@ -110,11 +111,19 @@ const LoginPage = () => {
       const expiration = parseInt(expirationTime);
       
       if (now < expiration) {
-        console.log('이미 로그인된 사용자 - 메인 페이지로 리다이렉트');
-        navigate('/');
+        console.log('이미 로그인된 사용자 - 리다이렉트 처리');
+        // redirect 파라미터가 있으면 해당 URL로, 없으면 메인 페이지로
+        const urlParams = new URLSearchParams(location.search);
+        const redirectUrl = urlParams.get('redirect');
+        
+        if (redirectUrl) {
+          window.location.href = decodeURIComponent(redirectUrl);
+        } else {
+          navigate('/');
+        }
       }
     }
-  }, [navigate]);
+  }, [navigate, location]);
 
   const handleSignupClick = () => {
     navigate('/signup');
@@ -197,10 +206,22 @@ const LoginPage = () => {
       const expirationTime = Date.now() + (tokenData.expiresIn * 1000);
       localStorage.setItem('tokenExpiration', expirationTime.toString());
 
-      alert(`환영합니다, ${tokenData.name}님!`);
+      // 로그인 성공 후 리다이렉트 처리
+      const redirectUrl = localStorage.getItem('redirectAfterLogin');
       
-      // 메인 페이지로 이동
-      navigate('/');
+      console.log('localStorage에서 가져온 redirect URL:', redirectUrl);
+      
+      if (redirectUrl) {
+        console.log('리다이렉트 URL로 이동:', redirectUrl);
+        // 사용한 redirect URL 삭제
+        localStorage.removeItem('redirectAfterLogin');
+        // 전체 페이지 새로고침으로 이동
+        window.location.href = redirectUrl;
+      } else {
+        console.log('redirect URL이 없음 - 메인 페이지로 이동');
+        // 메인 페이지는 navigate 사용
+        navigate('/');
+      }
 
     } catch (error) {
       console.error('로그인 실패:', error);

@@ -1,14 +1,16 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
-import { Calendar, Clock, MapPin, Users, DollarSign, FileText, ArrowLeft, Check, ChevronRight, Upload, X, Hash } from 'lucide-react';
+import { Calendar, Clock, MapPin, Users, DollarSign, FileText, ArrowLeft, Check, ChevronRight, Upload, X, Hash, Bold, Italic, List, Link2, Eye, Edit3 } from 'lucide-react';
 import Layout from '../components/Layout';
 import '../css/eventupload.css';
 
+// 카카오맵 SDK 설정
 const KAKAO_MAP_SCRIPT_ID = 'kakao-map-script';
 const KAKAO_APP_KEY = 'cd740dc5ce8717cd9146f5c91861511a';
 
-// 전역 로딩 플래그(다중 마운트/StrictMode 대비)
+// 전역 로딩 플래그 (다중 마운트/StrictMode 대비)
 let kakaoSdkLoadingPromise = null;
 
+// 카카오 SDK 한 번만 로드하는 함수
 function loadKakaoSdkOnce() {
   if (typeof window !== 'undefined' && window.kakao?.maps) {
     return Promise.resolve();
@@ -25,9 +27,9 @@ function loadKakaoSdkOnce() {
       } else {
         existing.addEventListener('load', () => {
           if (window.kakao?.maps) resolve();
-          else reject(new Error('kakao undefined after existing script load'));
+          else reject(new Error('기존 스크립트 로드 후 kakao 정의되지 않음'));
         });
-        existing.addEventListener('error', () => reject(new Error('Kakao SDK script error (existing)')));
+        existing.addEventListener('error', () => reject(new Error('카카오 SDK 스크립트 오류 (기존)')));
       }
       return;
     }
@@ -39,7 +41,7 @@ function loadKakaoSdkOnce() {
     script.async = true;
     script.onload = () => {
       if (!window.kakao) {
-        reject(new Error('window.kakao is undefined after script load'));
+        reject(new Error('스크립트 로드 후 window.kakao가 정의되지 않음'));
         return;
       }
       try {
@@ -50,14 +52,171 @@ function loadKakaoSdkOnce() {
     };
     script.onerror = (e) => {
       // 네트워크 탭에서 상태코드(401/403 등) 확인 필요
-      console.error('Kakao Maps SDK network error, check domain & JS key & blockers', e);
-      reject(new Error('Kakao Maps SDK network error'));
+      console.error('카카오맵 SDK 네트워크 오류, 도메인 및 JS 키 및 차단기 확인', e);
+      reject(new Error('카카오맵 SDK 네트워크 오류'));
     };
     document.head.appendChild(script);
   });
 
   return kakaoSdkLoadingPromise;
 }
+
+// 마크다운 렌더링 함수 - 더 많은 마크다운 문법 지원
+const renderMarkdown = (text) => {
+  return text
+    .replace(/^### (.*$)/gim, '<h3 class="markdown-h3">$1</h3>')     // ### 제목
+    .replace(/^## (.*$)/gim, '<h2 class="markdown-h2">$1</h2>')      // ## 제목
+    .replace(/^# (.*$)/gim, '<h1 class="markdown-h1">$1</h1>')       // # 제목
+    .replace(/\*\*(.*?)\*\*/g, '<strong class="markdown-bold">$1</strong>')  // **굵게**
+    .replace(/\*(.*?)\*/g, '<em class="markdown-italic">$1</em>')     // *기울임*
+    .replace(/__(.*?)__/g, '<strong class="markdown-bold">$1</strong>')  // __굵게__
+    .replace(/_(.*?)_/g, '<em class="markdown-italic">$1</em>')       // _기울임_
+    .replace(/~~(.*?)~~/g, '<del class="markdown-strikethrough">$1</del>')  // ~~취소선~~
+    .replace(/`([^`]+)`/g, '<code class="markdown-code">$1</code>')   // `인라인 코드`
+    .replace(/\[([^\]]+)\]\(([^)]+)\)/g, '<a href="$2" target="_blank" rel="noopener" class="markdown-link">$1</a>') // [링크](url)
+    .replace(/^[\s]*[-*+][\s]+(.*$)/gim, '<li class="markdown-list-item">$1</li>') // - 또는 * 또는 + 리스트
+    .replace(/^[\s]*\d+\.[\s]+(.*$)/gim, '<li class="markdown-ordered-item">$1</li>') // 1. 숫자 리스트
+    .replace(/(<li class="markdown-list-item">.*?<\/li>)/gs, '<ul class="markdown-list">$1</ul>') // ul 리스트 감싸기
+    .replace(/(<li class="markdown-ordered-item">.*?<\/li>)/gs, '<ol class="markdown-ordered-list">$1</ol>') // ol 리스트 감싸기
+    .replace(/^> (.*$)/gim, '<blockquote class="markdown-blockquote">$1</blockquote>') // > 인용문
+    .replace(/\n/g, '<br class="markdown-br">');                     // 줄바꿈
+};
+
+// 마크다운 에디터 컴포넌트
+const MarkdownEditor = ({ value, onChange, placeholder }) => {
+  const [isPreview, setIsPreview] = useState(false);
+  const textareaRef = useRef(null);
+
+  const insertMarkdown = (before, after = '') => {
+    const textarea = textareaRef.current;
+    if (!textarea) return;
+
+    const start = textarea.selectionStart;
+    const end = textarea.selectionEnd;
+    const selectedText = value.substring(start, end);
+    const newText = value.substring(0, start) + before + selectedText + after + value.substring(end);
+    
+    onChange(newText);
+    
+    // 커서 위치 조정
+    setTimeout(() => {
+      textarea.focus();
+      const newPosition = start + before.length + selectedText.length;
+      textarea.setSelectionRange(newPosition, newPosition);
+    }, 0);
+  };
+
+  const toolbarButtons = [
+    {
+      icon: Bold,
+      title: '굵게 (Ctrl+B)',
+      action: () => insertMarkdown('**', '**'),
+      shortcut: 'Ctrl+B'
+    },
+    {
+      icon: Italic,
+      title: '기울임 (Ctrl+I)', 
+      action: () => insertMarkdown('*', '*'),
+      shortcut: 'Ctrl+I'
+    },
+    {
+      icon: List,
+      title: '리스트',
+      action: () => insertMarkdown('- '),
+    },
+    {
+      icon: Link2,
+      title: '링크',
+      action: () => insertMarkdown('[링크 텍스트](', ')'),
+    }
+  ];
+
+  const handleKeyDown = (e) => {
+    if (e.ctrlKey || e.metaKey) {
+      switch (e.key) {
+        case 'b':
+          e.preventDefault();
+          insertMarkdown('**', '**');
+          break;
+        case 'i':
+          e.preventDefault();
+          insertMarkdown('*', '*');
+          break;
+      }
+    }
+  };
+
+  return (
+    <div className="eventupload-markdown-editor">
+      <div className="eventupload-markdown-toolbar">
+        <div className="eventupload-toolbar-group">
+          {toolbarButtons.map((button, index) => (
+            <button
+              key={index}
+              type="button"
+              className="eventupload-toolbar-btn"
+              onClick={button.action}
+              title={button.title}
+            >
+              <button.icon size={16} />
+            </button>
+          ))}
+        </div>
+        <div className="eventupload-toolbar-group">
+          <button
+            type="button"
+            className={`eventupload-toolbar-btn ${!isPreview ? 'active' : ''}`}
+            onClick={() => setIsPreview(false)}
+            title="편집 모드"
+          >
+            <Edit3 size={16} />
+            편집
+          </button>
+          <button
+            type="button"
+            className={`eventupload-toolbar-btn ${isPreview ? 'active' : ''}`}
+            onClick={() => setIsPreview(true)}
+            title="미리보기 모드"
+          >
+            <Eye size={16} />
+            미리보기
+          </button>
+        </div>
+      </div>
+
+      {isPreview ? (
+        <div className="eventupload-markdown-preview">
+          {value ? (
+            <div 
+              className="eventupload-preview-content"
+              dangerouslySetInnerHTML={{ __html: renderMarkdown(value) }}
+            />
+          ) : (
+            <div className="eventupload-preview-empty">
+              미리보기할 내용이 없습니다.
+            </div>
+          )}
+        </div>
+      ) : (
+        <textarea
+          ref={textareaRef}
+          className="eventupload-markdown-textarea"
+          value={value}
+          onChange={(e) => onChange(e.target.value)}
+          onKeyDown={handleKeyDown}
+          placeholder={placeholder}
+          rows={8}
+        />
+      )}
+
+      <div className="eventupload-markdown-help">
+        <div className="eventupload-help-item">
+          <strong>**굵게**</strong> • <em>*기울임*</em> • <span>- 리스트</span> • <span>[링크](주소)</span>
+        </div>
+      </div>
+    </div>
+  );
+};
 
 // LocalDateTime 형식 변환 함수
 const formatToLocalDateTime = (date, time) => {
@@ -105,6 +264,7 @@ const validateDateTime = (startDate, startTime, endDate, endTime) => {
 };
 
 const EventUpload = () => {
+  // 기본 상태들
   const [selectedMode, setSelectedMode] = useState(null);
   const [currentStep, setCurrentStep] = useState(0);
   const [formData, setFormData] = useState({
@@ -115,12 +275,11 @@ const EventUpload = () => {
     endTime: '',
     location: '',
     description: '',
-    participantLimit: '',
     fee: '',
     address: '',
     latitude: null,
     longitude: null,
-    hashtags: [] // 해시태그 배열 추가
+    hashtags: [] // 해시태그 배열
   });
   const [hashtagInput, setHashtagInput] = useState(''); // 해시태그 입력 상태
   const [aiGeneratedContent, setAiGeneratedContent] = useState('');
@@ -134,8 +293,15 @@ const EventUpload = () => {
   const [addressSearchQuery, setAddressSearchQuery] = useState('');
   const [addressResults, setAddressResults] = useState([]);
   const [isSearching, setIsSearching] = useState(false);
+  
+  // QR 코드 관련 상태 추가
+  const [qrCodeUrl, setQrCodeUrl] = useState(null);
+  const [showQRModal, setShowQRModal] = useState(false);
+  const [qrLoading, setQrLoading] = useState(false);
+  
+  const accessToken = localStorage.getItem('accessToken');
 
-  // Kakao SDK 준비 상태
+  // 카카오 SDK 준비 상태
   const [kakaoReady, setKakaoReady] = useState(true);
 
   const isRegistered = useRef(false);
@@ -150,14 +316,199 @@ const EventUpload = () => {
     { id: 'startTime', title: '시작 시간을 선택하세요', type: 'time' },
     { id: 'endTime', title: '종료 시간을 선택하세요', type: 'time' },
     { id: 'location', title: '어디서 진행하시나요?', type: 'address', placeholder: '주소를 검색하세요' },
-    { id: 'participantLimit', title: '몇 명까지 참여할 수 있나요?', type: 'number', placeholder: '예: 50' },
     { id: 'fee', title: '참가비가 있나요?', type: 'text', placeholder: '무료인 경우 0 입력' },
     { id: 'hashtags', title: '행사를 표현하는 해시태그를 추가해주세요', type: 'hashtags', placeholder: '예: 음악, 축제, 무료' },
-    { id: 'description', title: '행사에 대해 자세히 설명해주세요', type: 'textarea', placeholder: '참가자들이 알아야 할 내용을 작성해주세요' },
+    { id: 'description', title: '행사에 대해 자세히 설명해주세요', type: 'markdown', placeholder: '참가자들이 알아야 할 내용을 작성해주세요\n\n**마크다운 사용법:**\n- **굵게**: **텍스트**\n- *기울임*: *텍스트*\n- 리스트: - 항목\n- 링크: [텍스트](URL)' },
     { id: 'image', title: '행사 포스터 이미지를 선택해주세요', type: 'image' }
   ];
 
-  // 해시태그 추가 함수 - setHashtagInput 제거
+  // QR 코드 생성 함수
+  const generateQRCode = async (eventId, accessToken) => {
+    try {
+      console.log('QR 코드 생성 시작, 이벤트 ID:', eventId);
+      const response = await fetch(`https://gateway.gamja.cloud/api/event/qr/join?eventId=${eventId}`, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${accessToken}`,
+          'Content-Type': 'application/json'
+        }
+      });
+
+      if (!response.ok) {
+        throw new Error(`QR 생성 실패 (${response.status})`);
+      }
+
+      const result = await response.json();
+      console.log('QR 생성 결과:', result);
+      return result;
+    } catch (error) {
+      console.error('QR 코드 생성 오류:', error);
+      throw error;
+    }
+  };
+
+  // QR 코드 이미지 조회 함수
+  const getQRCodeImage = async (qrId, accessToken) => {
+    try {
+      console.log('QR 이미지 조회 시작, QR ID:', qrId);
+      const response = await fetch(`https://gateway.gamja.cloud/api/image/${qrId}`, {
+        method: 'GET',
+        headers: {
+          'Authorization': `Bearer ${accessToken}`
+        }
+      });
+
+      if (!response.ok) {
+        throw new Error(`QR 이미지 조회 실패 (${response.status})`);
+      }
+
+      const blob = await response.blob();
+      const imageUrl = URL.createObjectURL(blob);
+      console.log('QR 이미지 URL 생성 완료');
+      return imageUrl;
+    } catch (error) {
+      console.error('QR 이미지 조회 오류:', error);
+      throw error;
+    }
+  };
+
+  // QR 코드 생성 및 표시 함수
+  const generateAndShowQR = async (eventId) => {
+    setQrLoading(true);
+    try {
+      console.log('이벤트 ID로 QR 생성:', eventId);
+      
+      // QR 코드 생성
+      const qrResult = await generateQRCode(eventId, accessToken);
+      console.log('QR 생성 결과:', qrResult);
+      
+      // 응답에서 QR ID 추출 (API 응답 구조에 따라 조정 필요)
+      const qrId = qrResult.id || qrResult.qrId || qrResult;
+      console.log('사용할 QR ID:', qrId);
+      
+      // QR 이미지 조회
+      const qrImageUrl = await getQRCodeImage(qrId, accessToken);
+      
+      setQrCodeUrl(qrImageUrl);
+      setShowQRModal(true);
+    } catch (error) {
+      console.error('QR 코드 생성/조회 실패:', error);
+      alert(`QR 코드 생성에 실패했습니다: ${error.message}`);
+    } finally {
+      setQrLoading(false);
+    }
+  };
+
+  // QR 코드 모달 컴포넌트
+  const QRCodeModal = () => {
+    if (!showQRModal) return null;
+
+    const downloadQR = () => {
+      if (qrCodeUrl) {
+        const link = document.createElement('a');
+        link.href = qrCodeUrl;
+        link.download = `event-qr-code-${Date.now()}.png`;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+      }
+    };
+
+    const shareQR = async () => {
+      if (navigator.share && qrCodeUrl) {
+        try {
+          const response = await fetch(qrCodeUrl);
+          const blob = await response.blob();
+          const file = new File([blob], 'event-qr-code.png', { type: 'image/png' });
+          
+          await navigator.share({
+            title: '행사 QR 코드',
+            text: '행사 참여를 위한 QR 코드입니다.',
+            files: [file]
+          });
+        } catch (error) {
+          console.error('공유 실패:', error);
+          downloadQR();
+        }
+      } else {
+        downloadQR();
+      }
+    };
+
+    const closeModal = () => {
+      setShowQRModal(false);
+      if (qrCodeUrl) {
+        URL.revokeObjectURL(qrCodeUrl);
+        setQrCodeUrl(null);
+      }
+      resetAll();
+    };
+
+    return (
+      <div className="eventupload-qr-modal-overlay">
+        <div className="eventupload-qr-modal">
+          <div className="eventupload-qr-header">
+            <h2 className="eventupload-qr-title">행사가 성공적으로 등록되었습니다!</h2>
+            <button className="eventupload-qr-close" onClick={closeModal}>
+              <X size={24} />
+            </button>
+          </div>
+          
+          <div className="eventupload-qr-content">
+            <div className="eventupload-qr-info">
+              <p className="eventupload-qr-description">
+                참가자들이 이 QR 코드를 스캔하여 행사에 참여할 수 있습니다.
+              </p>
+            </div>
+            
+            {qrLoading ? (
+              <div className="eventupload-qr-loading">
+                <div className="eventupload-loading-spinner"></div>
+                <p>QR 코드 생성 중...</p>
+              </div>
+            ) : qrCodeUrl ? (
+              <div className="eventupload-qr-image-container">
+                <img 
+                  src={qrCodeUrl} 
+                  alt="행사 참여 QR 코드" 
+                  className="eventupload-qr-image"
+                />
+              </div>
+            ) : (
+              <div className="eventupload-qr-error">
+                <p>QR 코드를 불러오는데 실패했습니다.</p>
+              </div>
+            )}
+            
+            <div className="eventupload-qr-actions">
+              <button 
+                className="eventupload-qr-button eventupload-qr-download"
+                onClick={downloadQR}
+                disabled={!qrCodeUrl}
+              >
+                다운로드
+              </button>
+              <button 
+                className="eventupload-qr-button eventupload-qr-share"
+                onClick={shareQR}
+                disabled={!qrCodeUrl}
+              >
+                공유하기
+              </button>
+              <button 
+                className="eventupload-qr-button eventupload-qr-done"
+                onClick={closeModal}
+              >
+                완료
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  };
+
+  // 해시태그 추가 함수
   const addHashtag = useCallback((tag) => {
     const cleanTag = tag.replace(/^#/, '').trim();
     if (cleanTag && !formData.hashtags.includes(cleanTag) && formData.hashtags.length < 5) {
@@ -244,7 +595,7 @@ const EventUpload = () => {
     return () => window.removeEventListener('popstate', onPopState);
   }, [currentStep]);
 
-  // Kakao SDK 로드(안정화)
+  // 카카오 SDK 로드(안정화)
   useEffect(() => {
     if (effectGuardRef.current) return;
     effectGuardRef.current = true;
@@ -254,10 +605,10 @@ const EventUpload = () => {
       .then(() => {
         if (!mounted) return;
         setKakaoReady(true);
-        console.log('Kakao Maps SDK ready');
+        console.log('카카오맵 SDK 준비 완료');
       })
       .catch((err) => {
-        console.error('Kakao SDK load failed:', err);
+        console.error('카카오 SDK 로드 실패:', err);
         setKakaoReady(false);
       });
 
@@ -267,14 +618,14 @@ const EventUpload = () => {
     };
   }, []);
 
-  // 주소 검색 함수 (Kakao Places 우선)
+  // 주소 검색 함수 (카카오 Places 우선)
   const searchAddress = async (query) => {
     if (!query.trim() || query.length < 2) {
       setAddressResults([]);
       return;
     }
     if (!kakaoReady) {
-      console.warn('Kakao SDK not ready yet. Preventing search.');
+      console.warn('카카오 SDK가 아직 준비되지 않음. 검색 방지.');
       return;
     }
     setIsSearching(true);
@@ -282,7 +633,7 @@ const EventUpload = () => {
     try {
       const { kakao } = window;
       if (!kakao?.maps?.services) {
-        console.warn('kakao.maps.services is unavailable.');
+        console.warn('kakao.maps.services를 사용할 수 없음.');
         setIsSearching(false);
         return;
       }
@@ -412,36 +763,17 @@ const EventUpload = () => {
     setFormData((prev) => ({ ...prev, [field]: value }));
   };
 
-  const handleNext = () => {
-    if (selectedMode === 'ai' && currentStep === steps.length - 1) {
-      handleAiGenerate();
-    } else if (currentStep < steps.length - 1) {
-      setShowStep(false);
-      setTimeout(() => {
-        setCurrentStep(currentStep + 1);
-        window.history.pushState(null, '');
-      }, 200);
-    } else {
-      handleDirectSubmit();
-    }
-  };
-
-  const handleBack = () => {
-    if (currentStep > 0) {
-      setShowStep(false);
-      setTimeout(() => {
-        setCurrentStep(currentStep - 1);
-        window.history.pushState(null, '');
-      }, 200);
-    }
-  };
-
-  const handleModeSelect = (mode) => setSelectedMode(mode);
-
   // 멀티파트 폼 데이터로 API 호출하는 함수 (LocalDateTime 형식)
   const submitEventToAPI = async (eventData, imageFile) => {
     setIsSubmitting(true);
     try {
+      // 토큰과 사용자 ID 확인
+      const userId = localStorage.getItem('userId');
+      
+      if (!accessToken || !userId) {
+        throw new Error('로그인이 필요합니다. 다시 로그인해주세요.');
+      }
+
       // 최종 날짜/시간 유효성 검사
       const validation = validateDateTime(
         eventData.startDate, 
@@ -461,24 +793,23 @@ const EventUpload = () => {
       const startDateTime = formatToLocalDateTime(eventData.startDate, eventData.startTime);
       const endDateTime = formatToLocalDateTime(eventData.endDate, eventData.endTime);
       
-      console.log('Formatted DateTime:', { startDateTime, endDateTime });
+      console.log('변환된 날짜시간:', { startDateTime, endDateTime });
       
-      // 이벤트 데이터 JSON 객체 생성 (해시태그 포함)
+      // 이벤트 데이터 JSON 객체 생성 (로그인된 사용자 ID 사용)
       const eventJson = {
         name: eventData.eventName,
         startTime: startDateTime,
         endTime: endDateTime,
-        organizerId: 1,
+        organizerId: parseInt(userId), // 로컬스토리지의 userId 사용
         latitude: parseFloat(eventData.latitude) || 37.5665,
         longitude: parseFloat(eventData.longitude) || 126.978,
         entryFee: parseInt(eventData.fee) || 0,
         address: eventData.address || eventData.location,
         description: eventData.description || '',
-        participantLimit: parseInt(eventData.participantLimit) || 0,
-        hashtags: eventData.hashtags || [] // 해시태그 배열 추가
+        hashtags: eventData.hashtags || [] // 해시태그 배열
       };
       
-      console.log('Event JSON:', eventJson);
+      console.log('이벤트 JSON:', eventJson);
       
       // FormData에 이벤트 정보를 JSON 문자열로 추가 (Content-Type 명시)
       formData.append('event', new Blob([JSON.stringify(eventJson)], {
@@ -487,31 +818,33 @@ const EventUpload = () => {
       
       // 이미지 파일이 있는 경우에만 추가
       if (imageFile) {
-        console.log('Adding image file:', imageFile.name, 'Size:', imageFile.size);
+        console.log('이미지 파일 추가:', imageFile.name, '크기:', imageFile.size);
         formData.append('image', imageFile);
       } else {
-        console.log('No image file selected - appending empty file');
+        console.log('선택된 이미지 파일 없음 - 빈 파일 추가');
         // 빈 이미지 파일 추가 (서버에서 요구하는 경우)
         formData.append('image', new Blob([], { type: 'application/octet-stream' }));
       }
       
       // FormData 내용 확인 (디버깅용)
-      console.log('FormData contents:');
+      console.log('FormData 내용:');
       for (let [key, value] of formData.entries()) {
         if (value instanceof File) {
-          console.log(`${key}: File(${value.name}, ${value.size} bytes, ${value.type})`);
+          console.log(`${key}: 파일(${value.name}, ${value.size} 바이트, ${value.type})`);
         } else if (value instanceof Blob) {
-          console.log(`${key}: Blob(${value.size} bytes, ${value.type})`);
+          console.log(`${key}: Blob(${value.size} 바이트, ${value.type})`);
         } else {
           console.log(`${key}:`, value);
         }
       }
       
-      // 멀티파트 폼 데이터로 POST 요청
+      // Bearer 토큰과 함께 멀티파트 폼 데이터로 POST 요청
       const response = await fetch('https://gateway.gamja.cloud/api/event', {
         method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${accessToken}`, // Bearer 토큰 추가
+        },
         body: formData,
-        // Content-Type 헤더를 설정하지 않음 - 브라우저가 자동으로 multipart/form-data로 설정
       });
       
       if (!response.ok) {
@@ -522,11 +855,32 @@ const EventUpload = () => {
         } catch {
           errorMessage = await response.text() || `HTTP ${response.status}`;
         }
+        
+        // 401 Unauthorized 처리
+        if (response.status === 401) {
+          localStorage.removeItem('accessToken');
+          localStorage.removeItem('userId');
+          localStorage.removeItem('userEmail');
+          localStorage.removeItem('tokenExpiration');
+          throw new Error('로그인이 만료되었습니다. 다시 로그인해주세요.');
+        }
+        
         throw new Error(`서버 오류 (${response.status}): ${errorMessage}`);
       }
       
       const result = await response.json();
-      console.log('API Response:', result);
+      console.log('API 응답:', result);
+      
+      // 이벤트 생성 성공 후 QR 코드 생성
+      if (result.id || result.eventId) {
+        const eventId = result.id || result.eventId;
+        await generateAndShowQR(eventId);
+      } else {
+        // eventId가 없는 경우의 처리
+        console.warn('응답에서 이벤트 ID를 찾을 수 없음:', result);
+        alert('행사가 등록되었지만 QR 코드 생성에 실패했습니다.');
+      }
+      
       return result;
     } catch (error) {
       console.error('API 호출 실패:', error);
@@ -535,6 +889,78 @@ const EventUpload = () => {
       setIsSubmitting(false);
     }
   };
+
+  const handleNext = () => {
+    if (selectedMode === 'ai' && currentStep === steps.length - 1) {
+      handleAiGenerate();
+    } else if (currentStep < steps.length - 1) {
+      // AI 모드에서는 해시태그 단계만 건너뛰기 (설명은 포함)
+      if (selectedMode === 'ai') {
+        const currentStepData = steps[currentStep];
+        if (currentStepData.id === 'fee') {
+          // 참가비 다음에는 행사 설명으로
+          setShowStep(false);
+          setTimeout(() => {
+            setCurrentStep(steps.findIndex(step => step.id === 'description'));
+            window.history.pushState(null, '');
+          }, 200);
+          return;
+        }
+        if (currentStepData.id === 'description') {
+          // 행사 설명 다음에는 바로 이미지 업로드로
+          setShowStep(false);
+          setTimeout(() => {
+            setCurrentStep(steps.findIndex(step => step.id === 'image'));
+            window.history.pushState(null, '');
+          }, 200);
+          return;
+        }
+      }
+      
+      setShowStep(false);
+      setTimeout(() => {
+        setCurrentStep(currentStep + 1);
+        window.history.pushState(null, '');
+      }, 200);
+    } else {
+      handleDirectSubmit();
+    }
+  };
+
+  const handleBack = () => {
+    if (currentStep > 0) {
+      // AI 모드에서 뒤로가기 처리
+      if (selectedMode === 'ai') {
+        const currentStepData = steps[currentStep];
+        if (currentStepData.id === 'image') {
+          // 이미지 단계에서 뒤로가기시 설명 단계로
+          setShowStep(false);
+          setTimeout(() => {
+            setCurrentStep(steps.findIndex(step => step.id === 'description'));
+            window.history.pushState(null, '');
+          }, 200);
+          return;
+        }
+        if (currentStepData.id === 'description') {
+          // 설명 단계에서 뒤로가기시 참가비 단계로
+          setShowStep(false);
+          setTimeout(() => {
+            setCurrentStep(steps.findIndex(step => step.id === 'fee'));
+            window.history.pushState(null, '');
+          }, 200);
+          return;
+        }
+      }
+      
+      setShowStep(false);
+      setTimeout(() => {
+        setCurrentStep(currentStep - 1);
+        window.history.pushState(null, '');
+      }, 200);
+    }
+  };
+
+  const handleModeSelect = (mode) => setSelectedMode(mode);
 
   const handleDirectSubmit = async () => {
     try {
@@ -557,39 +983,77 @@ const EventUpload = () => {
       }
       
       await submitEventToAPI(finalFormData, selectedImage);
-      alert('행사가 성공적으로 등록되었습니다!');
-      resetAll();
+      // 성공 메시지는 QR 모달에서 표시되므로 제거
     } catch (error) {
       alert(`행사 등록에 실패했습니다: ${error.message}`);
     }
   };
 
-  const handleAiGenerate = () => {
+  const handleAiGenerate = async () => {
     try {
-      const startDateTime = new Date(`${formData.startDate}T${formData.startTime}`);
-      const endDateTime = new Date(`${formData.endDate}T${formData.endTime}`);
+      setIsSubmitting(true);
       
-      const formatDateTime = (date) =>
-        date.toLocaleDateString('ko-KR', {
-          year: 'numeric',
-          month: 'long',
-          day: 'numeric',
-          hour: '2-digit',
-          minute: '2-digit'
-        });
+      // API 요청 데이터 준비
+      const aiRequestData = {
+        name: formData.eventName,
+        description: formData.description || "", // 기존 설명이 있다면 포함
+        startTime: `${formData.startDate}T${formData.startTime}:00`,
+        endTime: `${formData.endDate}T${formData.endTime}:00`,
+        address: formData.location,
+        entryFee: parseInt(formData.fee) || 0
+      };
       
-      const aiDescription = `${formData.eventName}는 ${formData.location}에서 ${formatDateTime(
-        startDateTime
-      )}부터 ${formatDateTime(endDateTime)}까지 진행되는 특별한 행사입니다. 
-최대 ${formData.participantLimit}명의 참가자들에게 새로운 경험과 네트워킹 기회를 제공하며, 
-전문적이고 체계적인 프로그램으로 구성되어 있습니다. 
-${formData.fee === '0' ? '무료로 진행되는' : `참가비 ${formData.fee}원으로 진행되는`} 이번 행사에 많은 분들의 참여를 기다립니다.`;
-
-      setAiGeneratedContent(aiDescription);
+      console.log('AI 생성 요청 데이터:', aiRequestData);
+      
+      // AI 서버에 요청
+      const response = await fetch('https://gateway.gamja.cloud/api/event/ai/description', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Accept': 'application/json',
+           'Authorization': `Bearer ${accessToken}`
+        },
+        body: JSON.stringify(aiRequestData)
+      });
+      
+      if (!response.ok) {
+        let errorMessage;
+        try {
+          const errorData = await response.json();
+          errorMessage = errorData.message || errorData.error || `HTTP ${response.status}`;
+        } catch {
+          errorMessage = await response.text() || `HTTP ${response.status}`;
+        }
+        throw new Error(`AI 생성 실패 (${response.status}): ${errorMessage}`);
+      }
+      
+      const aiResult = await response.json();
+      console.log('AI 응답:', aiResult);
+      
+      // AI 결과 처리
+      if (aiResult.description) {
+        setAiGeneratedContent(aiResult.description);
+      }
+      
+      // AI에서 받은 해시태그로 완전히 교체
+      if (aiResult.hashtags && Array.isArray(aiResult.hashtags)) {
+        const aiHashtags = aiResult.hashtags
+          .map(tag => tag.replace(/^#/, '').trim())
+          .filter(tag => tag.length > 0)
+          .slice(0, 5); // 최대 5개까지만
+        
+        setFormData(prev => ({
+          ...prev,
+          hashtags: aiHashtags
+        }));
+      }
+      
       setCurrentStep('ai-result');
     } catch (error) {
-      alert('AI 콘텐츠 생성 중 오류가 발생했습니다.');
-      console.error('AI Generate Error:', error);
+      console.error('AI 생성 오류:', error);
+      alert(`AI 콘텐츠 생성에 실패했습니다: ${error.message}`);
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -604,8 +1068,7 @@ ${formData.fee === '0' ? '무료로 진행되는' : `참가비 ${formData.fee}�
         return;
       }
       await submitEventToAPI(finalFormData, selectedImage);
-      alert('행사가 성공적으로 등록되었습니다!');
-      resetAll();
+      // 성공 메시지는 QR 모달에서 표시되므로 제거
     } catch (error) {
       alert(`행사 등록에 실패했습니다: ${error.message}`);
     }
@@ -623,7 +1086,6 @@ ${formData.fee === '0' ? '무료로 진행되는' : `참가비 ${formData.fee}�
       endTime: '',
       location: '',
       description: '',
-      participantLimit: '',
       fee: '',
       address: '',
       latitude: null,
@@ -639,6 +1101,10 @@ ${formData.fee === '0' ? '무료로 진행되는' : `참가비 ${formData.fee}�
     setShowPostcode(false);
     setAddressSearchQuery('');
     setAddressResults([]);
+    // QR 관련 상태 초기화
+    setQrCodeUrl(null);
+    setShowQRModal(false);
+    setQrLoading(false);
     window.history.pushState(null, '');
     isRegistered.current = false;
   };
@@ -646,6 +1112,12 @@ ${formData.fee === '0' ? '무료로 진행되는' : `참가비 ${formData.fee}�
   const canProceed = () => {
     const step = steps[currentStep];
     if (!step) return false;
+    
+    // AI 모드에서는 해시태그 단계만 건너뛰기 (설명은 필수)
+    if (selectedMode === 'ai' && step.id === 'hashtags') {
+      return true;
+    }
+    
     switch (step.id) {
       case 'mode':
         return selectedMode !== null;
@@ -661,14 +1133,12 @@ ${formData.fee === '0' ? '무료로 진행되는' : `참가비 ${formData.fee}�
         return formData.endTime !== '';
       case 'location':
         return formData.location.trim() !== '' && formData.latitude && formData.longitude;
-      case 'participantLimit':
-        return formData.participantLimit !== '';
       case 'fee':
         return formData.fee !== '';
       case 'hashtags':
-        return formData.hashtags.length > 0; // 최소 1개 해시태그 필요
+        return selectedMode === 'ai' ? true : formData.hashtags.length > 0; // AI 모드에서는 항상 통과
       case 'description':
-        return formData.description.trim() !== ''; // 행사 설명 필수
+        return formData.description.trim() !== ''; // AI 모드에서도 설명 필수
       case 'image':
         return selectedImage !== null;
       default:
@@ -694,11 +1164,10 @@ ${formData.fee === '0' ? '무료로 진행되는' : `참가비 ${formData.fee}�
               <div className="eventupload-ai-content-card">
                 {isEditing ? (
                   <div className="eventupload-edit-container">
-                    <textarea
-                      className="eventupload-edit-textarea"
+                    <MarkdownEditor
                       value={aiGeneratedContent}
-                      onChange={(e) => setAiGeneratedContent(e.target.value)}
-                      rows={6}
+                      onChange={setAiGeneratedContent}
+                      placeholder="AI가 생성한 내용을 수정해보세요..."
                     />
                     <div className="eventupload-edit-buttons">
                       <button onClick={() => setIsEditing(false)} className="eventupload-edit-save">
@@ -712,7 +1181,10 @@ ${formData.fee === '0' ? '무료로 진행되는' : `참가비 ${formData.fee}�
                   </div>
                 ) : (
                   <div className="eventupload-ai-content">
-                    <p className="eventupload-ai-text">{aiGeneratedContent}</p>
+                    <div 
+                      className="eventupload-ai-text"
+                      dangerouslySetInnerHTML={{ __html: renderMarkdown(aiGeneratedContent) }}
+                    />
                     <button onClick={() => setIsEditing(true)} className="eventupload-edit-button">
                       수정하기
                     </button>
@@ -742,10 +1214,6 @@ ${formData.fee === '0' ? '무료로 진행되는' : `참가비 ${formData.fee}�
                   <div className="eventupload-summary-item">
                     <span className="eventupload-summary-label">장소</span>
                     <span className="eventupload-summary-value">{formData.location}</span>
-                  </div>
-                  <div className="eventupload-summary-item">
-                    <span className="eventupload-summary-label">참가인원</span>
-                    <span className="eventupload-summary-value">{formData.participantLimit}명</span>
                   </div>
                   <div className="eventupload-summary-item">
                     <span className="eventupload-summary-label">참가비</span>
@@ -811,6 +1279,7 @@ ${formData.fee === '0' ? '무료로 진행되는' : `참가비 ${formData.fee}�
 
     return (
       <Layout pageTitle="행사 등록" activeMenuItem="event-upload">
+        <QRCodeModal />
         {content}
       </Layout>
     );
@@ -885,6 +1354,16 @@ ${formData.fee === '0' ? '무료로 진행되는' : `참가비 ${formData.fee}�
                 onChange={(e) => handleInputChange(currentStepData.id, e.target.value)}
                 rows={6}
                 autoFocus
+              />
+            </div>
+          )}
+
+          {currentStepData.type === 'markdown' && (
+            <div className="eventupload-input-group">
+              <MarkdownEditor
+                value={formData[currentStepData.id]}
+                onChange={(value) => handleInputChange(currentStepData.id, value)}
+                placeholder={currentStepData.placeholder}
               />
             </div>
           )}
@@ -1196,6 +1675,7 @@ ${formData.fee === '0' ? '무료로 진행되는' : `참가비 ${formData.fee}�
 
   return (
     <Layout pageTitle="행사 등록" activeMenuItem="event-upload" showLayout={true}>
+      <QRCodeModal />
       {content}
     </Layout>
   );

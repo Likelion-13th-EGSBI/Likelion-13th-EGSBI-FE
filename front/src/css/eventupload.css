@@ -1152,3 +1152,828 @@
   color: #adb5bd;
   cursor: not-allowed;
 }
+
+/* ==================== 마크다운 에디터 스타일 ==================== */
+.eventupload-markdown-editor {
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  overflow: hidden;
+  background: white;
+  transition: border-color 0.2s ease;
+}
+
+.eventupload-markdown-editor:focus-within {
+  border-color: #5E936C;
+  box-shadow: 0 0 0 3px rgba(94, 147, 108, 0.1);
+}
+
+/* 툴바 스타일 */
+.eventupload-markdown-toolbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 8px 12px;
+  background: #f9fafb;
+  border-bottom: 1px solid #e5e7eb;
+  gap: 8px;
+}
+
+.eventupload-toolbar-group {
+  display: flex;
+  gap: 4px;
+  align-items: center;
+}
+
+.eventupload-toolbar-btn {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 6px 8px;
+  border: none;
+  border-radius: 4px;
+  background: transparent;
+  color: #6b7280;
+  font-size: 13px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.eventupload-toolbar-btn:hover {
+  background: #e5e7eb;
+  color: #374151;
+}
+
+.eventupload-toolbar-btn.active {
+  background: #5E936C;
+  color: white;
+}
+
+/* 텍스트 에어리어 스타일 */
+.eventupload-markdown-textarea {
+  width: 100%;
+  min-height: 200px;
+  padding: 16px;
+  border: none;
+  outline: none;
+  resize: vertical;
+  font-family: 'SF Mono', 'Monaco', 'Inconsolata', 'Roboto Mono', monospace;
+  font-size: 14px;
+  line-height: 1.6;
+  background: white;
+}
+
+.eventupload-markdown-textarea::placeholder {
+  color: #9ca3af;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Noto Sans KR', sans-serif;
+}
+
+/* 미리보기 스타일 */
+.eventupload-markdown-preview {
+  min-height: 200px;
+  padding: 16px;
+  background: white;
+}
+
+.eventupload-preview-content {
+  font-size: 14px;
+  line-height: 1.6;
+  color: #374151;
+}
+
+.eventupload-preview-empty {
+  color: #9ca3af;
+  font-style: italic;
+  text-align: center;
+  padding: 40px 20px;
+}
+
+/* 마크다운 요소별 스타일 */
+.markdown-h1 {
+  font-size: 1.75rem;
+  font-weight: 700;
+  margin: 0 0 20px 0;
+  color: #1f2937;
+  border-bottom: 2px solid #e5e7eb;
+  padding-bottom: 8px;
+}
+
+.markdown-h2 {
+  font-size: 1.5rem;
+  font-weight: 600;
+  margin: 24px 0 16px 0;
+  color: #1f2937;
+  border-bottom: 1px solid #e5e7eb;
+  padding-bottom: 4px;
+}
+
+.markdown-h3 {
+  font-size: 1.25rem;
+  font-weight: 600;
+  margin: 20px 0 12px 0;
+  color: #1f2937;
+}
+
+.markdown-bold {
+  font-weight: 600;
+  color: #1f2937;
+}
+
+.markdown-italic {
+  font-style: italic;
+  color: #6b7280;
+}
+
+.markdown-strikethrough {
+  text-decoration: line-through;
+  color: #9ca3af;
+}
+
+.markdown-code {
+  background: #f3f4f6;
+  color: #e11d48;
+  padding: 2px 6px;
+  border-radius: 4px;
+  font-family: 'SF Mono', 'Monaco', 'Inconsolata', 'Roboto Mono', monospace;
+  font-size: 0.9em;
+}
+
+.markdown-link {
+  color: #5E936C;
+  text-decoration: underline;
+  font-weight: 500;
+  transition: color 0.2s ease;
+}
+
+.markdown-link:hover {
+  color: #4a7857;
+}
+
+.markdown-list {
+  margin: 12px 0;
+  padding-left: 0;
+  list-style: none;
+}
+
+.markdown-list-item {
+  position: relative;
+  padding-left: 20px;
+  margin: 8px 0;
+  color: #374151;
+}
+
+.markdown-list-item::before {
+  content: '•';
+  position: absolute;
+  left: 0;
+  color: #5E936C;
+  font-weight: bold;
+}
+
+.markdown-ordered-list {
+  margin: 12px 0;
+  padding-left: 20px;
+  counter-reset: ordered-counter;
+}
+
+.markdown-ordered-item {
+  position: relative;
+  margin: 8px 0;
+  color: #374151;
+  counter-increment: ordered-counter;
+  list-style: none;
+}
+
+.markdown-ordered-item::before {
+  content: counter(ordered-counter) '.';
+  position: absolute;
+  left: -20px;
+  color: #5E936C;
+  font-weight: 600;
+}
+
+.markdown-blockquote {
+  margin: 16px 0;
+  padding: 12px 16px;
+  border-left: 4px solid #5E936C;
+  background: #f9fafb;
+  color: #6b7280;
+  font-style: italic;
+}
+
+.markdown-br {
+  display: block;
+  margin: 8px 0;
+}
+
+/* 도움말 스타일 */
+.eventupload-markdown-help {
+  padding: 8px 16px;
+  background: #f9fafb;
+  border-top: 1px solid #e5e7eb;
+  font-size: 12px;
+  color: #6b7280;
+}
+
+.eventupload-help-item {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  align-items: center;
+}
+
+.eventupload-help-item strong {
+  font-weight: 600;
+  color: #1f2937;
+}
+
+.eventupload-help-item em {
+  font-style: italic;
+  color: #6b7280;
+}
+
+/* AI 결과 페이지에서 마크다운 스타일 */
+.eventupload-ai-text {
+  font-size: 14px;
+  line-height: 1.6;
+  color: #374151;
+}
+
+.eventupload-ai-text .markdown-h1 {
+  font-size: 1.5rem;
+  margin: 0 0 16px 0;
+}
+
+.eventupload-ai-text .markdown-h2 {
+  font-size: 1.25rem;
+  margin: 20px 0 12px 0;
+}
+
+.eventupload-ai-text .markdown-h3 {
+  font-size: 1.1rem;
+  margin: 16px 0 8px 0;
+}
+
+/* 모바일 최적화 */
+@media (max-width: 768px) {
+  .eventupload-markdown-toolbar {
+    padding: 6px 8px;
+    gap: 4px;
+  }
+  
+  .eventupload-toolbar-btn {
+    padding: 4px 6px;
+    font-size: 12px;
+  }
+  
+  .eventupload-markdown-textarea {
+    padding: 12px;
+    font-size: 16px; /* iOS 줌 방지 */
+  }
+  
+  .eventupload-markdown-preview {
+    padding: 12px;
+  }
+  
+  .markdown-h1 {
+    font-size: 1.5rem;
+  }
+  
+  .markdown-h2 {
+    font-size: 1.25rem;
+  }
+  
+  .markdown-h3 {
+    font-size: 1.1rem;
+  }
+  
+  .eventupload-help-item {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 8px;
+  }
+}
+
+/* ==================== QR 코드 모달 스타일 ==================== */
+
+/* QR 모달 오버레이 */
+.eventupload-qr-modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.7);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 2000;
+  padding: 20px;
+  backdrop-filter: blur(4px);
+  animation: qrModalFadeIn 0.3s ease-out;
+}
+
+@keyframes qrModalFadeIn {
+  from {
+    opacity: 0;
+    backdrop-filter: blur(0px);
+  }
+  to {
+    opacity: 1;
+    backdrop-filter: blur(4px);
+  }
+}
+
+/* QR 모달 컨테이너 */
+.eventupload-qr-modal {
+  background: white;
+  border-radius: 20px;
+  box-shadow: 0 25px 50px rgba(0, 0, 0, 0.25);
+  max-width: 500px;
+  width: 100%;
+  max-height: 90vh;
+  overflow: hidden;
+  animation: qrModalSlideUp 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+@keyframes qrModalSlideUp {
+  from {
+    opacity: 0;
+    transform: translateY(30px) scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+/* QR 모달 헤더 */
+.eventupload-qr-header {
+  padding: 28px 28px 20px;
+  border-bottom: 1px solid #f0f0f0;
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  background: linear-gradient(135deg, #f8fbf9 0%, #ffffff 100%);
+}
+
+.eventupload-qr-title {
+  font-size: 20px;
+  font-weight: 700;
+  color: #191f28;
+  margin: 0;
+  flex: 1;
+  line-height: 1.4;
+  letter-spacing: -0.02em;
+}
+
+.eventupload-qr-close {
+  background: rgba(0, 0, 0, 0.05);
+  border: none;
+  padding: 10px;
+  cursor: pointer;
+  border-radius: 12px;
+  color: #666;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+  flex-shrink: 0;
+  width: 44px;
+  height: 44px;
+}
+
+.eventupload-qr-close:hover {
+  background: rgba(0, 0, 0, 0.1);
+  color: #333;
+  transform: scale(1.05);
+}
+
+.eventupload-qr-close:active {
+  transform: scale(0.95);
+}
+
+/* QR 모달 콘텐츠 */
+.eventupload-qr-content {
+  padding: 28px;
+  overflow-y: auto;
+  max-height: calc(90vh - 140px);
+}
+
+.eventupload-qr-info {
+  text-align: center;
+  margin-bottom: 28px;
+}
+
+.eventupload-qr-description {
+  font-size: 16px;
+  color: #666;
+  margin: 0;
+  line-height: 1.6;
+  font-weight: 400;
+}
+
+/* QR 로딩 상태 */
+.eventupload-qr-loading {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 48px 20px;
+  text-align: center;
+}
+
+.eventupload-loading-spinner {
+  width: 48px;
+  height: 48px;
+  border: 3px solid #f1f3f4;
+  border-top: 3px solid #5E936C;
+  border-radius: 50%;
+  animation: qrSpinning 1s linear infinite;
+  margin-bottom: 20px;
+}
+
+@keyframes qrSpinning {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+.eventupload-qr-loading p {
+  color: #666;
+  font-size: 16px;
+  margin: 0;
+  font-weight: 500;
+}
+
+/* QR 이미지 컨테이너 */
+.eventupload-qr-image-container {
+  display: flex;
+  justify-content: center;
+  margin: 28px 0;
+  padding: 24px;
+  background: linear-gradient(135deg, #f8fbf9 0%, #f1f8f3 100%);
+  border-radius: 16px;
+  border: 2px solid #e3f2e6;
+  position: relative;
+  overflow: hidden;
+}
+
+.eventupload-qr-image-container::before {
+  content: '';
+  position: absolute;
+  top: -2px;
+  left: -2px;
+  right: -2px;
+  bottom: -2px;
+  background: linear-gradient(45deg, #5E936C, #7BA885, #5E936C);
+  border-radius: 16px;
+  z-index: -1;
+  opacity: 0.1;
+}
+
+.eventupload-qr-image {
+  max-width: 280px;
+  width: 100%;
+  height: auto;
+  border-radius: 12px;
+  box-shadow: 0 8px 24px rgba(94, 147, 108, 0.2);
+  transition: transform 0.3s ease;
+  background: white;
+  padding: 12px;
+}
+
+.eventupload-qr-image:hover {
+  transform: scale(1.02);
+}
+
+/* QR 에러 상태 */
+.eventupload-qr-error {
+  text-align: center;
+  padding: 48px 20px;
+  color: #dc3545;
+  background: #fff5f5;
+  border-radius: 12px;
+  border: 1px solid #fed7d7;
+}
+
+.eventupload-qr-error p {
+  margin: 0;
+  font-size: 16px;
+  font-weight: 500;
+}
+
+/* QR 액션 버튼들 */
+.eventupload-qr-actions {
+  display: flex;
+  gap: 12px;
+  margin-top: 28px;
+}
+
+.eventupload-qr-button {
+  flex: 1;
+  padding: 16px 20px;
+  border: none;
+  border-radius: 12px;
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-height: 52px;
+  position: relative;
+  overflow: hidden;
+}
+
+.eventupload-qr-button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  transform: none !important;
+}
+
+.eventupload-qr-button::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
+  transition: left 0.5s ease;
+}
+
+.eventupload-qr-button:hover::before {
+  left: 100%;
+}
+
+/* 다운로드 버튼 */
+.eventupload-qr-download {
+  background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+  color: #495057;
+  border: 2px solid #dee2e6;
+}
+
+.eventupload-qr-download:hover:not(:disabled) {
+  background: linear-gradient(135deg, #e9ecef 0%, #dee2e6 100%);
+  border-color: #adb5bd;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.eventupload-qr-download:active:not(:disabled) {
+  transform: translateY(0);
+}
+
+/* 공유 버튼 */
+.eventupload-qr-share {
+  background: linear-gradient(135deg, #5E936C 0%, #4a7a57 100%);
+  color: white;
+  border: 2px solid transparent;
+}
+
+.eventupload-qr-share:hover:not(:disabled) {
+  background: linear-gradient(135deg, #4a7a57 0%, #3d6348 100%);
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(94, 147, 108, 0.4);
+}
+
+.eventupload-qr-share:active:not(:disabled) {
+  transform: translateY(0);
+}
+
+/* 완료 버튼 */
+.eventupload-qr-done {
+  background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+  color: white;
+  border: 2px solid transparent;
+}
+
+.eventupload-qr-done:hover:not(:disabled) {
+  background: linear-gradient(135deg, #20c997 0%, #17a2b8 100%);
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(40, 167, 69, 0.4);
+}
+
+.eventupload-qr-done:active:not(:disabled) {
+  transform: translateY(0);
+}
+
+/* 태블릿 반응형 */
+@media (max-width: 1024px) and (min-width: 769px) {
+  .eventupload-qr-modal {
+    max-width: 480px;
+  }
+  
+  .eventupload-qr-header {
+    padding: 24px 24px 18px;
+  }
+  
+  .eventupload-qr-content {
+    padding: 24px;
+  }
+  
+  .eventupload-qr-image {
+    max-width: 240px;
+  }
+}
+
+/* 모바일 반응형 */
+@media (max-width: 768px) {
+  .eventupload-qr-modal-overlay {
+    padding: 16px;
+    align-items: flex-end;
+  }
+  
+  .eventupload-qr-modal {
+    max-width: none;
+    width: 100%;
+    margin: 0;
+    border-radius: 20px 20px 0 0;
+    max-height: 85vh;
+    animation: qrModalSlideUpMobile 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+  
+  @keyframes qrModalSlideUpMobile {
+    from {
+      opacity: 0;
+      transform: translateY(100%);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+  
+  .eventupload-qr-header {
+    padding: 24px 20px 16px;
+  }
+  
+  .eventupload-qr-title {
+    font-size: 18px;
+    line-height: 1.3;
+  }
+  
+  .eventupload-qr-close {
+    width: 40px;
+    height: 40px;
+    padding: 8px;
+  }
+  
+  .eventupload-qr-content {
+    padding: 20px;
+    max-height: calc(85vh - 120px);
+  }
+  
+  .eventupload-qr-info {
+    margin-bottom: 24px;
+  }
+  
+  .eventupload-qr-description {
+    font-size: 15px;
+  }
+  
+  .eventupload-qr-image-container {
+    padding: 20px;
+    margin: 20px 0;
+  }
+  
+  .eventupload-qr-image {
+    max-width: 220px;
+  }
+  
+  .eventupload-qr-actions {
+    flex-direction: column;
+    gap: 12px;
+    margin-top: 24px;
+  }
+  
+  .eventupload-qr-button {
+    width: 100%;
+    padding: 16px;
+    font-size: 16px;
+    min-height: 52px;
+  }
+  
+  .eventupload-qr-loading {
+    padding: 40px 20px;
+  }
+  
+  .eventupload-loading-spinner {
+    width: 40px;
+    height: 40px;
+    margin-bottom: 16px;
+  }
+  
+  .eventupload-qr-error {
+    padding: 32px 16px;
+  }
+}
+
+/* 작은 모바일 화면 */
+@media (max-width: 480px) {
+  .eventupload-qr-modal-overlay {
+    padding: 12px;
+  }
+  
+  .eventupload-qr-modal {
+    max-height: 90vh;
+  }
+  
+  .eventupload-qr-header {
+    padding: 20px 16px 14px;
+  }
+  
+  .eventupload-qr-title {
+    font-size: 17px;
+  }
+  
+  .eventupload-qr-content {
+    padding: 16px;
+    max-height: calc(90vh - 100px);
+  }
+  
+  .eventupload-qr-image-container {
+    padding: 16px;
+    margin: 16px 0;
+  }
+  
+  .eventupload-qr-image {
+    max-width: 200px;
+    padding: 8px;
+  }
+  
+  .eventupload-qr-button {
+    padding: 14px;
+    font-size: 15px;
+    min-height: 48px;
+  }
+}
+
+/* 다크 모드 지원 (선택사항) */
+@media (prefers-color-scheme: dark) {
+  .eventupload-qr-modal {
+    background: #1f2937;
+    border-color: #374151;
+  }
+  
+  .eventupload-qr-header {
+    background: linear-gradient(135deg, #1f2937 0%, #111827 100%);
+    border-bottom-color: #374151;
+  }
+  
+  .eventupload-qr-title {
+    color: #f9fafb;
+  }
+  
+  .eventupload-qr-close {
+    background: rgba(255, 255, 255, 0.1);
+    color: #d1d5db;
+  }
+  
+  .eventupload-qr-close:hover {
+    background: rgba(255, 255, 255, 0.2);
+    color: #f9fafb;
+  }
+  
+  .eventupload-qr-description {
+    color: #d1d5db;
+  }
+  
+  .eventupload-qr-image-container {
+    background: linear-gradient(135deg, #1f2937 0%, #111827 100%);
+    border-color: #374151;
+  }
+  
+  .eventupload-qr-image {
+    background: white;
+  }
+}
+
+/* 접근성 개선 */
+.eventupload-qr-button:focus {
+  outline: 2px solid #5E936C;
+  outline-offset: 2px;
+}
+
+.eventupload-qr-close:focus {
+  outline: 2px solid #5E936C;
+  outline-offset: 2px;
+}
+
+/* 고해상도 디스플레이 최적화 */
+@media (-webkit-min-device-pixel-ratio: 2), (min-resolution: 2dppx) {
+  .eventupload-qr-image {
+    image-rendering: -webkit-optimize-contrast;
+    image-rendering: crisp-edges;
+  }
+}
+
+/* 프린트 스타일 */
+@media print {
+  .eventupload-qr-modal-overlay {
+    display: none;
+  }
+}
