@@ -75,6 +75,40 @@
     transform: translateY(-1px);
 }
 
+/* ==================== 새로고침 버튼 ==================== */
+.myuploadevent-refresh {
+    display: flex;
+    justify-content: center;
+    margin: 20px 0;
+    padding: 0 20px;
+}
+
+.myuploadevent-refresh-btn {
+    padding: 10px 20px;
+    border: 1px solid #e5e7eb;
+    background: white;
+    border-radius: 20px;
+    cursor: pointer;
+    font-size: 14px;
+    color: #6b7684;
+    transition: all 0.2s ease;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.myuploadevent-refresh-btn:hover:not(:disabled) {
+    background: #f9fafb;
+    border-color: #5E936C;
+    color: #5E936C;
+    transform: translateY(-1px);
+}
+
+.myuploadevent-refresh-btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
 /* ==================== 빈 상태 ==================== */
 .myuploadevent-empty {
     text-align: center;
@@ -169,6 +203,30 @@
     flex: 1;
 }
 
+/* 행사 제목 말줄임표 처리 */
+.myuploadevent-event-wrapper .event-card h3,
+.myuploadevent-event-wrapper .event-card .event-title {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    max-width: 100%;
+}
+
+/* 행사 설명 말줄임표 처리 - 줄바꿈과 마크다운 지원 */
+.myuploadevent-event-wrapper .event-card p,
+.myuploadevent-event-wrapper .event-card .event-summary,
+.myuploadevent-event-wrapper .event-card .event-description {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    display: -webkit-box;
+    -webkit-line-clamp: 3; /* 3줄까지 표시 */
+    -webkit-box-orient: vertical;
+    line-height: 1.4;
+    max-height: calc(1.4em * 3); /* 3줄 높이로 제한 */
+    white-space: pre-line; /* 줄바꿈 문자를 실제 줄바꿈으로 표시 */
+    word-break: break-word; /* 긴 단어 줄바꿈 */
+}
+
 .myuploadevent-action-buttons {
     padding: 12px 16px;
     border-top: 1px solid #f1f3f4;
@@ -206,6 +264,66 @@
     background: #dee2e6;
 }
 
+/* ==================== 무한 스크롤 로딩 ==================== */
+.myuploadevent-loading-more {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 40px 20px;
+    gap: 12px;
+    border-top: 1px solid #f0f3f4;
+    margin-top: 20px;
+}
+
+.myuploadevent-loading-spinner {
+    width: 24px;
+    height: 24px;
+    border: 3px solid #f0f3f4;
+    border-top: 3px solid #5E936C;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+.myuploadevent-loading-more p {
+    color: #6b7684;
+    font-size: 14px;
+    margin: 0;
+    font-weight: 500;
+}
+
+/* ==================== 마지막 메시지 ==================== */
+.myuploadevent-no-more {
+    text-align: center;
+    padding: 40px 20px;
+    color: #9ca3af;
+    font-size: 14px;
+    border-top: 1px solid #f0f3f4;
+    margin-top: 20px;
+    background: #fafbfc;
+}
+
+.myuploadevent-no-more p {
+    margin: 0;
+    font-weight: 500;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+}
+
+.myuploadevent-no-more p::before,
+.myuploadevent-no-more p::after {
+    content: '';
+    width: 40px;
+    height: 1px;
+    background: #e5e7eb;
+}
+
 /* ==================== 태블릿 (768px - 1024px) ==================== */
 @media (min-width: 768px) and (max-width: 1024px) {
     .myuploadevent-header {
@@ -214,6 +332,11 @@
 
     .myuploadevent-title {
         font-size: 1.4rem;
+    }
+
+    .myuploadevent-refresh {
+        margin: 18px 0;
+        padding: 0 20px;
     }
 
     .myuploadevent-events-grid {
@@ -236,6 +359,14 @@
     .myuploadevent-empty {
         padding: 60px 18px;
         grid-column: 1 / -1;
+    }
+
+    .myuploadevent-loading-more {
+        padding: 35px 18px;
+    }
+
+    .myuploadevent-no-more {
+        padding: 35px 18px;
     }
 }
 
@@ -264,6 +395,17 @@
         font-size: 0.8rem;
     }
 
+    /* 새로고침 버튼 모바일 최적화 */
+    .myuploadevent-refresh {
+        margin: 16px 0;
+        padding: 0 12px;
+    }
+
+    .myuploadevent-refresh-btn {
+        padding: 8px 16px;
+        font-size: 13px;
+    }
+
     /* 모바일에서도 280px 고정 크기 유지 */
     .myuploadevent-events-grid {
         grid-template-columns: 280px; /* 모바일에서 280px 고정 */
@@ -280,6 +422,40 @@
     .myuploadevent-action-btn {
         padding: 12px 16px;
         font-size: 0.9rem;
+    }
+
+    /* 모바일에서 텍스트 말줄임표 강화 */
+    .myuploadevent-event-wrapper .event-card h3,
+    .myuploadevent-event-wrapper .event-card .event-title {
+        font-size: 1.1rem !important;
+        line-height: 1.3 !important;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+
+    .myuploadevent-event-wrapper .event-card p,
+    .myuploadevent-event-wrapper .event-card .event-summary,
+    .myuploadevent-event-wrapper .event-card .event-description {
+        font-size: 0.85rem !important;
+        line-height: 1.4 !important;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        display: -webkit-box;
+        -webkit-line-clamp: 2; /* 모바일에서는 2줄까지만 */
+        -webkit-box-orient: vertical;
+        max-height: calc(1.4em * 2); /* 2줄 높이로 제한 */
+        margin-bottom: 8px !important;
+        white-space: pre-line; /* 줄바꿈 문자를 실제 줄바꿈으로 표시 */
+        word-break: break-word; /* 긴 단어 줄바꿈 */
+    }
+
+    /* 해시태그도 말줄임표 처리 */
+    .myuploadevent-event-wrapper .event-card .hashtags,
+    .myuploadevent-event-wrapper .event-card .event-hashtags {
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
     }
 
     /* 빈 상태 최적화 */
@@ -303,6 +479,25 @@
     .myuploadevent-empty-button {
         padding: 10px 20px;
         font-size: 0.85rem;
+    }
+
+    /* 무한 스크롤 모바일 최적화 */
+    .myuploadevent-loading-more {
+        padding: 30px 16px;
+    }
+
+    .myuploadevent-loading-more p {
+        font-size: 13px;
+    }
+
+    .myuploadevent-no-more {
+        padding: 30px 16px;
+        font-size: 13px;
+    }
+
+    .myuploadevent-no-more p::before,
+    .myuploadevent-no-more p::after {
+        width: 30px;
     }
 }
 
@@ -332,7 +527,8 @@
 /* ==================== 접근성 ==================== */
 .myuploadevent-add-btn:focus,
 .myuploadevent-empty-button:focus,
-.myuploadevent-action-btn:focus {
+.myuploadevent-action-btn:focus,
+.myuploadevent-refresh-btn:focus {
     outline: 2px solid #5E936C;
     outline-offset: 2px;
 }
@@ -342,5 +538,10 @@
         animation-duration: 0.01ms !important;
         animation-iteration-count: 1 !important;
         transition-duration: 0.01ms !important;
+    }
+    
+    .myuploadevent-loading-spinner {
+        animation: none;
+        border-top-color: #5E936C;
     }
 }
