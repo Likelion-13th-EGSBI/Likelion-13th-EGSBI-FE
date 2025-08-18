@@ -1,4 +1,3 @@
-
 import React, { useMemo } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { Home, FileText, ThumbsUp, Heart, UploadCloud, CalendarCheck, User, MapPin, LogOut } from 'lucide-react';
@@ -37,6 +36,34 @@ const Sidebar = ({ activeMenuItem, user = { name: '김민지' } }) => {
 
   const go = (route) => route && navigate(route);
 
+  // 로그아웃 처리 함수
+  const handleLogout = () => {
+    const confirmLogout = window.confirm('정말 로그아웃 하시겠습니까?');
+    
+    if (confirmLogout) {
+      try {
+        // 로컬스토리지에서 모든 사용자 데이터 삭제
+        localStorage.removeItem('accessToken');
+        localStorage.removeItem('userId');
+        localStorage.removeItem('userEmail');
+        localStorage.removeItem('tokenExpiration');
+        
+        console.log('로그아웃 완료 - 모든 토큰 데이터 삭제');
+        
+        // 로그인 페이지로 이동
+        navigate('/login');
+        
+        // 페이지 새로고침으로 완전한 상태 초기화
+        window.location.reload();
+        
+      } catch (error) {
+        console.error('로그아웃 처리 중 오류:', error);
+        // 오류가 있어도 로그인 페이지로 이동
+        navigate('/login');
+      }
+    }
+  };
+
   return (
     <aside className="sidebar-container" aria-label="사이드바">
       {/* 상단: 로고 + 프로필 */}
@@ -45,7 +72,6 @@ const Sidebar = ({ activeMenuItem, user = { name: '김민지' } }) => {
           <img src={logo} alt="서비스 로고" className="sidebar-logo" />
         </div>
 
-  
         <div className="sidebar-user-card rich">
           <div className="sidebar-user-avatar xl">김</div>
           <div className="sidebar-user-details">
@@ -90,7 +116,11 @@ const Sidebar = ({ activeMenuItem, user = { name: '김민지' } }) => {
 
       {/* 하단 로그아웃 */}
       <div className="sidebar-bottom">
-        <button type="button" className="sidebar-logout-btn" onClick={() => go('/login')}>
+        <button 
+          type="button" 
+          className="sidebar-logout-btn" 
+          onClick={handleLogout}
+        >
           <LogOut size={16} />
           <span>로그아웃</span>
         </button>

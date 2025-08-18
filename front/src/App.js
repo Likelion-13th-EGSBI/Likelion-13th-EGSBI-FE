@@ -18,9 +18,10 @@ import BookmarkedEvents from './pages/BookmarkedEvents';
 import EditProfile from './pages/EditProfile';
 import JoinedEvents from './pages/JoinedEvents';
 import EventEdit from './pages/EventEdit';
-import MainPage from './pages/InitMain';
+import MainPage from './pages/MainPage';
 import Eventall from './pages/EventAll';
 import Location from './pages/LocationSettings';
+import CheckInPage from './pages/CheckInPage';
 
 
 function App() {
@@ -46,7 +47,11 @@ function App() {
       <Route path="/event-edit/:eventId" element={<EventEdit />} />
       <Route path="/event-all" element={<Eventall />} />
       <Route path="/location" element={<Location />} />
+      <Route path="/join" element={<CheckInPage />} />
 
+        
+        
+        
 
 
 

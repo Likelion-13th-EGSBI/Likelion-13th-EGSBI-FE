@@ -1,0 +1,97 @@
+:root{
+  --brand: #5E936C;
+  --accent: #939E91;
+  --line: #e9eee9;
+  --text-strong: #1f2d23;
+  --text-muted: #6c757d;
+  --soft-yellow: #FFF9C4;
+  --soft-blue:  #E3F2FD;
+}
+
+.mainpage{ padding: 36px 0 36px; }
+
+/* 히어로 */
+.mainhero-card{
+  position: relative;
+  border-radius: 20px;
+  padding: 32px 26px;
+  margin-bottom: 34px;
+  color: #10331A;
+  background:
+    radial-gradient(120% 120% at 10% 0%, rgba(255,249,196,.55) 0%, rgba(255,249,196,0) 55%),
+    radial-gradient(110% 110% at 95% 15%, rgba(227,242,253,.45) 0%, rgba(227,242,253,0) 60%),
+    linear-gradient(135deg, rgba(94,147,108,.18), rgba(147,158,145,.10)),
+    #f8fbf8;
+  border: 1px solid rgba(94,147,108,.22);
+  box-shadow: 0 14px 34px rgba(94,147,108,.16);
+  overflow: hidden;
+}
+.mainhero-text{ max-width: 920px; word-break: keep-all; }
+.mainhero-hello{ font-size: 16px; font-weight: 800; color: #2f4838; letter-spacing: .2px; margin-bottom: 12px; display: flex; align-items: center; gap: 8px; }
+.mainhero-title{ margin: 0 0 10px; font-size: 32px; line-height: 1.25; font-weight: 900; color: var(--text-strong); }
+.mainhero-sub{ margin: 0; font-size: 15px; color: #3b5143; }
+.eventory.brand-strong{ color:#2b5035; font-weight:900; letter-spacing:.2px; }
+.nowrap{ white-space: nowrap; }
+
+/* 섹션 헤더 */
+.section-head{ display:flex; align-items:flex-end; justify-content:space-between; gap:12px; margin:6px 0 14px; }
+.section-left{ display:grid; gap:6px; }
+.section-title{ margin:0; font-size:22px; line-height:1.2; font-weight:900; color:#101510; }
+.section-sub{ margin:0; font-size:13px; color:var(--text-muted); }
+.section-link-plain{ appearance:none; border:none; background:transparent; color:var(--brand); font-weight:800; font-size:13px; text-decoration:underline; text-underline-offset:3px; cursor:pointer; }
+
+/* 가로 스크롤 래퍼 */
+.hwrap{
+  position: relative;
+  padding-bottom: 8px;     /* ⬅️ 화살표 제거했으니 여백 줄임 */
+  margin-bottom: 32px;
+}
+
+/* 스크롤 컨테이너 */
+.hscroll{
+  display: grid;
+  grid-auto-flow: column;
+  grid-auto-columns: minmax(320px, 360px);
+  gap: 20px;
+  overflow-x: auto;
+  overscroll-behavior-inline: contain;
+  scroll-snap-type: inline mandatory;
+  padding: 6px 12px 8px;
+  scrollbar-width: thin; /* firefox */
+}
+
+/* 스크롤바 스타일 */
+.hscroll::-webkit-scrollbar{ height: 12px; }
+.hscroll::-webkit-scrollbar-thumb{ background: rgba(147,158,145,.55); border-radius: 999px; }
+.hscroll::-webkit-scrollbar-track{ background: rgba(147,158,145,.16); border-radius: 999px; }
+
+/* ✅ 브라우저 기본 '작은 화살표 버튼'은 그대로(숨기지 않음) */
+/* 만약 특정 브라우저에서 여전히 보기 싫으면 아래 주석 해제
+.hscroll::-webkit-scrollbar-button{ display:none; width:0; height:0; }
+*/
+
+/* 카드 셀 */
+.hcell{ scroll-snap-align: start; inline-size: 100%; }
+
+/* ✅ 커스텀 화살표 전부 제거 */
+.hnav{ display: none !important; }
+
+/* 항목 등장 애니메이션 */
+@keyframes fadeSlideIn {
+  from { opacity: 0; transform: translateX(16px); }
+  to   { opacity: 1; transform: translateX(0); }
+}
+.fade-slide-in{ animation: fadeSlideIn .34s ease forwards; }
+
+/* 모바일 */
+@media (max-width: 768px){
+  .mainpage{ padding: 24px 0 28px; }
+  .mainhero-card{ padding: 18px 14px; border-radius: 16px; }
+  .mainhero-hello{ font-size: 14px; margin-bottom: 8px; }
+  .mainhero-title{ font-size: clamp(20px, 6vw, 24px); line-height: 1.25; margin: 0 0 8px; }
+  .mainhero-sub{ font-size: 13px; line-height: 1.5; }
+
+  .hwrap{ padding-bottom: 6px; }
+  .hscroll{ grid-auto-columns: minmax(88%, 88%); }
+  .hscroll::-webkit-scrollbar{ height: 10px; }
+}
