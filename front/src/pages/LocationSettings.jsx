@@ -1,5 +1,5 @@
 // src/pages/LocationSettings.jsx
-import React, { useEffect, useRef, useState } from "react";
+import React, { useEffect, useRef, useState, useCallback } from "react";
 import Layout from "../components/Layout";
 import BottomBar from "../components/BottomBar";
 import "../css/location-settings.css";
@@ -92,18 +92,6 @@ function loadKakaoOnce(timeoutMs = 12000) {
   return window.__kakaoLoadPromise;
 }
 
-/** 컨테이너가 DOM에 붙을 때까지 대기 */
-async function waitForContainer(ref, maxFrames = 60) {
-  let frames = 0;
-  while (frames < maxFrames) {
-    const el = ref.current;
-    if (el && el.isConnected) return el;
-    await new Promise((r) => requestAnimationFrame(r));
-    frames++;
-  }
-  return null;
-}
-
 /** CSS 변수 --primary 읽기 */
 function getPrimaryHex() {
   const v = getComputedStyle(document.documentElement)
@@ -151,70 +139,90 @@ const LocationSettings = () => {
   const [selectedAreas, setSelectedAreas] = useState([]); // [{name,address,lat,lng,key}]
   const [pendingArea, setPendingArea] = useState(null);   // {name,address,lat,lng}
 
-  // StrictMode 중복 초기화 방지
-  const didInit = useRef(false);
-
-  useEffect(() => {
-    if (didInit.current) return;
-    didInit.current = true;
-    (async () => { await ensureMap(); })();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+  // 콜백 ref로 "컨테이너 준비" 상태 추적
+  const [mapHostReady, setMapHostReady] = useState(false);
+  const setMapBoxEl = useCallback((el) => {
+    mapBoxRef.current = el;
+    setMapHostReady(!!el);
   }, []);
 
-  /** 지도 생성 보장 */
-  const ensureMap = async (center) => {
-    if (mapRef.current) {
-      if (center && window.kakao) {
-        const ll = new window.kakao.maps.LatLng(center.lat, center.lng);
-        mapRef.current.setCenter(ll);
-        requestAnimationFrame(() => mapRef.current?.relayout());
+  // 지도 생성 보장 (컨테이너가 준비된 뒤에만)
+  const ensureMap = useCallback(
+    async (center) => {
+      if (!mapHostReady) {
+        // 컨테이너가 아직 없음: 초기 호출을 무시 (오류 던지지 않음)
+        return null;
       }
-      return mapRef.current;
-    }
-
-    setLoadingMap(true);
-    setLoadError(null);
-    try {
-      const kakao = await loadKakaoOnce();
-
-      // 컨테이너 충분히 대기
-      const box = await waitForContainer(mapBoxRef, 60);
-      if (!box) throw new Error("map container missing");
-
-      if (box.getBoundingClientRect().height < 40) {
-        box.style.minHeight = "420px";
-        await new Promise((r) => requestAnimationFrame(r));
+      if (mapRef.current) {
+        if (center && window.kakao) {
+          const ll = new window.kakao.maps.LatLng(center.lat, center.lng);
+          mapRef.current.setCenter(ll);
+          requestAnimationFrame(() => mapRef.current?.relayout());
+        }
+        return mapRef.current;
       }
 
-      const map = new kakao.maps.Map(box, {
-        center: new kakao.maps.LatLng(
-          center?.lat ?? 37.5662952, // 서울시청
-          center?.lng ?? 126.9779451
-        ),
-        level: 5,
-      });
-      mapRef.current = map;
+      setLoadingMap(true);
+      setLoadError(null);
+      try {
+        const kakao = await loadKakaoOnce();
 
-      geocoderRef.current = new kakao.maps.services.Geocoder();
+        const box = mapBoxRef.current;
+        if (!box) {
+          // 극히 드물게 ref가 사라진 경우 다시 시도
+          setLoadingMap(false);
+          return null;
+        }
 
-      // 지도 클릭 → 마커 이동 + 역지오코딩 + pending 업데이트
-      kakao.maps.event.addListener(map, "click", (mouseEvent) => {
-        const ll = mouseEvent.latLng;
-        ensureSearchMarker(ll);                 // 생성/이동
-        reverseGeocodeToPending(ll.getLat(), ll.getLng());
-        map.setCenter(ll);
-      });
+        if (box.getBoundingClientRect().height < 40) {
+          box.style.minHeight = "420px";
+          await new Promise((r) => requestAnimationFrame(r));
+        }
 
-      requestAnimationFrame(() => map?.relayout());
-      setLoadingMap(false);
-      return map;
-    } catch (e) {
-      console.error("[ensureMap] 실패:", e, kakaoLoadError.msg);
-      setLoadError(kakaoLoadError.msg || "지도 로딩 실패");
-      setLoadingMap(false);
-      return null;
-    }
-  };
+        const map = new kakao.maps.Map(box, {
+          center: new kakao.maps.LatLng(
+            center?.lat ?? 37.5662952, // 서울시청
+            center?.lng ?? 126.9779451
+          ),
+          level: 5,
+        });
+        mapRef.current = map;
+
+        geocoderRef.current = new kakao.maps.services.Geocoder();
+
+        // 지도 클릭 → 마커 이동 + 역지오코딩 + pending 업데이트
+        kakao.maps.event.addListener(map, "click", (mouseEvent) => {
+          const ll = mouseEvent.latLng;
+          ensureSearchMarker(ll);
+          reverseGeocodeToPending(ll.getLat(), ll.getLng());
+          map.setCenter(ll);
+        });
+
+        requestAnimationFrame(() => map?.relayout());
+        setLoadingMap(false);
+        return map;
+      } catch (e) {
+        console.error("[ensureMap] 실패:", e, kakaoLoadError.msg);
+        setLoadError(kakaoLoadError.msg || "지도 로딩 실패");
+        setLoadingMap(false);
+        return null;
+      }
+    },
+    [mapHostReady]
+  );
+
+  // 컨테이너가 준비되면 최초 1회 지도 초기화
+  useEffect(() => {
+    let mounted = true;
+    (async () => {
+      if (mapHostReady && !mapRef.current) {
+        await ensureMap();
+      }
+    })();
+    return () => {
+      mounted = false;
+    };
+  }, [mapHostReady, ensureMap]);
 
   /** 검색/클릭용 ‘핀’ 마커 보장 + 이동 (draggable) */
   const ensureSearchMarker = (latLng) => {
@@ -284,7 +292,7 @@ const LocationSettings = () => {
         map.setCenter(ll);
         map.setLevel(6);
 
-        // 파란 펄스 CustomOverlay (앵커 정중앙, 높은 zIndex)
+        // 파란 펄스 CustomOverlay (정중앙 앵커)
         myMarkerRef.current?.setMap?.(null);
         const el = document.createElement("div");
         el.className = "mypos-marker";
@@ -379,8 +387,8 @@ const LocationSettings = () => {
     map.setCenter(ll);
     map.setLevel(5);
 
-    ensureSearchMarker(ll);                // 생성/이동
-    setPendingArea(item);                  // 바로 표시
+    ensureSearchMarker(ll);
+    setPendingArea(item);
   };
 
   /** “내 동네로 설정” 확정 (중복 방지 포함) */
@@ -463,7 +471,7 @@ const LocationSettings = () => {
             <div className="map-error">{String(loadError)}</div>
           ) : (
             <div
-              ref={mapBoxRef}
+              ref={setMapBoxEl}
               className="mapbox"
               aria-label="지도"
               style={{ minHeight: 420 }}

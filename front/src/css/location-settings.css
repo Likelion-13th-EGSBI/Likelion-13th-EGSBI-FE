@@ -93,11 +93,11 @@
   .pending-chip.bottom-center { bottom: 70px; }
 }
 
-/* ===== 내 위치 파란 펄스 (크로스브라우저 안전) ===== */
+/* ===== 내 위치 파란 펄스 (정중앙 앵커 기준) ===== */
 .mypos-marker {
   position: relative;
   width: 18px; height: 18px;
-  pointer-events: none; /* 지도 조작 방해 금지 */
+  pointer-events: none;
 }
 .mypos-marker .dot {
   position: absolute;
