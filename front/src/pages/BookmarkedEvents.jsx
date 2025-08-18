@@ -561,7 +561,7 @@ const BookmarkedEvents = () => {
       } else {
         const script = document.createElement("script");
         script.setAttribute("data-kakao-map", "true");
-        script.src = "https://dapi.kakao.com/v2/maps/sdk.js?appkey=cd740dc5ce8717cd9146f5c91861511a&autoload=false";
+        script.src = "https://dapi.kakao.com/v2/maps/sdk.js?appkey=084b4a076cd976847f592a5fea5ea24d&autoload=false";
         script.async = true;
         script.onload = () => { window.kakao?.maps?.load(() => { initMap(); }); };
         document.head.appendChild(script);

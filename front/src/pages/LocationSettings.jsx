@@ -4,8 +4,81 @@ import Layout from "../components/Layout";
 import BottomBar from "../components/BottomBar";
 import "../css/location-settings.css";
 
+/* ===============================
+   ✅ API & Auth 유틸
+   =============================== */
+const BASE_URL = "https://gateway.gamja.cloud";
+
+// 로컬스토리지 키(두 형태 모두 지원)
+function getAccessToken() {
+  return localStorage.getItem("Token") || localStorage.getItem("accessToken") || "";
+}
+function getUserId() {
+  const v = localStorage.getItem("userid") ?? localStorage.getItem("userId");
+  return v ? Number(v) : null;
+}
+function getEmail() {
+  return localStorage.getItem("userEmail") || localStorage.getItem("email") || "";
+}
+
+async function ensureIdentity() {
+  return { userId: getUserId(), email: getEmail(), accessToken: getAccessToken() };
+}
+
+// 공통 fetch(JSON/텍스트)
+async function fetchJson(url, options = {}) {
+  const res = await fetch(url, options);
+  const ct = res.headers.get("content-type") || "";
+  const isJson = ct.includes("application/json");
+  const body = isJson ? await res.json().catch(() => null) : await res.text().catch(() => null);
+
+  if (!res.ok) {
+    const msg = (isJson && (body?.message || body?.error)) || body || `HTTP ${res.status}`;
+    const err = new Error(String(msg));
+    err.status = res.status;
+    err.body = body;
+    throw err;
+  }
+  return body;
+}
+
+// GET /api/user/location/{id}
+async function apiGetUserLocationById(userId) {
+  const token = getAccessToken();
+  const url = `${BASE_URL}/api/user/location/${userId}`;
+  return fetchJson(url, {
+    method: "GET",
+    headers: { Authorization: `Bearer ${token}` },
+  });
+}
+
+// POST /api/user/location  (body: {email, latitude, longitude, address})
+async function apiSaveUserLocation({ email, latitude, longitude, address }) {
+  const token = getAccessToken();
+  const url = `${BASE_URL}/api/user/location`;
+  return fetchJson(url, {
+    method: "POST",
+    headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+    body: JSON.stringify({ email, latitude, longitude, address }),
+  });
+}
+
+// DELETE /api/user/delete/location?email=...
+async function apiDeleteUserLocationByEmail(email) {
+  const token = getAccessToken();
+  const url = `${BASE_URL}/api/user/delete/location?email=${encodeURIComponent(email)}`;
+  return fetchJson(url, {
+    method: "DELETE",
+    headers: { Authorization: `Bearer ${token}` },
+  });
+}
+
+/* ===============================
+   Kakao 지도 로더/유틸
+   =============================== */
+const KAKAO_APP_KEY = "084b4a076cd976847f592a5fea5ea24d";
 const KAKAO_SDK_URL =
-  "https://dapi.kakao.com/v2/maps/sdk.js?appkey=cd740dc5ce8717cd9146f5c91861511a&autoload=false&libraries=services";
+  `https://dapi.kakao.com/v2/maps/sdk.js?appkey=${KAKAO_APP_KEY}&autoload=false&libraries=services`;
 
 const kakaoLoadError = { msg: null };
 
@@ -47,6 +120,7 @@ function loadKakaoOnce(timeoutMs = 12000) {
         if (rs === "loaded" || rs === "complete") onReady();
       };
       scriptEl.onerror = (e) => {
+        console.error("[Kakao SDK] load error:", scriptEl.src, e);
         if (timedOut) return;
         if (!retried) {
           retried = true;
@@ -100,7 +174,7 @@ function getPrimaryHex() {
   return v || "#5E936C";
 }
 
-/** 핀 SVG dataURL (외곽선+중앙점, 메인컬러) */
+/** 핀 SVG dataURL */
 function makePinDataUrl(hex) {
   const svg = `
     <svg xmlns="http://www.w3.org/2000/svg" width="40" height="44" viewBox="0 0 40 44">
@@ -112,22 +186,35 @@ function makePinDataUrl(hex) {
   return "data:image/svg+xml;charset=utf-8," + encodeURIComponent(svg);
 }
 
-/** 문자열 정규화 (중복 체크용) */
+/** 문자열 정규화 */
 function norm(s = "") {
   return s.replace(/\s+/g, " ").trim().toLowerCase();
 }
 
+/* ===============================
+   🔧 기본(Mock) 동 & 원 반경
+   =============================== */
+const DEFAULT_AREA = {
+  name: "신촌",
+  address: "서울 서대문구 신촌동",
+  lat: 37.555,   // 신촌역 부근
+  lng: 126.936,
+  key: "sinchon_default",
+};
+const CIRCLE_RADIUS_M = 1000; // ✅ 10km
+
+/* ===============================
+   컴포넌트
+   =============================== */
 const LocationSettings = () => {
-  // refs
   const mapBoxRef = useRef(null);
   const mapRef = useRef(null);
   const geocoderRef = useRef(null);
 
-  const myMarkerRef = useRef(null);       // 내 위치(파란 펄스, CustomOverlay)
-  const searchMarkerRef = useRef(null);   // 선택/검색 마커(핀, draggable)
-  const circlesRef = useRef([]);
+  const myMarkerRef = useRef(null);
+  const searchMarkerRef = useRef(null);
+  const circlesRef = useRef([]); // 10km 원 오버레이들
 
-  // 상태
   const [loadingMap, setLoadingMap] = useState(false);
   const [loadError, setLoadError] = useState(null);
 
@@ -139,20 +226,20 @@ const LocationSettings = () => {
   const [selectedAreas, setSelectedAreas] = useState([]); // [{name,address,lat,lng,key}]
   const [pendingArea, setPendingArea] = useState(null);   // {name,address,lat,lng}
 
-  // 콜백 ref로 "컨테이너 준비" 상태 추적
+  const [saving, setSaving] = useState(false);
+  const [deleting, setDeleting] = useState(false);
+  const [loadingServerLoc, setLoadingServerLoc] = useState(false);
+
   const [mapHostReady, setMapHostReady] = useState(false);
   const setMapBoxEl = useCallback((el) => {
     mapBoxRef.current = el;
     setMapHostReady(!!el);
   }, []);
 
-  // 지도 생성 보장 (컨테이너가 준비된 뒤에만)
+  // 지도 생성
   const ensureMap = useCallback(
     async (center) => {
-      if (!mapHostReady) {
-        // 컨테이너가 아직 없음: 초기 호출을 무시 (오류 던지지 않음)
-        return null;
-      }
+      if (!mapHostReady) return null;
       if (mapRef.current) {
         if (center && window.kakao) {
           const ll = new window.kakao.maps.LatLng(center.lat, center.lng);
@@ -169,7 +256,6 @@ const LocationSettings = () => {
 
         const box = mapBoxRef.current;
         if (!box) {
-          // 극히 드물게 ref가 사라진 경우 다시 시도
           setLoadingMap(false);
           return null;
         }
@@ -181,16 +267,15 @@ const LocationSettings = () => {
 
         const map = new kakao.maps.Map(box, {
           center: new kakao.maps.LatLng(
-            center?.lat ?? 37.5662952, // 서울시청
-            center?.lng ?? 126.9779451
+            center?.lat ?? DEFAULT_AREA.lat,
+            center?.lng ?? DEFAULT_AREA.lng
           ),
-          level: 5,
+          level: 8, // 🔎 10km 원이 보이도록 살짝 더 멀리
         });
         mapRef.current = map;
 
         geocoderRef.current = new kakao.maps.services.Geocoder();
 
-        // 지도 클릭 → 마커 이동 + 역지오코딩 + pending 업데이트
         kakao.maps.event.addListener(map, "click", (mouseEvent) => {
           const ll = mouseEvent.latLng;
           ensureSearchMarker(ll);
@@ -211,20 +296,36 @@ const LocationSettings = () => {
     [mapHostReady]
   );
 
-  // 컨테이너가 준비되면 최초 1회 지도 초기화
+  // 초기화: 지도 → 서버 위치 로드
   useEffect(() => {
-    let mounted = true;
     (async () => {
-      if (mapHostReady && !mapRef.current) {
-        await ensureMap();
-      }
+      if (!mapHostReady) return;
+      await ensureMap();
+      await loadServerLocationAndDraw();
     })();
-    return () => {
-      mounted = false;
-    };
-  }, [mapHostReady, ensureMap]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [mapHostReady]);
 
-  /** 검색/클릭용 ‘핀’ 마커 보장 + 이동 (draggable) */
+  /** 좌표 → 주소로 pendingArea 갱신 */
+  const reverseGeocodeToPending = (lat, lng) => {
+    const kakao = window.kakao;
+    if (!kakao || !geocoderRef.current) return;
+    geocoderRef.current.coord2Address(lng, lat, (data, status) => {
+      if (status === kakao.maps.services.Status.OK && data && data[0]) {
+        const addr =
+          data[0].road_address?.address_name ||
+          data[0].address?.address_name ||
+          "";
+        const name =
+          data[0].road_address?.region_3depth_name ||
+          data[0].address?.region_3depth_name ||
+          addr;
+        setPendingArea({ name, address: addr, lat, lng });
+      }
+    });
+  };
+
+  /** 검색/클릭용 핀 마커 */
   const ensureSearchMarker = (latLng) => {
     const kakao = window.kakao;
     if (!kakao || !mapRef.current) return;
@@ -245,35 +346,14 @@ const LocationSettings = () => {
       });
       searchMarkerRef.current.setMap(mapRef.current);
 
-      // 드래그 종료 시 역지오코딩 → pendingArea 갱신
       kakao.maps.event.addListener(searchMarkerRef.current, "dragend", () => {
         const pos = searchMarkerRef.current.getPosition();
         reverseGeocodeToPending(pos.getLat(), pos.getLng());
       });
     } else {
-      searchMarkerRef.current.setImage(image);   // 최신 primary 반영
+      searchMarkerRef.current.setImage(image);
       searchMarkerRef.current.setPosition(latLng);
     }
-  };
-
-  /** 좌표 → 주소로 pendingArea 갱신 */
-  const reverseGeocodeToPending = (lat, lng) => {
-    const kakao = window.kakao;
-    if (!kakao || !geocoderRef.current) return;
-    geocoderRef.current.coord2Address(
-      lng, lat,
-      (data, status) => {
-        if (status === kakao.maps.services.Status.OK && data && data[0]) {
-          const addr =
-            data[0].road_address?.address_name || data[0].address?.address_name || "";
-          const name =
-            data[0].road_address?.region_3depth_name ||
-            data[0].address?.region_3depth_name ||
-            addr;
-          setPendingArea({ name, address: addr, lat, lng });
-        }
-      }
-    );
   };
 
   /** 내 위치 (파란 펄스) */
@@ -290,9 +370,8 @@ const LocationSettings = () => {
 
         const ll = new window.kakao.maps.LatLng(p.lat, p.lng);
         map.setCenter(ll);
-        map.setLevel(6);
+        map.setLevel(8); // 🔎 10km 보기 좋게
 
-        // 파란 펄스 CustomOverlay (정중앙 앵커)
         myMarkerRef.current?.setMap?.(null);
         const el = document.createElement("div");
         el.className = "mypos-marker";
@@ -377,55 +456,7 @@ const LocationSettings = () => {
     return merged;
   };
 
-  /** 검색 선택 → 카메라 이동 + 핀 마커 이동 + pending */
-  const moveCameraTo = async (item) => {
-    const kakao = await loadKakaoOnce().catch(() => null);
-    const map = await ensureMap({ lat: item.lat, lng: item.lng });
-    if (!map || !kakao) return;
-
-    const ll = new kakao.maps.LatLng(item.lat, item.lng);
-    map.setCenter(ll);
-    map.setLevel(5);
-
-    ensureSearchMarker(ll);
-    setPendingArea(item);
-  };
-
-  /** “내 동네로 설정” 확정 (중복 방지 포함) */
-  const confirmPendingAsArea = () => {
-    if (!pendingArea) return;
-
-    const max = 2;
-    if (selectedAreas.length >= max) {
-      alert("동네는 최대 2곳까지 설정 가능합니다. 기존 동네를 삭제하세요.");
-      return;
-    }
-
-    const addrKey = norm(pendingArea.address || pendingArea.name);
-    const exists = selectedAreas.some(
-      (s) => norm(s.address || s.name) === addrKey
-    );
-    if (exists) {
-      alert("이미 같은 주소가 등록되어 있습니다.");
-      return;
-    }
-
-    const next = [
-      ...selectedAreas,
-      { ...pendingArea, key: `${pendingArea.lat}_${pendingArea.lng}` },
-    ];
-    setSelectedAreas(next);
-    drawCircles(next);
-  };
-
-  /** 동네 삭제 */
-  const removeArea = (key) => {
-    const next = selectedAreas.filter((s) => s.key !== key);
-    setSelectedAreas(next);
-    drawCircles(next);
-  };
-
-  /** 원 프리뷰(1km) */
+  /** 원 프리뷰(10km) */
   const drawCircles = (areas) => {
     if (!window.kakao || !mapRef.current) return;
     const kakao = window.kakao;
@@ -436,7 +467,7 @@ const LocationSettings = () => {
     areas.forEach((s) => {
       const circle = new kakao.maps.Circle({
         center: new kakao.maps.LatLng(s.lat, s.lng),
-        radius: 1000,
+        radius: CIRCLE_RADIUS_M, // ✅ 10km
         strokeWeight: 2,
         strokeColor: primary,
         strokeOpacity: 0.7,
@@ -446,6 +477,127 @@ const LocationSettings = () => {
       circle.setMap(mapRef.current);
       circlesRef.current.push(circle);
     });
+  };
+
+  /** 서버 저장 위치 불러오기 (없으면 신촌 Mock) */
+  const loadServerLocationAndDraw = useCallback(async () => {
+    const userId = getUserId();
+
+    // 로그인 안했거나 userId 없으면 신촌 mock
+    if (!userId) {
+      setSelectedAreas([]);          // 저장된 건 없음
+      setPendingArea(DEFAULT_AREA);  // 신촌을 기본 후보로
+      const map = await ensureMap({ lat: DEFAULT_AREA.lat, lng: DEFAULT_AREA.lng });
+      if (map) drawCircles([DEFAULT_AREA]); // 기본 원 그려주기
+      return;
+    }
+
+    setLoadingServerLoc(true);
+    try {
+      const data = await apiGetUserLocationById(userId);
+      const lat = Number(data.latitude);
+      const lng = Number(data.longitude);
+      const address = data.address || "";
+      const name = address;
+
+      const area = { name, address, lat, lng, key: `${lat}_${lng}` };
+
+      const map = await ensureMap({ lat, lng });
+      if (map) drawCircles([area]);
+      setSelectedAreas([area]);
+      setPendingArea(area);
+    } catch (e) {
+      if (e.status === 404) {
+        // 서버에 저장값 없으면 신촌 mock
+        setSelectedAreas([]);
+        setPendingArea(DEFAULT_AREA);
+        const map = await ensureMap({ lat: DEFAULT_AREA.lat, lng: DEFAULT_AREA.lng });
+        if (map) drawCircles([DEFAULT_AREA]);
+      } else {
+        console.error("서버 위치 조회 실패:", e);
+      }
+    } finally {
+      setLoadingServerLoc(false);
+    }
+  }, [ensureMap]);
+
+  /** 검색 선택 → 카메라/핀 이동 (미리보기 텍스트만) */
+  const moveCameraTo = async (item) => {
+    const kakao = await loadKakaoOnce().catch(() => null);
+    const map = await ensureMap({ lat: item.lat, lng: item.lng });
+    if (!map || !kakao) return;
+
+    const ll = new kakao.maps.LatLng(item.lat, item.lng);
+    map.setCenter(ll);
+    map.setLevel(8); // 🔎 10km
+
+    ensureSearchMarker(ll);
+    setPendingArea(item);
+  };
+
+  /** “내 동네로 설정” — 서버 저장 성공 시에만 UI 반영 */
+  const confirmPendingAsArea = async () => {
+    if (!pendingArea) return;
+
+    const addrKey = norm(pendingArea.address || pendingArea.name);
+    const exists = selectedAreas.some(
+      (s) => norm(s.address || s.name) === addrKey
+    );
+    if (exists) {
+      alert("이미 같은 주소가 등록되어 있습니다.");
+      return;
+    }
+
+    const { email } = await ensureIdentity();
+    if (!email) {
+      alert("로그인 정보가 없어 서버 저장을 건너뜁니다. (userEmail 없음)");
+      return;
+    }
+
+    setSaving(true);
+    try {
+      await apiSaveUserLocation({
+        email,
+        latitude: pendingArea.lat,
+        longitude: pendingArea.lng,
+        address: pendingArea.address || pendingArea.name,
+      });
+
+      await loadServerLocationAndDraw(); // 성공 후 서버 상태 기준으로 원 다시 그림
+      alert("서버에 동네가 저장되었습니다.");
+    } catch (e) {
+      console.error("서버 저장 실패:", e);
+      alert(`서버 저장 실패: ${e.message}`);
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  /** 태그 클릭 → 확인 → 서버 삭제 성공 시 UI 갱신 (단일 저장 정책) */
+  const handleTagDelete = async () => {
+    const email = getEmail();
+    if (!email) {
+      alert("로그인 후 삭제할 수 있습니다.");
+      return;
+    }
+    const ok = window.confirm("삭제하시겠습니까?");
+    if (!ok) return;
+
+    setDeleting(true);
+    try {
+      await apiDeleteUserLocationByEmail(email);
+      setSelectedAreas([]);
+      drawCircles([]);
+      setPendingArea(DEFAULT_AREA); // 삭제 후엔 다시 신촌 mock
+      const map = await ensureMap({ lat: DEFAULT_AREA.lat, lng: DEFAULT_AREA.lng });
+      if (map) drawCircles([DEFAULT_AREA]);
+      alert("삭제되었습니다");
+    } catch (e) {
+      console.error("삭제 실패:", e);
+      alert(`삭제 실패: ${e.message}`);
+    } finally {
+      setDeleting(false);
+    }
   };
 
   /** 추천 상자 외부 클릭 닫기 */
@@ -487,6 +639,21 @@ const LocationSettings = () => {
             </div>
           )}
 
+          {/* 좌상단: 서버 동기화 상태 */}
+          {!loadError && (
+            <div className="map-ctrl top-left">
+              <div className="sync-indicator" aria-live="polite">
+                {loadingServerLoc
+                  ? "서버 위치 불러오는 중…"
+                  : deleting
+                  ? "삭제 중…"
+                  : saving
+                  ? "저장 중…"
+                  : ""}
+              </div>
+            </div>
+          )}
+
           {/* 하단 가운데: 선택 미리보기 칩 */}
           {hasPending && !loadError && (
             <div className="pending-chip bottom-center" aria-live="polite">
@@ -495,23 +662,25 @@ const LocationSettings = () => {
             </div>
           )}
 
-          {/* 우하단: 내 동네로 설정 (pending 있을 때만) */}
+          {/* 우하단: 내 동네로 설정 */}
           {hasPending && !loadError && (
             <button
               className="fab br"
               onClick={confirmPendingAsArea}
               aria-label="내 동네로 설정"
+              disabled={saving}
             >
-              내 동네로 설정
+              {saving ? "저장 중..." : "내 동네로 설정"}
             </button>
           )}
         </div>
 
-        {/* 세로 스택: 검색바 → 내 동네 카드 */}
+        {/* 검색 & 내 동네 카드 */}
         <div className="panel">
-          {/* 검색 */}
           <div className="search-wrap" ref={suggestBoxRef}>
-            <label htmlFor="dong-input" className="sr-only">동/주소/건물 검색</label>
+            <label htmlFor="dong-input" className="sr-only">
+              동/주소/건물 검색
+            </label>
             <div className="search-row" role="group" aria-label="검색 폼">
               <input
                 id="dong-input"
@@ -526,7 +695,9 @@ const LocationSettings = () => {
                     if (list.length) setShowSuggests(true);
                   }
                 }}
-                onFocus={() => { if (suggests.length) setShowSuggests(true); }}
+                onFocus={() => {
+                  if (suggests.length) setShowSuggests(true);
+                }}
                 autoComplete="address-level3"
                 inputMode="search"
               />
@@ -564,10 +735,9 @@ const LocationSettings = () => {
             )}
           </div>
 
-          {/* 내 동네 카드 */}
           <div className="areas-wrap">
             <div className="areas-head">
-              <strong>내 동네 (최대 2곳)</strong>
+              <strong>내 동네 (단일)</strong>
               <span className="areas-hint">태그 클릭 시 삭제</span>
             </div>
             <ul className="taglist" role="list">
@@ -577,11 +747,11 @@ const LocationSettings = () => {
                     type="button"
                     className="tag chip"
                     title="클릭하면 삭제"
-                    onClick={() => removeArea(s.key)}
+                    onClick={handleTagDelete}
                     onKeyDown={(e) => {
                       if (e.key === "Enter" || e.key === " ") {
                         e.preventDefault();
-                        removeArea(s.key);
+                        handleTagDelete();
                       }
                     }}
                   >
@@ -589,7 +759,9 @@ const LocationSettings = () => {
                       <span className="tag-name">{s.name}</span>
                       <span className="tag-addr">{s.address}</span>
                     </div>
-                    <span className="chip-del" aria-hidden>삭제</span>
+                    <span className="chip-del" aria-hidden>
+                      삭제
+                    </span>
                   </button>
                 </li>
               ))}
