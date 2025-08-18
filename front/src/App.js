@@ -20,6 +20,8 @@ import JoinedEvents from './pages/JoinedEvents';
 import EventEdit from './pages/EventEdit';
 import MainPage from './pages/InitMain';
 import Eventall from './pages/EventAll';
+import Location from './pages/LocationSettings';
+
 
 function App() {
   return (
@@ -43,7 +45,7 @@ function App() {
       <Route path="/my-upload-event" element={<MyUploadEvent/>} />
       <Route path="/event-edit/:eventId" element={<EventEdit />} />
       <Route path="/event-all" element={<Eventall />} />
-
+      <Route path="/location" element={<Location />} />
 
 
 
