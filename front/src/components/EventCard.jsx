@@ -9,6 +9,13 @@ import {
   FaWonSign,
 } from "react-icons/fa";
 
+// HTML 엔티티 디코딩 함수
+const decodeHTML = (html) => {
+  const txt = document.createElement("textarea");
+  txt.innerHTML = html;
+  return txt.value;
+};
+
 const EventCard = ({
   id,
   image,
@@ -29,8 +36,8 @@ const EventCard = ({
   };
 
   const handleBookmarkClick = (e) => {
-    e.stopPropagation();           // ✅ 카드 클릭으로 전파 방지
-    if (bookmarking) return;       // 토글 중에는 무시
+    e.stopPropagation();           // 카드 클릭 전파 방지
+    if (bookmarking) return;       // 토글 중 무시
     if (typeof onBookmarkToggle === "function") onBookmarkToggle();
   };
 
@@ -71,29 +78,29 @@ const EventCard = ({
 
       {/* 행사 정보 */}
       <div className="event-info">
-        <h3 className="event-title">{title}</h3>
-        <p className="event-summary">{summary}</p>
+        <h3 className="event-title">{decodeHTML(title)}</h3>
+        <p className="event-summary">{decodeHTML(summary)}</p>
 
         {/* 해시태그 */}
         <div className="hashtags">
           {hashtags.map((tag, index) => (
-            <span key={index} className="hashtag">#{tag}</span>
+            <span key={index} className="hashtag">#{decodeHTML(tag)}</span>
           ))}
         </div>
 
         {/* 상세 정보 (2x2) */}
         <div className="event-details">
           <div className="detail-item">
-            <FaCalendarAlt /> <span>{date}</span>
+            <FaCalendarAlt /> <span>{decodeHTML(date)}</span>
           </div>
           <div className="detail-item">
-            <FaClock /> <span>{time}</span>
+            <FaClock /> <span>{decodeHTML(time)}</span>
           </div>
           <div className="detail-item">
-            <FaMapMarkerAlt /> <span>{location}</span>
+            <FaMapMarkerAlt /> <span>{decodeHTML(location)}</span>
           </div>
           <div className="detail-item">
-            <FaWonSign /> <span>{fee}</span>
+            <FaWonSign /> <span>{decodeHTML(fee)}</span>
           </div>
         </div>
       </div>
