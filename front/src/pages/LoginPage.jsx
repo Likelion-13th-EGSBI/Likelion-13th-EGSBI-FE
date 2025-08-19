@@ -191,16 +191,13 @@ const LoginPage = () => {
       }
 
       const tokenData = await response.json();
-      console.log('로그인 성공:', {
-        id: tokenData.id,
-        name: tokenData.name,
-        email: tokenData.email
-      });
+      console.log('로그인 성공:', tokenData);
 
       // 토큰, id, 이메일과 만료시간 저장
       localStorage.setItem('accessToken', tokenData.accessToken);
       localStorage.setItem('userId', tokenData.id.toString());
       localStorage.setItem('userEmail', tokenData.email);
+      localStorage.setItem('userName', tokenData.name);
       
       // 만료 시간 계산하여 저장 (현재 시간 + expiresIn초)
       const expirationTime = Date.now() + (tokenData.expiresIn * 1000);

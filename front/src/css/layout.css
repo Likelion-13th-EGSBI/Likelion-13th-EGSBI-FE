@@ -32,12 +32,13 @@ body { overflow-x: hidden; }     /* 가로 스크롤 방지 */
   overflow-x: clip;              /* 내부 컴포넌트가 잠깐 커져도 가로 스크롤 차단 */
 }
 
-@media (min-width: 769px){
+/* 사이드바가 보이는 범위: 821px 이상 (아이패드 프로 포함) */
+@media (min-width: 821px){
   .layout-main-content.with-layout{ padding-left: var(--sidebar-width); }
 }
 
-/* ===== 모바일 ===== */
-@media (max-width: 768px){
+/* ===== 모바일: 820px 이하 ===== */
+@media (max-width: 820px){
   .layout-main-content{
     min-height: calc(100dvh - var(--topbar-height-mobile));
     padding-top: var(--topbar-height-mobile);
@@ -60,7 +61,7 @@ body { overflow-x: hidden; }     /* 가로 스크롤 방지 */
 }
 
 /* ===== 페이지별 중복 top-padding을 전역에서 무력화 (모바일) ===== */
-@media (max-width: 768px){
+@media (max-width: 820px){
   .layout-main-content .eventupload-container{ padding-top: 0 !important; }
   .layout-main-content .host-detail{           padding-top: 0 !important; }
   .layout-main-content .subscribe-page{        padding-top: 0 !important; }
