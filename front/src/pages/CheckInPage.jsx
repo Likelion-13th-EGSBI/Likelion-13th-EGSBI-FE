@@ -158,13 +158,10 @@ const CheckInPage = () => {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${accessToken}`,
-          'Content-Type': 'application/json'
+           'Content-Type': 'application/json'
         },
         body: JSON.stringify({
-          id: parseInt(eventId),
-          userId: parseInt(userId),
           eventId: parseInt(eventId),
-          joinedAt: new Date().toISOString()
         })
       });
 
