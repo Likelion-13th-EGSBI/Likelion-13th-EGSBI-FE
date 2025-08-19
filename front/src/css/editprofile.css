@@ -200,3 +200,20 @@
   .edit-profile-button,
   .edit-profile-input{ transition:none !important; }
 }
+
+/* === add-ons for layout / states === */
+.edit-profile-alert{
+  background:#ffe8e8; color:#c00;
+  padding:12px; border-radius:12px;
+  margin: 0 auto 12px; max-width:960px;
+  border:1px solid rgba(185,78,78,.25);
+}
+
+.edit-profile-actionbar{
+  display:flex; justify-content:center; align-items:center;
+  gap:12px; padding:12px; margin:8px auto 0; max-width:960px;
+}
+
+.edit-profile-button-disabled{
+  opacity:.6; cursor:not-allowed;
+}
