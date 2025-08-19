@@ -361,7 +361,7 @@ const MyUploadEvent = () => {
 
     if (loading) {
         return (
-            <Layout pageTitle="내가 등록한 행사" activeMenuItem="myuploadevent">
+            <Layout pageTitle="내가 등록한 행사" activeMenuItem="my-uploads">
                 <div className="myuploadevent-container">
                     <div className="myuploadevent-loading">
                         <div className="myuploadevent-loading-dot"></div>
@@ -374,7 +374,7 @@ const MyUploadEvent = () => {
     }
 
     return (
-        <Layout pageTitle="내가 등록한 행사" activeMenuItem="myuploadevent">
+        <Layout pageTitle="내가 등록한 행사" activeMenuItem="my-uploads">
             <div className="myuploadevent-container">
                 {/* 통합 헤더 */}
                 <div className="myuploadevent-header">

@@ -1,12 +1,11 @@
 import React, { useMemo } from 'react';
-import { useNavigate, useLocation } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import { Home, FileText, ThumbsUp, Heart, UploadCloud, CalendarCheck, User, MapPin, LogOut, LogIn } from 'lucide-react';
 import logo from '../imgs/mainlogo.png';
 import '../css/sidebar.css';
 
 const Sidebar = ({ activeMenuItem }) => {
   const navigate = useNavigate();
-  const location = useLocation();
 
   // 로그인 여부 & 사용자 정보 → 토큰 유무로 판단
   const accessToken = localStorage.getItem('accessToken');
@@ -14,14 +13,15 @@ const Sidebar = ({ activeMenuItem }) => {
   const isLoggedIn = !!(accessToken && userId);
   const userName = localStorage.getItem('userName');
 
+  // 반드시 id 값이 Layout의 routeToId value와 100% 일치해야 함
   const mainMenuItems = useMemo(
     () => [
-      { id: 'home',              icon: Home,        label: '홈',               route: '/' },
-      { id: 'event-upload',      icon: FileText,    label: '행사 업로드',       route: '/event-upload' },
-      { id: 'subscriptions',     icon: ThumbsUp,    label: '구독',             route: '/subscribe' },
-      { id: 'bookmarks',         icon: Heart,       label: '내가 관심있는 행사', route: '/bookmarks' },
-      { id: 'my-uploads',        icon: UploadCloud, label: '내가 업로드한 행사', route: '/my-upload-event' },
-      { id: 'my-participations', icon: CalendarCheck,label: '내가 참여한 행사',  route: '/joined' },
+      { id: 'home',              icon: Home,        label: '홈',                route: '/' },
+      { id: 'event-upload',      icon: FileText,    label: '행사 업로드',        route: '/event-upload' },
+      { id: 'subscriptions',     icon: ThumbsUp,    label: '구독',              route: '/subscribe' },
+      { id: 'bookmarks',         icon: Heart,       label: '내가 관심있는 행사',  route: '/bookmarks' },
+      { id: 'my-uploads',        icon: UploadCloud, label: '내가 업로드한 행사',  route: '/my-upload-event' },
+      { id: 'my-participations', icon: CalendarCheck, label: '내가 참여한 행사',  route: '/joined' },
     ],
     []
   );
@@ -30,30 +30,6 @@ const Sidebar = ({ activeMenuItem }) => {
     { id: 'mypage',   icon: User,   label: '마이페이지', route: '/mypage' },
     { id: 'location', icon: MapPin, label: '위치 설정',  route: '/location' },
   ];
-
-  // 현재 경로에 맞는 active 메뉴 찾기
-  const routeToId = useMemo(() => {
-    const map = new Map();
-    [...mainMenuItems, ...personalMenuItems].forEach(m => map.set(m.route, m.id));
-    return map;
-  }, [mainMenuItems]);
-
-  const activeFromPath = routeToId.get(location.pathname);
-  const active = activeMenuItem || activeFromPath || 'home';
-
-  // 로그아웃
-  const handleLogout = () => {
-    localStorage.removeItem('accessToken');
-    localStorage.removeItem('userId');
-    localStorage.removeItem('userEmail');
-    localStorage.removeItem('userNickname');
-    localStorage.removeItem('userName');
-    localStorage.removeItem('tokenExpiration');
-    navigate('/');
-  };
-
-  // 로그인 이동
-  const handleLogin = () => navigate('/login');
 
   // 로그인 필요한 경로인지 확인
   const requiresAuth = (pathname) => {
@@ -77,13 +53,29 @@ const Sidebar = ({ activeMenuItem }) => {
     return userName.charAt(0).toUpperCase();
   };
 
+  // activeMenuItem props만 신뢰
+  const active = activeMenuItem || 'home';
+
+  // 로그아웃
+  const handleLogout = () => {
+    localStorage.removeItem('accessToken');
+    localStorage.removeItem('userId');
+    localStorage.removeItem('userEmail');
+    localStorage.removeItem('userNickname');
+    localStorage.removeItem('userName');
+    localStorage.removeItem('tokenExpiration');
+    navigate('/');
+  };
+
+  // 로그인 이동
+  const handleLogin = () => navigate('/login');
+
   return (
     <aside className="sidebar-container" aria-label="사이드바">
       <div className="sidebar-top">
         <div className="sidebar-brand" onClick={() => go('/')} role="button" tabIndex={0}>
           <img src={logo} alt="서비스 로고" className="sidebar-logo" />
         </div>
-
         <div className="sidebar-user-card rich">
           {isLoggedIn ? (
             <div className="sidebar-user-logged-in">
