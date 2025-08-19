@@ -20,12 +20,34 @@
 .bookmark-btn{
   position:absolute; top:10px; right:10px;
   width:36px; height:36px; display:grid; place-items:center;
-  background:rgba(0,0,0,.35); border:1px solid rgba(255,255,255,.6);
-  border-radius:50%; cursor:pointer; z-index:2; transition:all .12s ease;
+  background:rgba(0,0,0,.35); 
+  border:1px solid rgba(255,255,255,.6);
+  border-radius:50%; cursor:pointer; z-index:2; 
+  transition: transform .12s ease, box-shadow .12s ease, color .15s ease; /* 변경: color 트랜지션 추가 */
 }
-.bookmark-btn:hover{ transform:translateY(-1px) scale(1.03); background:rgba(0,0,0,.45); box-shadow:0 4px 10px rgba(0,0,0,.25); }
-.bookmark-btn .icon{ color:#fff; font-size:18px; }
-.bookmark-btn.bookmarked .icon{ color:#E74C3C; }
+.bookmark-btn:hover{
+  transform:translateY(-1px) scale(1.03);
+  background:rgba(0,0,0,.45);
+  box-shadow:0 4px 10px rgba(0,0,0,.25);
+}
+.bookmark-btn .icon{
+  color:#e5e7eb;                 /* 변경: #fff → #e5e7eb(대비 향상) */
+  font-size:18px;
+  transition: transform .12s ease, color .15s ease; /* 추가: 색 전환 부드럽게 */
+}
+.bookmark-btn.bookmarked .icon{
+  color:#E11D48 !important;      /* 변경: !important로 우선순위 충돌 방지 */
+}
+/* 추가: 토글 중/비활성화 시 피드백 */
+.bookmark-btn:disabled{
+  opacity:.65;
+  cursor:not-allowed;
+}
+/* 추가: 키보드 포커스 접근성 */
+.bookmark-btn:focus-visible{
+  outline:2px solid #fca5a5; 
+  outline-offset:2px;
+}
 
 /* 이미지 */
 .event-image{
