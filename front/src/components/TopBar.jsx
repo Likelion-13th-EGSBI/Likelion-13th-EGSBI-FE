@@ -5,19 +5,18 @@ import '../css/topbar.css';
 import logo from '../imgs/mainlogo.png';
 
 const TopBar = () => {
-  const [isMobile, setIsMobile] = useState(window.innerWidth <= 768);
+  const [isMobile, setIsMobile] = useState(window.innerWidth <= 820);
   const location = useLocation();
   const navigate = useNavigate();
 
   useEffect(() => {
-    const onResize = () => setIsMobile(window.innerWidth <= 768);
+    const onResize = () => setIsMobile(window.innerWidth <= 820);
     window.addEventListener('resize', onResize);
     return () => window.removeEventListener('resize', onResize);
   }, []);
 
   const isHome = location.pathname === '/' || location.pathname === '/dashboard';
   const goBack = () => navigate(-1);
-  const goNotifications = () => navigate('/notifications');
   const goQR = () => navigate('/qr');
 
   /* ===== 모바일 ===== */
@@ -30,7 +29,7 @@ const TopBar = () => {
             <button
               className="topbar-mobile-logo-btn"
               aria-label="홈"
-              onClick={() => navigate('/dashboard')}
+              onClick={() => navigate('/')}
             >
               <img src={logo} alt="로고" className="topbar-mobile-logo" />
             </button>
@@ -48,10 +47,6 @@ const TopBar = () => {
 
           {/* 우측: 알림/QR */}
           <div className="topbar-mobile-right">
-            <button className="topbar-icon-btn" aria-label="알림" onClick={goNotifications}>
-              <Bell size={20} />
-              <span className="topbar-badge">5</span>
-            </button>
             <button className="topbar-icon-btn" aria-label="QR" onClick={goQR}>
               <QrCode size={21} />
             </button>
@@ -72,10 +67,6 @@ const TopBar = () => {
           </div>
         </div>
         <div className="topbar-right">
-          <button className="topbar-icon-btn" aria-label="알림" onClick={goNotifications}>
-            <Bell size={20} />
-            <span className="topbar-badge">5</span>
-          </button>
           <button className="topbar-icon-btn" aria-label="QR" onClick={goQR}>
             <QrCode size={22} />
           </button>

@@ -57,7 +57,7 @@
 }
 
 /* ===== 모바일 ===== */
-@media (max-width: 768px){
+@media (max-width: 820px){
   .topbar-container{ display:none; }
 
   /* iOS 안전영역 포함: 높이/패딩 동기화 */

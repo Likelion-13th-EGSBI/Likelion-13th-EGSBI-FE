@@ -7,14 +7,21 @@ import BottomBar from './BottomBar';
 import '../css/layout.css';
 
 const Layout = ({ children, pageTitle = '페이지 제목', activeMenuItem, showLayout = true }) => {
-  const [isPc, setIsPc] = useState(() => window.innerWidth >= 1024);
+  const [windowWidth, setWindowWidth] = useState(window.innerWidth);
   const location = useLocation();
 
+  // 창 크기 변경 감지
   useEffect(() => {
-    const onResize = () => setIsPc(window.innerWidth >= 1024);
+    const onResize = () => setWindowWidth(window.innerWidth);
     window.addEventListener('resize', onResize);
     return () => window.removeEventListener('resize', onResize);
   }, []);
+
+  const isPc = windowWidth >= 1025;
+  const isTablet = windowWidth >= 821 && windowWidth <= 1024;
+  const isMobile = windowWidth <= 820;
+
+  const containerClass = `layout-container ${isPc ? 'pc' : isTablet ? 'tablet' : 'mobile'}`;
 
   // 경로 → 메뉴 id 매핑
   const routeToId = useMemo(
@@ -29,32 +36,32 @@ const Layout = ({ children, pageTitle = '페이지 제목', activeMenuItem, show
         ['/my-participations', 'my-participations'],
         ['/mypage', 'mypage'],
         ['/location', 'location'],
-
-        // 과거 경로 호환
         ['/subscribepage', 'subscriptions'],
       ]),
     []
   );
 
   const resolvedActive = activeMenuItem || routeToId.get(location.pathname) || 'home';
-  const containerClass = `layout-container ${isPc ? 'pc' : 'mobile'}`;
 
   return (
     <div className={containerClass}>
       {showLayout && (
         <>
           <TopBar />
-          {isPc && <Sidebar activeMenuItem={resolvedActive} />}
-          {/* ✅ 모바일에서만 하단바 렌더 */}
-          {!isPc && <BottomBar />}
+
+          {/* PC, 테블릿(아이패드 프로 포함): 사이드바 렌더 */}
+          {(isPc || isTablet) && <Sidebar activeMenuItem={resolvedActive} />}
+
+          {/* 모바일(820px 이하): 하단바 */}
+          {isMobile && <BottomBar />}
         </>
       )}
 
       <main className={`layout-main-content ${showLayout ? 'with-layout' : 'without-layout'}`}>
         <div className="layout-inner">{children}</div>
 
-        {/* ✅ 모바일에서만 하단바 높이만큼 여백 확보 */}
-        {!isPc && <div className="bottombar-spacer" />}
+        {/* 모바일: 하단바 높이만큼 여백 */}
+        {isMobile && <div className="bottombar-spacer" />}
       </main>
     </div>
   );
