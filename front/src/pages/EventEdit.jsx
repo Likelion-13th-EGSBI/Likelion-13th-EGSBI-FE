@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
-import { Calendar, Clock, MapPin, Users, DollarSign, FileText, Upload, X, Hash, Save, ArrowLeft } from 'lucide-react';
+import { Calendar, Clock, MapPin, Users, DollarSign, FileText, Upload, X, Hash, Save, ArrowLeft, Eye, Edit3, Bold, Italic, List, Link, Code, Quote, Image } from 'lucide-react';
 import Layout from '../components/Layout';
 import { useParams, useNavigate, useLocation } from 'react-router-dom';
 import '../css/eventedit.css';
@@ -56,6 +56,235 @@ function loadKakaoSdkOnce() {
   return kakaoSdkLoadingPromise;
 }
 
+// 마크다운 에디터 컴포넌트
+const MarkdownEditor = ({ value, onChange, placeholder }) => {
+  const [isPreview, setIsPreview] = useState(false);
+  const textareaRef = useRef(null);
+
+  // 마크다운을 HTML로 변환하는 간단한 함수
+  const markdownToHtml = (markdown) => {
+    let html = markdown
+      // 헤더
+      .replace(/^### (.*)$/gim, '<h3 class="md-heading md-heading-3">$1</h3>')
+      .replace(/^## (.*)$/gim, '<h2 class="md-heading md-heading-2">$1</h2>')
+      .replace(/^# (.*)$/gim, '<h1 class="md-heading md-heading-1">$1</h1>')
+      // 굵은 글씨
+      .replace(/\*\*(.*)\*\*/gim, '<strong class="md-bold">$1</strong>')
+      .replace(/__(.*?)__/gim, '<strong class="md-bold">$1</strong>')
+      // 기울임
+      .replace(/\*(.*?)\*/gim, '<em class="md-italic">$1</em>')
+      .replace(/_(.*?)_/gim, '<em class="md-italic">$1</em>')
+      // 코드 블록
+      .replace(/```([\s\S]*?)```/gim, '<pre class="md-code-block"><code class="md-code-block-content">$1</code></pre>')
+      // 인라인 코드
+      .replace(/`(.*?)`/gim, '<code class="md-code-inline">$1</code>')
+      // 링크
+      .replace(/\[([^\]]+)\]\(([^)]+)\)/gim, '<a href="$2" target="_blank" rel="noopener noreferrer" class="md-link">$1</a>')
+      // 이미지
+      .replace(/!\[([^\]]*)\]\(([^)]+)\)/gim, '<img src="$2" alt="$1" class="md-image" />')
+      // 인용구
+      .replace(/^> (.*)$/gim, '<blockquote class="md-blockquote">$1</blockquote>')
+      // 순서없는 리스트
+      .replace(/^\* (.*)$/gim, '<li class="md-list-item">$1</li>')
+      .replace(/^- (.*)$/gim, '<li class="md-list-item">$1</li>')
+      // 순서있는 리스트
+      .replace(/^\d+\. (.*)$/gim, '<li class="md-list-item md-list-item-ordered">$1</li>');
+
+    // 줄바꿈을 단락으로 처리
+    const lines = html.split('\n');
+    const processedLines = [];
+    
+    for (let i = 0; i < lines.length; i++) {
+      const line = lines[i].trim();
+      
+      // 빈 줄은 단락 구분자로 사용
+      if (line === '') {
+        processedLines.push('');
+        continue;
+      }
+      
+      // 이미 HTML 태그로 처리된 줄은 그대로 유지
+      if (line.match(/^<(h[1-3]|blockquote|pre|li)/)) {
+        processedLines.push(line);
+      } else if (line.length > 0) {
+        // 일반 텍스트는 단락으로 감싸기
+        processedLines.push(`<p class="md-paragraph">${line}</p>`);
+      }
+    }
+
+    // 리스트 아이템들을 ul/ol로 감싸기
+    const finalHtml = processedLines.join('\n')
+      .replace(/(<li class="md-list-item"[^>]*>.*?<\/li>\s*)+/gs, (match) => {
+        return `<ul class="md-list">${match}</ul>`;
+      })
+      .replace(/(<li class="md-list-item md-list-item-ordered"[^>]*>.*?<\/li>\s*)+/gs, (match) => {
+        return `<ol class="md-list md-list-ordered">${match}</ol>`;
+      });
+
+    return finalHtml;
+  };
+
+  // 텍스트 삽입 함수
+  const insertText = (before, after = '') => {
+    const textarea = textareaRef.current;
+    if (!textarea) return;
+
+    const start = textarea.selectionStart;
+    const end = textarea.selectionEnd;
+    const selectedText = value.substring(start, end);
+    const beforeText = value.substring(0, start);
+    const afterText = value.substring(end);
+
+    const newText = beforeText + before + selectedText + after + afterText;
+    onChange(newText);
+
+    // 커서 위치 조정
+    setTimeout(() => {
+      textarea.focus();
+      const newCursorPos = start + before.length + selectedText.length;
+      textarea.setSelectionRange(newCursorPos, newCursorPos);
+    }, 0);
+  };
+
+  // 툴바 버튼들 (모바일용으로 순서 조정)
+  const toolbarButtons = [
+    { icon: Bold, action: () => insertText('**', '**'), title: '굵게', key: 'bold' },
+    { icon: Italic, action: () => insertText('*', '*'), title: '기울임', key: 'italic' },
+    { icon: Code, action: () => insertText('`', '`'), title: '코드', key: 'code' },
+    { icon: Quote, action: () => insertText('> '), title: '인용구', key: 'quote' },
+    { icon: List, action: () => insertText('- '), title: '리스트', key: 'list' },
+    { icon: Link, action: () => insertText('[링크](', ')'), title: '링크', key: 'link' },
+    { icon: Image, action: () => insertText('![이미지](', ')'), title: '이미지', key: 'image' },
+  ];
+
+  // 키보드 단축키 처리
+  const handleKeyDown = (e) => {
+    if (e.ctrlKey || e.metaKey) {
+      switch (e.key) {
+        case 'b':
+          e.preventDefault();
+          insertText('**', '**');
+          break;
+        case 'i':
+          e.preventDefault();
+          insertText('*', '*');
+          break;
+        case 'k':
+          e.preventDefault();
+          insertText('[', '](url)');
+          break;
+      }
+    }
+  };
+
+  return (
+    <div className="markdown-editor">
+      {/* 툴바 */}
+      <div className="markdown-toolbar">
+        {/* 편집/미리보기 토글 (모바일에서 상단에 표시) */}
+        <div className="toolbar-section">
+          <button
+            type="button"
+            className={`toolbar-button ${!isPreview ? 'active' : ''}`}
+            onClick={() => setIsPreview(false)}
+            title="편집 모드"
+          >
+            <Edit3 size={16} />
+            <span>편집</span>
+          </button>
+          <button
+            type="button"
+            className={`toolbar-button ${isPreview ? 'active' : ''}`}
+            onClick={() => setIsPreview(true)}
+            title="미리보기 모드"
+          >
+            <Eye size={16} />
+            <span>미리보기</span>
+          </button>
+        </div>
+        
+        {/* 포맷팅 버튼들 */}
+        <div className="toolbar-section">
+          {toolbarButtons.map((button) => (
+            <button
+              key={button.key}
+              type="button"
+              className="toolbar-button"
+              onClick={button.action}
+              title={button.title}
+              disabled={isPreview}
+            >
+              <button.icon size={16} />
+            </button>
+          ))}
+        </div>
+      </div>
+
+      {/* 에디터 영역 */}
+      <div className="markdown-content">
+        {!isPreview ? (
+          <textarea
+            ref={textareaRef}
+            className="markdown-textarea"
+            value={value}
+            onChange={(e) => onChange(e.target.value)}
+            onKeyDown={handleKeyDown}
+            placeholder={placeholder}
+            rows={12}
+          />
+        ) : (
+          <div className="markdown-preview">
+            {value ? (
+              <div 
+                dangerouslySetInnerHTML={{ 
+                  __html: markdownToHtml(value) 
+                }} 
+              />
+            ) : (
+              <p className="preview-placeholder">미리볼 내용이 없습니다.</p>
+            )}
+          </div>
+        )}
+      </div>
+
+      {/* 도움말 (간소화) */}
+      <div className="markdown-help">
+        <details className="help-details">
+          <summary className="help-summary">마크다운 사용법</summary>
+          <div className="help-content">
+            <div className="help-grid">
+              <div className="help-item">
+                <code># 제목</code>
+                <span>큰 제목</span>
+              </div>
+              <div className="help-item">
+                <code>**굵게**</code>
+                <span><strong>굵은글씨</strong></span>
+              </div>
+              <div className="help-item">
+                <code>*기울임*</code>
+                <span><em>기울임</em></span>
+              </div>
+              <div className="help-item">
+                <code>`코드`</code>
+                <span><code>코드</code></span>
+              </div>
+              <div className="help-item">
+                <code>- 리스트</code>
+                <span>• 리스트</span>
+              </div>
+              <div className="help-item">
+                <code>[링크](URL)</code>
+                <span>링크</span>
+              </div>
+            </div>
+          </div>
+        </details>
+      </div>
+    </div>
+  );
+};
+
 // LocalDateTime 형식 변환 함수
 const formatToLocalDateTime = (date, time) => {
   if (!date || !time) {
@@ -106,6 +335,8 @@ const EventEdit = () => {
   const { eventId } = useParams();
   const navigate = useNavigate();
   const location = useLocation();
+  const userId = localStorage.getItem('userId');
+  const accessToken = localStorage.getItem('accessToken');
   
   // MyUploadEvent에서 전달받은 행사 데이터
   const eventData = location.state?.eventData;
@@ -138,6 +369,7 @@ const EventEdit = () => {
   const [isSearching, setIsSearching] = useState(false);
   const [kakaoReady, setKakaoReady] = useState(false);
   const [isComposing, setIsComposing] = useState(false);
+  const [imageDeleted, setImageDeleted] = useState(false); // 이미지 삭제 상태 추가
 
   const fileInputRef = useRef(null);
 
@@ -214,7 +446,7 @@ const EventEdit = () => {
   // 해시태그 관련 함수들
   const addHashtag = useCallback((tag) => {
     const cleanTag = tag.replace(/^#/, '').trim();
-    if (cleanTag && !formData.hashtags.includes(cleanTag) && formData.hashtags.length < 5) {
+    if (cleanTag && !formData.hashtags.includes(cleanTag) && formData.hashtags.length < 10) {
       setFormData(prev => ({
         ...prev,
         hashtags: [...prev.hashtags, cleanTag]
@@ -341,14 +573,18 @@ const EventEdit = () => {
     }
     
     setSelectedImage(file);
+    setImageDeleted(false); // 새 이미지 선택시 삭제 상태 해제
     const reader = new FileReader();
     reader.onload = (e) => setImagePreview(e.target?.result);
     reader.readAsDataURL(file);
   };
 
+  // 이미지 삭제 함수 (UI에서만 제거)
   const removeImage = () => {
     setSelectedImage(null);
-    setImagePreview(originalImageUrl || null);
+    setImagePreview(null);
+    setImageDeleted(true); // 이미지 삭제 상태로 설정
+    setOriginalImageUrl(null); // 기존 이미지 URL도 제거
     if (fileInputRef.current) fileInputRef.current.value = '';
   };
 
@@ -392,10 +628,28 @@ const EventEdit = () => {
     setFormData((prev) => ({ ...prev, [field]: value }));
   };
 
-  // 멀티파트 폼 데이터로 API 호출하는 함수 (LocalDateTime 형식)
+  // 멀티파트 폼 데이터로 API 호출하는 함수
   const submitEventToAPI = async (eventData, imageFile) => {
     setIsSubmitting(true);
     try {
+      // 토큰과 사용자 ID 확인
+      if (!accessToken || !userId) {
+        throw new Error('로그인이 필요합니다. 다시 로그인해주세요.');
+      }
+
+      // 토큰 만료 확인
+      const tokenExpiration = localStorage.getItem('tokenExpiration');
+      if (tokenExpiration && new Date() > new Date(tokenExpiration)) {
+        localStorage.removeItem('accessToken');
+        localStorage.removeItem('userId');
+        localStorage.removeItem('userEmail');
+        localStorage.removeItem('tokenExpiration');
+        throw new Error('로그인이 만료되었습니다. 다시 로그인해주세요.');
+      }
+
+      console.log('사용할 토큰:', accessToken.substring(0, 20) + '...');
+      console.log('사용자 ID:', userId);
+
       // 최종 날짜/시간 유효성 검사
       const validation = validateDateTime(
         eventData.startDate, 
@@ -415,58 +669,91 @@ const EventEdit = () => {
       const startDateTime = formatToLocalDateTime(eventData.startDate, eventData.startTime);
       const endDateTime = formatToLocalDateTime(eventData.endDate, eventData.endTime);
       
-      console.log('Formatted DateTime:', { startDateTime, endDateTime });
+      console.log('변환된 날짜시간:', { startDateTime, endDateTime });
       
-      // 이벤트 데이터 JSON 객체 생성 (해시태그 포함)
-      const eventJson = {
-        id: parseInt(eventId), // 수정할 이벤트 ID 추가
-        name: eventData.eventName,
-        startTime: startDateTime,
-        endTime: endDateTime,
-        organizerId: 1,
-        latitude: parseFloat(eventData.latitude) || 37.5665,
-        longitude: parseFloat(eventData.longitude) || 126.978,
-        entryFee: parseInt(eventData.fee) || 0,
-        address: eventData.address || eventData.location,
-        description: eventData.description || '',
-        participantLimit: parseInt(eventData.participantLimit) || 0,
-        hashtags: eventData.hashtags || [] // 해시태그 배열 추가
-      };
+      // 이미지 상태 분석
+      const hasNewImage = selectedImage !== null;
+      const wasImageDeleted = imageDeleted === true;
+      const hasPosterChange = hasNewImage || wasImageDeleted;
       
-      console.log('Event JSON:', eventJson);
+      console.log('이미지 상태 분석:', {
+        hasNewImage: hasNewImage,
+        wasImageDeleted: wasImageDeleted,
+        hasPosterChange: hasPosterChange
+      });
       
-      // FormData에 이벤트 정보를 JSON 문자열로 추가 (Content-Type 명시)
-      formData.append('event', new Blob([JSON.stringify(eventJson)], {
-        type: 'application/json'
-      }));
-      
-      // 이미지 파일이 있는 경우에만 추가
-      if (imageFile) {
-        console.log('Adding image file:', imageFile.name, 'Size:', imageFile.size);
-        formData.append('image', imageFile);
+      // poster 플래그 결정 (API 문서에 따라)
+      let posterFlag;
+      if (wasImageDeleted) {
+        posterFlag = false; // 삭제 시: false
+        console.log('이미지 삭제됨 -> poster: false');
+      } else if (hasNewImage) {
+        posterFlag = true; // 변경 시: true
+        console.log('이미지 변경됨 -> poster: true');
       } else {
-        console.log('No image file selected - appending empty file');
-        // 빈 이미지 파일 추가 (서버에서 요구하는 경우)
-        formData.append('image', new Blob([], { type: 'application/octet-stream' }));
+        posterFlag = true; // 유지 시: true (기본값)
+        console.log('이미지 유지됨 -> poster: true');
       }
       
+      // 이벤트 데이터 JSON 객체 생성
+      const eventJson = {
+        hashtags: eventData.hashtags || [],
+        endTime: endDateTime,
+        organizerId: parseInt(userId),
+        name: eventData.eventName,
+        latitude: parseFloat(eventData.latitude) || 37.5665,
+        longitude: parseFloat(eventData.longitude) || 126.978,
+        startTime: startDateTime,
+        entryFee: parseInt(eventData.fee) || 0,
+        address: eventData.address || eventData.location,
+        id: parseInt(eventId),
+        description: eventData.description || '',
+        poster: posterFlag // 포스터 유무 플래그
+      };
+      
+      console.log('최종 이벤트 JSON:', eventJson);
+      console.log('poster 플래그 최종값:', eventJson.poster);
+      
+      // JSON 데이터를 Blob으로 만들어 Content-Type 명시적으로 설정
+      const eventBlob = new Blob([JSON.stringify(eventJson)], {
+        type: 'application/json'
+      });
+      
+      // FormData에 이벤트 정보를 Blob으로 추가
+      formData.append('event', eventBlob);
+      
+      // 이미지 처리 로직
+      if (hasNewImage) {
+        // 새 이미지가 있는 경우
+        console.log('새 이미지 파일 추가:', selectedImage.name, '크기:', selectedImage.size);
+        formData.append('image', selectedImage);
+      } else if (wasImageDeleted) {
+        // 이미지가 삭제된 경우 - 빈 값 전송 (Send empty value)
+        console.log('이미지 삭제됨 - 빈 image 필드 전송');
+        formData.append('image', new Blob(), ''); // 빈 파일로 전송
+      }
+      // 이미지 변경이 없는 경우: image 필드를 추가하지 않음
+      
       // FormData 내용 확인 (디버깅용)
-      console.log('FormData contents:');
+      console.log('FormData 내용:');
       for (let [key, value] of formData.entries()) {
         if (value instanceof File) {
-          console.log(`${key}: File(${value.name}, ${value.size} bytes, ${value.type})`);
+          console.log(`${key}: 파일(${value.name}, ${value.size} 바이트, ${value.type})`);
         } else if (value instanceof Blob) {
-          console.log(`${key}: Blob(${value.size} bytes, ${value.type})`);
+          console.log(`${key}: Blob(${value.size} 바이트, ${value.type})`);
         } else {
           console.log(`${key}:`, value);
         }
       }
       
-      // 멀티파트 폼 데이터로 PATCH 요청
-      const response = await fetch('https://gateway.gamja.cloud/api/event', {
+      // Bearer 토큰과 함께 멀티파트 폼 데이터로 PATCH 요청
+      const apiUrl = process.env.REACT_APP_API_URL || 'https://gateway.gamja.cloud';
+      const response = await fetch(`${apiUrl}/api/event`, {
         method: 'PATCH',
+        headers: {
+          'Authorization': `Bearer ${accessToken}`,
+        },
         body: formData,
-        // Content-Type 헤더를 설정하지 않음 - 브라우저가 자동으로 multipart/form-data로 설정
       });
       
       if (!response.ok) {
@@ -477,11 +764,21 @@ const EventEdit = () => {
         } catch {
           errorMessage = await response.text() || `HTTP ${response.status}`;
         }
+        
+        // 401 Unauthorized 처리
+        if (response.status === 401) {
+          localStorage.removeItem('accessToken');
+          localStorage.removeItem('userId');
+          localStorage.removeItem('userEmail');
+          localStorage.removeItem('tokenExpiration');
+          throw new Error('로그인이 만료되었습니다. 다시 로그인해주세요.');
+        }
+        
         throw new Error(`서버 오류 (${response.status}): ${errorMessage}`);
       }
       
       const result = await response.json();
-      console.log('API Response:', result);
+      console.log('API 응답:', result);
       return result;
     } catch (error) {
       console.error('API 호출 실패:', error);
@@ -508,8 +805,19 @@ const EventEdit = () => {
         throw new Error('주소 검색을 통해 정확한 위치를 선택해주세요.');
       }
 
+      if (!userId || isNaN(parseInt(userId))) {
+        throw new Error('유효하지 않은 사용자 ID입니다. 다시 로그인해주세요.');
+      }
+
+      if (!eventId || isNaN(parseInt(eventId))) {
+        throw new Error('유효하지 않은 이벤트 ID입니다.');
+      }
+
       // API 호출
-      await submitEventToAPI(formData, selectedImage);
+      await submitEventToAPI({
+        ...formData,
+        posterId: eventData.posterId
+      }, selectedImage);
       
       alert('행사가 성공적으로 수정되었습니다!');
       navigate('/my-upload-event');
@@ -655,16 +963,6 @@ const EventEdit = () => {
             
             <div className="event-edit-field-row">
               <div className="event-edit-field">
-                <label className="event-edit-label">참가 인원</label>
-                <input
-                  className="event-edit-input"
-                  type="number"
-                  placeholder="예: 50"
-                  value={formData.participantLimit}
-                  onChange={(e) => handleInputChange('participantLimit', e.target.value)}
-                />
-              </div>
-              <div className="event-edit-field">
                 <label className="event-edit-label">참가비</label>
                 <input
                   className="event-edit-input"
@@ -703,16 +1001,16 @@ const EventEdit = () => {
                       onKeyDown={handleHashtagKeyDown}
                       onCompositionStart={handleCompositionStart}
                       onCompositionEnd={handleCompositionEnd}
-                      disabled={formData.hashtags.length >= 5}
+                      disabled={formData.hashtags.length >= 10}
                     />
                   </div>
                 </div>
                 <div className="event-edit-hashtag-info">
                   <p className="event-edit-hashtag-tip">
-                    💡 엔터나 쉼표로 구분하여 입력하세요 (최대 5개)
+                    엔터나 쉼표로 구분하여 입력하세요 (최대 10개)
                   </p>
                   <p className="event-edit-hashtag-count">
-                    {formData.hashtags.length}/5
+                    {formData.hashtags.length}/10
                   </p>
                 </div>
               </div>
@@ -720,12 +1018,10 @@ const EventEdit = () => {
 
             <div className="event-edit-field-group">
               <label className="event-edit-label">행사 설명</label>
-              <textarea
-                className="event-edit-textarea"
-                placeholder="참가자들이 알아야 할 내용을 작성해주세요"
+              <MarkdownEditor
                 value={formData.description}
-                onChange={(e) => handleInputChange('description', e.target.value)}
-                rows={6}
+                onChange={(value) => handleInputChange('description', value)}
+                placeholder="참가자들이 알아야 할 내용을 마크다운으로 작성해주세요.&#10;&#10;예시:&#10;# 행사 소개&#10;이번 행사는 **지역 주민들**이 함께하는 플리마켓입니다.&#10;&#10;## 참가 방법&#10;- 참가비: 무료&#10;- 준비물: 개인 텀블러&#10;- 문의: [연락처](tel:010-1234-5678)&#10;&#10;> 우천시에는 행사가 취소될 수 있습니다."
               />
             </div>
           </div>

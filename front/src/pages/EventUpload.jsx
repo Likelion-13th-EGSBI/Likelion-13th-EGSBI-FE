@@ -5,7 +5,7 @@ import '../css/eventupload.css';
 
 // 카카오맵 SDK 설정
 const KAKAO_MAP_SCRIPT_ID = 'kakao-map-script';
-const KAKAO_APP_KEY = 'cd740dc5ce8717cd9146f5c91861511a';
+const KAKAO_APP_KEY = '084b4a076cd976847f592a5fea5ea24d';
 
 // 전역 로딩 플래그 (다중 마운트/StrictMode 대비)
 let kakaoSdkLoadingPromise = null;
@@ -511,7 +511,7 @@ const EventUpload = () => {
   // 해시태그 추가 함수
   const addHashtag = useCallback((tag) => {
     const cleanTag = tag.replace(/^#/, '').trim();
-    if (cleanTag && !formData.hashtags.includes(cleanTag) && formData.hashtags.length < 5) {
+    if (cleanTag && !formData.hashtags.includes(cleanTag) && formData.hashtags.length < 10) {
       setFormData(prev => ({
         ...prev,
         hashtags: [...prev.hashtags, cleanTag]
@@ -1040,7 +1040,7 @@ const EventUpload = () => {
         const aiHashtags = aiResult.hashtags
           .map(tag => tag.replace(/^#/, '').trim())
           .filter(tag => tag.length > 0)
-          .slice(0, 5); // 최대 5개까지만
+          .slice(0, 10); // 최대 10개 해시태그로 제한
         
         setFormData(prev => ({
           ...prev,
@@ -1395,17 +1395,17 @@ const EventUpload = () => {
                       onKeyDown={handleHashtagKeyDown}
                       onCompositionStart={handleCompositionStart}
                       onCompositionEnd={handleCompositionEnd}
-                      disabled={formData.hashtags.length >= 5}
+                      disabled={formData.hashtags.length >= 10}
                       autoFocus
                     />
                   </div>
                 </div>
                 <div className="eventupload-hashtag-info">
                   <p className="eventupload-hashtag-tip">
-                    💡 엔터나 쉼표로 구분하여 입력하세요 (최대 5개)
+                    💡 엔터나 쉼표로 구분하여 입력하세요 (최대10개)
                   </p>
                   <p className="eventupload-hashtag-count">
-                    {formData.hashtags.length}/5
+                    {formData.hashtags.length}/10
                   </p>
                 </div>
                 {formData.hashtags.length > 0 && (
