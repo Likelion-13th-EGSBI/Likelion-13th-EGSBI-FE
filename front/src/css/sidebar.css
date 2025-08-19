@@ -305,3 +305,23 @@
     display: none;
   }
 }
+.sidebar-nav-item.active,
+.sidebar-nav-item[aria-current="page"] {
+  background: var(--active);
+  color: #fff;
+  box-shadow: 0 6px 16px rgba(147,158,145,.35);
+}
+
+.sidebar-nav-item.active:hover,
+.sidebar-nav-item[aria-current="page"]:hover {
+  /* active 스타일 그대로 유지, hover에서 추가적인 색상 변화 금지 */
+  background: var(--active);
+  color: #fff;
+}
+
+.sidebar-nav-item.active svg,
+.sidebar-nav-item[aria-current="page"] svg,
+.sidebar-nav-item.active:hover svg,
+.sidebar-nav-item[aria-current="page"]:hover svg {
+  stroke: #fff;
+}

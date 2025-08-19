@@ -613,7 +613,7 @@ const LocationSettings = () => {
   const hasPending = !!pendingArea;
 
   return (
-    <Layout pageTitle="위치 설정" activeMenuItem="mypage">
+    <Layout pageTitle="위치 설정" activeMenuItem="location">
       <div className="location-page container">
         {/* 지도 */}
         <div className="map-wrap">
