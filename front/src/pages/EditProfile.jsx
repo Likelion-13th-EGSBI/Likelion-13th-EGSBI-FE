@@ -391,4 +391,4 @@ const EditProfile = () => {
   );
 };
 
-export default EditProfilㄷ;
+export default EditProfile;
