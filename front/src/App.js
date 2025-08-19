@@ -13,7 +13,6 @@ import HostDetail from './pages/HostDetail';
 import EventCard from './components/EventCard';
 import HostCard from './components/HostCard';
 import MyUploadEvent from './pages/MyUploadEvent';
-import NotificationPage from './pages/NotificationPage';
 import BookmarkedEvents from './pages/BookmarkedEvents';
 import EditProfile from './pages/EditProfile';
 import JoinedEvents from './pages/JoinedEvents';
@@ -37,7 +36,6 @@ function App() {
       <Route path="/bookmarks" element={<BookmarkedEvents />} />
       <Route path="/subscribes" element={<SubscribePage />} />
       <Route path="/joined" element={<JoinedEvents />} />
-      <Route path="/notifications" element={<NotificationPage />} />
       <Route path="/subscribe" element={<SubscribePage />} />
       <Route path="/host/:id" element={<HostDetail />} />
       <Route path="/events/:id" element={<EventDetail />} />

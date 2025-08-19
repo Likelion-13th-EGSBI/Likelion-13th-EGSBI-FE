@@ -10,8 +10,8 @@
   --shadow-0:0 1px 2px rgba(0,0,0,.06);
   --shadow-1:0 6px 18px rgba(0,0,0,.06),0 2px 6px rgba(0,0,0,.04);
   --ring:0 0 0 3px rgba(94,147,108,.30);
-  --topbar-height:64px; /* 상단바 높이 변수 */
-  --topbar-height-mobile: 56px; /* 모바일 상단바 높이 변수 */
+  --topbar-height:64px; 
+  --topbar-height-mobile:56px;
 }
 
 /* ===== Page / Layout ===== */
@@ -21,21 +21,17 @@
   font-family:'Pretendard',system-ui,-apple-system,Segoe UI,Roboto,sans-serif;
   display:flex; flex-direction:column;
 }
-
-/* 상단바 높이만큼 여백 확보 (기본) */
 .mypage-main { 
-  padding: 40px 20px 32px;
-  box-sizing: border-box;
+  padding:40px 20px 32px;
+  box-sizing:border-box;
 }
-
-/* 컨테이너 */
 .mypage-wrapper{
   margin:0 auto; width:100%;
   max-width:1280px;
   display:grid; gap:20px;
 }
 
-/* ===== Hero (프로필 요약 + 우측 '정보 수정') ===== */
+/* ===== Hero (프로필 요약) ===== */
 .profile-summary-card{
   display:flex; justify-content:space-between; align-items:center; gap:16px;
   background:#F4F8F5;
@@ -64,6 +60,8 @@
   margin:0; font-size:13px; color:rgba(0,0,0,.6);
   overflow:hidden; text-overflow:ellipsis; white-space:nowrap;
 }
+
+/* ===== 기본 별점(원본) ===== */
 .profile-rating{
   display:flex; align-items:center; gap:8px; margin-top:4px;
   font-size:13px; color:rgba(0,0,0,.65);
@@ -89,7 +87,7 @@
   box-shadow:0 6px 18px rgba(0,0,0,.08);
 }
 
-/* ===== Desktop Tiles — 2×2 + 좌우 꽉 채움 ===== */
+/* ===== Desktop Tiles ===== */
 .desktop-tile-grid{
   display:grid; gap:20px;
   grid-template-columns:repeat(2, minmax(0,1fr));
@@ -97,8 +95,6 @@
   align-items:stretch;
 }
 .tile-button{ min-height:130px; }
-
-/* 공통 타일 스타일 */
 .tile-button{
   width:100%;
   display:grid; grid-template-columns:auto 1fr; gap:12px; align-items:center;
@@ -126,21 +122,15 @@
 .tile-text strong{ display:block; font-size:14.5px; }
 .tile-text span{ display:block; font-size:12.5px; color:rgba(0,0,0,.6); }
 
-/* ===== Mobile / Medium — 리스트 전환 ===== */
+/* ===== Mobile ===== */
 .mobile-list-card{ display:none; }
-
 @media (max-width:1280px){
-  /* 모바일 전환 시 데스크톱 타일 숨김 */
   .desktop-tile-grid{ display:none; }
-
-  /* ✅ 모바일 상단바 + 안전영역 여백 보정 (축소) */
   .mypage-main{
     padding-top: calc(var(--topbar-height-mobile) + 8px + env(safe-area-inset-top, 0px));
   }
-
   .profile-actions{ width:100%; justify-content:flex-end; }
   .profile-edit-button{ padding:10px 14px; font-size:14px; }
-
   .mobile-list-card{
     display:block; background:var(--card);
     border:1px solid rgba(0,0,0,.12);
@@ -176,16 +166,14 @@
     height:1px; background:rgba(0,0,0,.12);
   }
 }
-
 @media (max-width:480px){
-  /* 초소형 화면 보정 (축소) */
   .mypage-main{
     padding-top: calc(var(--topbar-height-mobile) + 12px + env(safe-area-inset-top, 0px));
   }
   .profile-edit-button{ padding:8px 12px; font-size:13px; }
 }
 
-/* ===== Logout (독립 섹션) ===== */
+/* ===== Logout ===== */
 .logout-section{ width:100%; }
 .logout-button{
   width:100%; height:44px; border-radius:12px;
@@ -199,7 +187,7 @@
   box-shadow:0 4px 14px rgba(0,0,0,.07);
 }
 
-/* ===== Focus (접근성) ===== */
+/* ===== Focus ===== */
 .tile-button:focus-visible,
 .mobile-list-row:focus-visible,
 .logout-button:focus-visible,
@@ -208,9 +196,47 @@
   box-shadow:var(--ring), 0 6px 18px rgba(0,0,0,.10);
   border-color:var(--primary);
 }
-
 @media (prefers-reduced-motion: reduce){
   .tile-button,
   .logout-button,
   .profile-edit-button{ transition:none !important; }
 }
+
+/* === ⭐ 별점 가로 정렬/간격 타이트 + 값 없을 때 텍스트 === */
+.profile-rating.compact{
+  display:flex; align-items:center; gap:0px; /* 숫자와 별 간격 */
+  margin-top:6px; line-height:1;
+}
+.profile-rating.compact .rating-stars{
+  display:inline-flex; align-items:center; gap:0; line-height:1;
+}
+/* 각 별 기본 설정 */
+.profile-rating.compact .star{
+  display:inline-block; font-size:16px; line-height:1;
+}
+/* 글리프 사이드베어링 제거용: 별끼리 살짝 겹치게 */
+.profile-rating.compact .star + .star{
+  margin-left:-3px; /* 더 붙이고 싶으면 -4px, 너무 겹치면 -2px */
+}
+/* 반쪽 별은 오버레이로 */
+.profile-rating.compact .star.half{
+  position:relative; color:rgba(0,0,0,.25); z-index:1;
+}
+.profile-rating.compact .star.half::after{
+  content:"★"; position:absolute; left:0; top:0; width:50%;
+  color:var(--orange); overflow:hidden;
+}
+/* 색상 재확인 */
+.profile-rating.compact .star.full  { color:var(--orange); }
+.profile-rating.compact .star.empty { color:rgba(0,0,0,.28); }
+
+/* 숫자 배지: 반 칸 위로 */
+.profile-rating .rating-value{
+  margin-left:2px;
+  transform:translateY(-1px);
+  font-size:12.5px; font-weight:700; font-variant-numeric:tabular-nums;
+  color:#6b7280; background:rgba(242,155,80,.12);
+  padding:3px 6px; border-radius:8px; line-height:1;
+}
+/* 0점일 때 텍스트 */
+.rating-empty{ font-size:13px; color:rgba(0,0,0,.55); }

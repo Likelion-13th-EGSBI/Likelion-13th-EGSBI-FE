@@ -1,8 +1,9 @@
 import React, { useMemo, useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import Layout from "../components/Layout"; 
+import Layout from "../components/Layout";
 import "../css/mypage.css";
 
+/* ===== 고정 메뉴 ===== */
 const MENU_ITEMS = [
   { key: "bookmarks", icon: "🔖", title: "북마크한 행사", desc: "관심 있는 행사" },
   { key: "subscriptions", icon: "👥", title: "구독한 주최자", desc: "팔로우한 주최자" },
@@ -10,91 +11,119 @@ const MENU_ITEMS = [
   { key: "uploaded", icon: "📌", title: "내가 업로드한 행사", desc: "등록한 행사 관리" },
 ];
 
+const BASE_URL = "https://gateway.gamja.cloud";
+
+/** 빈 본문/비 JSON도 안전하게 파싱 */
+async function safeJson(res) {
+  const ct = res.headers.get("content-type") || "";
+  const text = await res.text().catch(() => "");
+  if (!text || !text.trim()) return null;
+  if (ct.includes("application/json")) {
+    try { return JSON.parse(text); } catch { return null; }
+  }
+  try { return JSON.parse(text); } catch { return null; }
+}
+
 const MyPage = ({ onPageChange }) => {
   const navigate = useNavigate();
   const [user, setUser] = useState(null);
 
-  // 로컬스토리지에서 사용자 정보 가져오기
+  /* 로컬스토리지에서 사용자 정보 가져오기 (원래 로직) */
   useEffect(() => {
-    const userEmail = localStorage.getItem('userEmail');
-    const userId = localStorage.getItem('userId');
-    
+    const userEmail = localStorage.getItem("userEmail");
+    const userId = localStorage.getItem("userId");
     if (userEmail && userId) {
-      // 실제로는 API에서 사용자 정보를 가져와야 하지만, 
-      // 현재는 로컬스토리지 데이터를 사용
       setUser({
         id: userId,
         email: userEmail,
-        name: userEmail.split('@')[0], // 이메일에서 이름 추출 (임시)
-        rating: 4.5,
-        reviewCount: 23
+        name: userEmail.split("@")[0],
+        rating: 0, // API로 덮어씀
       });
     } else {
-      // 로그인 정보가 없으면 로그인 페이지로 리다이렉트
-      navigate('/login');
+      navigate("/login");
     }
   }, [navigate]);
+
+  /* ✅ 평균 평점 API 연결 (X-User-Id 필수, 빈 응답 안전 처리) */
+  useEffect(() => {
+    const fetchRating = async () => {
+      if (!user?.id) return;
+      try {
+        const accessToken = localStorage.getItem("accessToken") || "";
+        const res = await fetch(`${BASE_URL}/api/activity/review/rating`, {
+          method: "GET",
+          headers: {
+            "X-User-Id": String(user.id),
+            ...(accessToken ? { Authorization: `Bearer ${accessToken}` } : {}),
+          },
+        });
+        if (!res.ok) throw new Error(`평균 평점 조회 실패 (${res.status})`);
+
+        const data = await safeJson(res);
+
+        // 명세: 배열(리뷰 목록) 가정. 숫자만 내려와도 수용.
+        let avg = 0;
+        if (Array.isArray(data)) {
+          const ratings = data
+            .map((r) => Number(r?.rating))
+            .filter((n) => Number.isFinite(n));
+          avg = ratings.length
+            ? ratings.reduce((a, b) => a + b, 0) / ratings.length
+            : 0;
+        } else if (typeof data === "number" && Number.isFinite(data)) {
+          avg = data;
+        } else {
+          avg = 0; // null/빈 본문 등
+        }
+
+        setUser((prev) => (prev ? { ...prev, rating: avg } : prev));
+      } catch (err) {
+        console.error("[rating] API 오류:", err);
+        // 실패 시 0 유지
+      }
+    };
+    fetchRating();
+  }, [user?.id]);
 
   const displayName = user?.name || "사용자";
   const email = user?.email || "email@example.com";
   const initial = useMemo(() => (displayName ? displayName[0] : "U"), [displayName]);
 
-  const rating = typeof user?.rating === "number" ? user.rating : 4.5;
-  const reviewCount = typeof user?.reviewCount === "number" ? user.reviewCount : 23;
+  // 별점 계산 (카운트 사용 안 함)
+  const rating = typeof user?.rating === "number" ? user.rating : 0;
   const full = Math.floor(rating);
   const hasHalf = rating - full >= 0.5;
   const empty = 5 - full - (hasHalf ? 1 : 0);
 
-  // 로그아웃 처리 함수
+  /* 로그아웃 처리 (원본 유지) */
   const handleLogout = () => {
-    const confirmLogout = window.confirm('정말 로그아웃 하시겠습니까?');
-    
-    if (confirmLogout) {
-      try {
-        // 로컬스토리지에서 모든 사용자 데이터 삭제
-        localStorage.removeItem('accessToken');
-        localStorage.removeItem('userId');
-        localStorage.removeItem('userEmail');
-        localStorage.removeItem('tokenExpiration');
-        
-        console.log('로그아웃 완료 - 모든 토큰 데이터 삭제');
-        
-        // 로그인 페이지로 이동
-        navigate('/login');
-        
-        // 페이지 새로고침으로 완전한 상태 초기화
-        window.location.reload();
-        
-      } catch (error) {
-        console.error('로그아웃 처리 중 오류:', error);
-        // 오류가 있어도 로그인 페이지로 이동
-        navigate('/login');
-      }
+    const confirmLogout = window.confirm("정말 로그아웃 하시겠습니까?");
+    if (!confirmLogout) return;
+    try {
+      localStorage.removeItem("accessToken");
+      localStorage.removeItem("userId");
+      localStorage.removeItem("userEmail");
+      localStorage.removeItem("tokenExpiration");
+      navigate("/login");
+      window.location.reload();
+    } catch (error) {
+      console.error("로그아웃 처리 중 오류:", error);
+      navigate("/login");
     }
   };
 
-  // 메뉴 클릭 시 라우팅
+  /* 메뉴 라우팅 (원본 유지) */
   const handleMenuClick = (key) => {
     switch (key) {
-      case "bookmarks":
-        navigate("/bookmarks");
-        break;
-      case "subscriptions":
-        navigate("/subscribes");
-        break;
-      case "joined":
-        navigate("/joined");
-        break;
-      case "uploaded":
-        navigate("/my-upload-event");
-        break;
-      default:
-        onPageChange?.(key);
-        break;
+      case "bookmarks": navigate("/bookmarks"); break;
+      case "subscriptions": navigate("/subscribes"); break;
+      case "joined": navigate("/joined"); break;
+      case "uploaded": navigate("/my-upload-event"); break;
+      default: onPageChange?.(key); break;
     }
   };
 
-  // 사용자 정보가 로드되지 않았으면 로딩 표시
+  /* 로딩 상태 */
   if (!user) {
     return (
       <Layout pageTitle="마이페이지" activeMenuItem="mypage">
@@ -130,22 +159,29 @@ const MyPage = ({ onPageChange }) => {
                 <div className="profile-meta">
                   <h2 className="profile-name">{displayName}</h2>
                   <p className="profile-email">{email}</p>
-                  <div
-                    className="profile-rating"
-                    aria-label={`평점 ${rating.toFixed(1)}점, 리뷰 ${reviewCount}개`}
-                  >
-                    <div className="rating-stars" aria-hidden="true">
-                      {Array.from({ length: full }).map((_, i) => (
-                        <span key={`f${i}`} className="star full">★</span>
-                      ))}
-                      {hasHalf && <span className="star half">★</span>}
-                      {Array.from({ length: empty }).map((_, i) => (
-                        <span key={`e${i}`} className="star empty">★</span>
-                      ))}
+
+                  {/* ⭐ 평균 별점만 표시: 0이면 "평점 없음" */}
+                  {rating > 0 ? (
+                    <div
+                      className="profile-rating compact"
+                      aria-label={`평점 ${rating.toFixed(1)}점`}
+                    >
+                      <div className="rating-stars" aria-hidden="true">
+                        {Array.from({ length: full }).map((_, i) => (
+                          <span key={`f${i}`} className="star full">★</span>
+                        ))}
+                        {hasHalf && <span className="star half">★</span>}
+                        {Array.from({ length: empty }).map((_, i) => (
+                          <span key={`e${i}`} className="star empty">★</span>
+                        ))}
+                      </div>
+                      <span className="rating-value">{rating.toFixed(1)}</span>
                     </div>
-                    <span className="rating-value">{rating.toFixed(1)}</span>
-                    <span className="review-count">리뷰 {reviewCount}개</span>
-                  </div>
+                  ) : (
+                    <div className="profile-rating compact" aria-label="평점 정보 없음">
+                      <span className="rating-empty">평점 없음</span>
+                    </div>
+                  )}
                 </div>
               </div>
 
