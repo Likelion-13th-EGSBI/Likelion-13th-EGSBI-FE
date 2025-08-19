@@ -49,8 +49,8 @@ const getJson = async (url, opts = {}) => {
     let bodyText = '', bodyJson = null;
     try {
       if (ct.includes('application/json')) { bodyJson = await res.json(); bodyText = JSON.stringify(bodyJson); }
-      else { bodyText = await res.text(); try { bodyJson = JSON.parse(bodyText); } catch {} }
-    } catch {}
+      else { bodyText = await res.text(); try { bodyJson = JSON.parse(bodyText); } catch { } }
+    } catch { }
     const err = new Error(`${url} 실패 (${res.status})`);
     Object.assign(err, { status: res.status, body: bodyText, bodyJson, url });
     throw err;
@@ -95,7 +95,7 @@ const normalizeEvent = (payload) => {
 /* ======================= bookmark helpers ======================= */
 const bmKey = (uid, eid) => `bm:${uid}:${eid}`;
 const writeBm = (uid, eid, val) => {
-  try { localStorage.setItem(bmKey(uid, eid), JSON.stringify({ v: !!val, t: Date.now() })); } catch {}
+  try { localStorage.setItem(bmKey(uid, eid), JSON.stringify({ v: !!val, t: Date.now() })); } catch { }
 };
 const readBm = (uid, eid, maxAge = 7 * 24 * 60 * 60 * 1000) => {
   try {
@@ -190,7 +190,7 @@ const EventDetail = () => {
       eventThumbnail: event.posterId ? `${API_BASE}/api/image/${event.posterId}` : null,
       viewedAt: new Date().toISOString().slice(0, 19),
     };
-    postJson(`${API_BASE}/api/activity/history/add`, payload).catch(() => {});
+    postJson(`${API_BASE}/api/activity/history/add`, payload).catch(() => { });
   }, [event]);
 
   // AI summary (prod only & logged in)
@@ -208,7 +208,7 @@ const EventDetail = () => {
         const text = typeof resp === 'string' ? resp : (resp?.data ?? resp ?? '');
         if (!active) return;
         setAiSummary(String(text));
-      } catch {} finally { if (active) setLoadingSummary(false); }
+      } catch { } finally { if (active) setLoadingSummary(false); }
     })();
     return () => { active = false; };
   }, [eventId]);
@@ -299,7 +299,10 @@ const EventDetail = () => {
           <>
             {/* Title & tags */}
             <section className="ed-head">
-              <h1 className="event-title">{event?.name ?? '이벤트'}</h1>
+              <h1
+                className="event-title"
+                dangerouslySetInnerHTML={{ __html: event?.name ?? '이벤트' }}
+              />
               {Array.isArray(event?.hashtags) && event.hashtags.length > 0 && (
                 <div className="ed-tags">
                   {event.hashtags.map((t, i) => (
@@ -308,6 +311,7 @@ const EventDetail = () => {
                 </div>
               )}
             </section>
+
 
             {/* Meta */}
             <section className="ed-meta-grid two-by-two">
@@ -371,10 +375,14 @@ const EventDetail = () => {
             {/* Description */}
             <section className="ed-body">
               <h2 className="ed-h2">상세 설명</h2>
-              <div className="event-description" style={{ whiteSpace: 'pre-line' }}>
-                {(event?.description ?? '').replace(/<br\s*\/?>/gi, '\n')}
-              </div>
+              <div
+                className="event-description"
+                dangerouslySetInnerHTML={{
+                  __html: (event?.description ?? '').replace(/<br\s*\/?>/gi, '<br/>'),
+                }}
+              />
             </section>
+
 
             {/* Actions */}
             <section className="event-actions">
