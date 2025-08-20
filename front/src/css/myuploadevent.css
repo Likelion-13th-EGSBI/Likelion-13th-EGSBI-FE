@@ -545,3 +545,1216 @@
         border-top-color: #5E936C;
     }
 }
+/* ==================== 접근성 ==================== */
+.myuploadevent-add-btn:focus,
+.myuploadevent-empty-button:focus,
+.myuploadevent-action-btn:focus,
+.myuploadevent-refresh-btn:focus {
+    outline: 2px solid #5E936C;
+    outline-offset: 2px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    * {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+    }
+    
+    .myuploadevent-loading-spinner {
+        animation: none;
+        border-top-color: #5E936C;
+    }
+}
+
+/* ==================== 리뷰 모달 스타일 ==================== */
+/* 리뷰 모달 오버레이 */
+.review-modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.5);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+    padding: 20px;
+    backdrop-filter: blur(2px);
+    animation: review-modal-fade-in 0.3s ease-out;
+}
+
+/* 모달 콘텐츠 */
+.review-modal-content {
+    background: white;
+    border-radius: 16px;
+    width: 100%;
+    max-width: 600px;
+    max-height: 80vh;
+    display: flex;
+    flex-direction: column;
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.15);
+    overflow: hidden;
+    animation: review-modal-slide-up 0.3s ease-out;
+}
+
+/* 모달 헤더 */
+.review-modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    padding: 24px 24px 16px 24px;
+    border-bottom: 1px solid #f0f3f4;
+    background: #fafbfc;
+}
+
+.review-modal-title-section {
+    flex: 1;
+}
+
+.review-modal-main-title {
+    margin: 0 0 4px 0;
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: #1a1d21;
+}
+
+.review-modal-event-name {
+    margin: 0;
+    font-size: 0.9rem;
+    color: #6b7684;
+    font-weight: 500;
+}
+
+.review-modal-close-button {
+    background: none;
+    border: none;
+    font-size: 1.5rem;
+    color: #9ca3af;
+    cursor: pointer;
+    padding: 4px;
+    border-radius: 4px;
+    transition: all 0.2s ease;
+    line-height: 1;
+    flex-shrink: 0;
+}
+
+.review-modal-close-button:hover {
+    background: #f3f4f6;
+    color: #6b7280;
+    transform: scale(1.1);
+    box-shadow: 0 2px 8px rgba(156, 163, 175, 0.3);
+}
+
+.review-modal-close-button:active {
+    transform: scale(0.95);
+}
+
+/* 리뷰 통계 */
+.review-modal-statistics {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 20px 24px;
+    background: linear-gradient(135deg, #f8fffe 0%, #f0f9f7 100%);
+    border-bottom: 1px solid #e5f3f0;
+    position: relative;
+}
+
+.review-modal-statistics::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 2px;
+    background: linear-gradient(90deg, transparent 0%, #5E936C 50%, transparent 100%);
+}
+
+.review-stats-rating-section {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.review-average-rating-number {
+    font-size: 1.8rem;
+    font-weight: 700;
+    color: #5E936C;
+    text-shadow: 0 1px 2px rgba(94, 147, 108, 0.1);
+}
+
+.review-stars-container {
+    display: flex;
+    gap: 2px;
+}
+
+.review-star {
+    font-size: 1.2rem;
+    line-height: 1;
+    transition: all 0.2s ease;
+}
+
+.review-star-filled {
+    color: #fbbf24;
+    text-shadow: 0 1px 2px rgba(251, 191, 36, 0.3);
+}
+
+.review-star-half {
+    color: #fbbf24;
+    opacity: 0.6;
+    text-shadow: 0 1px 2px rgba(251, 191, 36, 0.2);
+}
+
+.review-star-empty {
+    color: #e5e7eb;
+}
+
+.review-stats-count-section {
+    font-size: 0.9rem;
+    color: #6b7684;
+}
+
+.review-count-number {
+    color: #5E936C;
+    font-weight: 600;
+}
+
+/* 모달 바디 */
+.review-modal-body {
+    flex: 1;
+    overflow-y: auto;
+    padding: 0;
+}
+
+/* 로딩 상태 */
+.review-modal-loading-state {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 60px 24px;
+    gap: 16px;
+}
+
+.review-loading-spinner {
+    width: 32px;
+    height: 32px;
+    border: 3px solid #f0f3f4;
+    border-top: 3px solid #5E936C;
+    border-radius: 50%;
+    animation: review-spin 1s linear infinite;
+}
+
+@keyframes review-spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+.review-loading-text {
+    margin: 0;
+    color: #6b7684;
+    font-size: 14px;
+    font-weight: 500;
+}
+
+/* 에러 상태 */
+.review-modal-error-state {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 60px 24px;
+    gap: 16px;
+    text-align: center;
+}
+
+.review-error-icon {
+    font-size: 2.5rem;
+    margin-bottom: 8px;
+    filter: drop-shadow(0 2px 4px rgba(220, 38, 38, 0.1));
+}
+
+.review-error-message {
+    margin: 0;
+    color: #dc2626;
+    font-size: 14px;
+    font-weight: 500;
+    line-height: 1.5;
+}
+
+.review-error-retry-button {
+    background: #5E936C;
+    color: white;
+    border: none;
+    border-radius: 8px;
+    padding: 10px 20px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    box-shadow: 0 2px 4px rgba(94, 147, 108, 0.2);
+}
+
+.review-error-retry-button:hover {
+    background: #4a7857;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(94, 147, 108, 0.25);
+}
+
+.review-error-retry-button:active {
+    transform: translateY(0);
+}
+
+/* 빈 상태 */
+.review-modal-empty-state {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 60px 24px;
+    text-align: center;
+}
+
+.review-empty-icon {
+    font-size: 3rem;
+    margin-bottom: 16px;
+    opacity: 0.7;
+    filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.05));
+}
+
+.review-empty-title {
+    margin: 0 0 8px 0;
+    font-size: 1.2rem;
+    font-weight: 600;
+    color: #1a1d21;
+}
+
+.review-empty-description {
+    margin: 0;
+    color: #6b7684;
+    font-size: 14px;
+    line-height: 1.5;
+}
+
+/* 리뷰 리스트 */
+.review-modal-list-container {
+    padding: 0;
+    max-height: 400px;
+    overflow-y: auto;
+}
+
+.review-modal-list-container::-webkit-scrollbar {
+    width: 6px;
+}
+
+.review-modal-list-container::-webkit-scrollbar-track {
+    background: #f1f3f4;
+    border-radius: 3px;
+}
+
+.review-modal-list-container::-webkit-scrollbar-thumb {
+    background: #c1c7cd;
+    border-radius: 3px;
+}
+
+.review-modal-list-container::-webkit-scrollbar-thumb:hover {
+    background: #a1a7ad;
+}
+
+.review-list-item {
+    padding: 20px 24px;
+    border-bottom: 1px solid #f0f3f4;
+    transition: all 0.2s ease;
+    position: relative;
+    animation: review-item-fade-in 0.3s ease-out;
+}
+
+.review-list-item:hover {
+    background: #fafbfc;
+    box-shadow: 
+        inset 0 0 0 1px #f0f3f4,
+        0 2px 4px rgba(0, 0, 0, 0.02);
+    transform: translateX(2px);
+}
+
+.review-list-item:last-child {
+    border-bottom: none;
+}
+
+.review-list-item:nth-child(1) { animation-delay: 0.05s; }
+.review-list-item:nth-child(2) { animation-delay: 0.1s; }
+.review-list-item:nth-child(3) { animation-delay: 0.15s; }
+.review-list-item:nth-child(4) { animation-delay: 0.2s; }
+.review-list-item:nth-child(5) { animation-delay: 0.25s; }
+
+.review-item-header-section {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 12px;
+    gap: 16px;
+}
+
+.review-user-information {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    flex: 1;
+}
+
+.review-user-id-text {
+    font-weight: 600;
+    color: #1a1d21;
+    font-size: 14px;
+}
+
+.review-created-date {
+    color: #9ca3af;
+    font-size: 12px;
+    font-weight: 400;
+}
+
+.review-rating-section {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-shrink: 0;
+}
+
+.review-rating-stars {
+    display: flex;
+    gap: 1px;
+}
+
+.review-rating-stars .review-star:hover {
+    transform: scale(1.1);
+}
+
+.review-rating-number-text {
+    font-size: 12px;
+    color: #6b7684;
+    font-weight: 500;
+}
+
+.review-content-section {
+    margin-top: 12px;
+    padding-top: 8px;
+    border-top: 1px solid #f8f9fa;
+}
+
+.review-content-text {
+    margin: 0;
+    line-height: 1.6;
+    color: #374151;
+    font-size: 14px;
+    white-space: pre-wrap;
+    word-break: break-word;
+}
+
+/* 모달 푸터 */
+.review-modal-footer {
+    padding: 20px 24px;
+    border-top: 1px solid #f0f3f4;
+    background: #fafbfc;
+    display: flex;
+    justify-content: center;
+}
+
+.review-modal-close-footer-button {
+    background: #6b7684;
+    color: white;
+    border: none;
+    border-radius: 8px;
+    padding: 12px 32px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    box-shadow: 0 2px 4px rgba(107, 118, 132, 0.2);
+}
+
+.review-modal-close-footer-button:hover {
+    background: #5a6370;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(107, 118, 132, 0.25);
+}
+
+.review-modal-close-footer-button:active {
+    transform: translateY(0);
+}
+
+/* 리뷰 모달 애니메이션 */
+@keyframes review-modal-fade-in {
+    from {
+        opacity: 0;
+    }
+    to {
+        opacity: 1;
+    }
+}
+
+@keyframes review-modal-slide-up {
+    from {
+        transform: translateY(30px);
+        opacity: 0;
+    }
+    to {
+        transform: translateY(0);
+        opacity: 1;
+    }
+}
+
+@keyframes review-item-fade-in {
+    from {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* 리뷰 모달 접근성 */
+.review-modal-close-button:focus,
+.review-error-retry-button:focus,
+.review-modal-close-footer-button:focus {
+    outline: 2px solid #5E936C;
+    outline-offset: 2px;
+}
+
+/* 리뷰 모달 태블릿 */
+@media (min-width: 768px) and (max-width: 1024px) {
+    .review-modal-overlay {
+        padding: 16px;
+    }
+
+    .review-modal-content {
+        max-height: 85vh;
+    }
+
+    .review-modal-header {
+        padding: 20px;
+    }
+
+    .review-modal-statistics {
+        padding: 16px 20px;
+    }
+
+    .review-list-item {
+        padding: 16px 20px;
+    }
+
+    .review-modal-footer {
+        padding: 16px 20px;
+    }
+}
+
+/* 리뷰 모달 모바일 */
+@media (max-width: 767px) {
+    .review-modal-overlay {
+        padding: 12px;
+        align-items: flex-end;
+    }
+
+    .review-modal-content {
+        max-height: 90vh;
+        border-radius: 16px 16px 0 0;
+        margin-bottom: 0;
+    }
+
+    .review-modal-header {
+        padding: 16px;
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 8px;
+        position: relative;
+    }
+
+    .review-modal-close-button {
+        position: absolute;
+        top: 16px;
+        right: 16px;
+    }
+
+    .review-modal-main-title {
+        font-size: 1.3rem;
+    }
+
+    .review-modal-statistics {
+        padding: 16px;
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 12px;
+    }
+
+    .review-stats-rating-section {
+        gap: 8px;
+    }
+
+    .review-average-rating-number {
+        font-size: 1.5rem;
+    }
+
+    .review-star {
+        font-size: 1rem;
+    }
+
+    .review-list-item {
+        padding: 16px;
+    }
+
+    .review-item-header-section {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 8px;
+    }
+
+    .review-rating-section {
+        align-self: flex-end;
+    }
+
+    .review-modal-footer {
+        padding: 16px;
+    }
+
+    .review-modal-close-footer-button {
+        width: 100%;
+        padding: 14px 32px;
+    }
+
+    /* 작은 모바일 화면 */
+    @media (max-width: 480px) {
+        .review-modal-overlay {
+            padding: 0;
+            align-items: stretch;
+        }
+
+        .review-modal-content {
+            height: 100vh;
+            max-height: 100vh;
+            border-radius: 0;
+            margin: 0;
+        }
+
+        .review-modal-empty-state,
+        .review-modal-error-state,
+        .review-modal-loading-state {
+            padding: 40px 16px;
+        }
+
+        .review-empty-icon,
+        .review-error-icon {
+            font-size: 2rem;
+        }
+    }
+}
+
+/* 리뷰 모달 애니메이션 비활성화 */
+@media (prefers-reduced-motion: reduce) {
+    .review-modal-overlay,
+    .review-modal-content,
+    .review-list-item {
+        animation: none;
+    }
+    
+    .review-loading-spinner {
+        animation: none;
+        border-top-color: #5E936C;
+    }
+}
+
+/* ==================== 리뷰 모달 스타일 ==================== */
+/* 리뷰 모달 오버레이 */
+.review-modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.5);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+    padding: 20px;
+    backdrop-filter: blur(2px);
+    animation: review-modal-fade-in 0.3s ease-out;
+}
+
+/* 모달 콘텐츠 */
+.review-modal-content {
+    background: white;
+    border-radius: 16px;
+    width: 100%;
+    max-width: 600px;
+    max-height: 80vh;
+    display: flex;
+    flex-direction: column;
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.15);
+    overflow: hidden;
+    animation: review-modal-slide-up 0.3s ease-out;
+}
+
+/* 모달 헤더 */
+.review-modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    padding: 24px 24px 16px 24px;
+    border-bottom: 1px solid #f0f3f4;
+    background: #fafbfc;
+}
+
+.review-modal-title-section {
+    flex: 1;
+}
+
+.review-modal-main-title {
+    margin: 0 0 4px 0;
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: #1a1d21;
+}
+
+.review-modal-event-name {
+    margin: 0;
+    font-size: 0.9rem;
+    color: #6b7684;
+    font-weight: 500;
+}
+
+.review-modal-close-button {
+    background: none;
+    border: none;
+    font-size: 1.5rem;
+    color: #9ca3af;
+    cursor: pointer;
+    padding: 4px;
+    border-radius: 4px;
+    transition: all 0.2s ease;
+    line-height: 1;
+    flex-shrink: 0;
+}
+
+.review-modal-close-button:hover {
+    background: #f3f4f6;
+    color: #6b7280;
+    transform: scale(1.1);
+    box-shadow: 0 2px 8px rgba(156, 163, 175, 0.3);
+}
+
+.review-modal-close-button:active {
+    transform: scale(0.95);
+}
+
+/* 리뷰 통계 */
+.review-modal-statistics {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 20px 24px;
+    background: linear-gradient(135deg, #f8fffe 0%, #f0f9f7 100%);
+    border-bottom: 1px solid #e5f3f0;
+    position: relative;
+}
+
+.review-modal-statistics::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 2px;
+    background: linear-gradient(90deg, transparent 0%, #5E936C 50%, transparent 100%);
+}
+
+.review-stats-rating-section {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.review-average-rating-number {
+    font-size: 1.8rem;
+    font-weight: 700;
+    color: #5E936C;
+    text-shadow: 0 1px 2px rgba(94, 147, 108, 0.1);
+}
+
+.review-stars-container {
+    display: flex;
+    gap: 2px;
+}
+
+.review-star {
+    font-size: 1.2rem;
+    line-height: 1;
+    transition: all 0.2s ease;
+}
+
+.review-star-filled {
+    color: #fbbf24;
+    text-shadow: 0 1px 2px rgba(251, 191, 36, 0.3);
+}
+
+.review-star-half {
+    color: #fbbf24;
+    opacity: 0.6;
+    text-shadow: 0 1px 2px rgba(251, 191, 36, 0.2);
+}
+
+.review-star-empty {
+    color: #e5e7eb;
+}
+
+.review-stats-count-section {
+    font-size: 0.9rem;
+    color: #6b7684;
+}
+
+.review-count-number {
+    color: #5E936C;
+    font-weight: 600;
+}
+
+/* 모달 바디 */
+.review-modal-body {
+    flex: 1;
+    overflow-y: auto;
+    padding: 0;
+}
+
+/* 로딩 상태 */
+.review-modal-loading-state {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 60px 24px;
+    gap: 16px;
+}
+
+.review-loading-spinner {
+    width: 32px;
+    height: 32px;
+    border: 3px solid #f0f3f4;
+    border-top: 3px solid #5E936C;
+    border-radius: 50%;
+    animation: review-spin 1s linear infinite;
+}
+
+@keyframes review-spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+.review-loading-text {
+    margin: 0;
+    color: #6b7684;
+    font-size: 14px;
+    font-weight: 500;
+}
+
+/* 에러 상태 */
+.review-modal-error-state {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 60px 24px;
+    gap: 16px;
+    text-align: center;
+}
+
+.review-error-icon {
+    font-size: 2.5rem;
+    margin-bottom: 8px;
+    filter: drop-shadow(0 2px 4px rgba(220, 38, 38, 0.1));
+}
+
+.review-error-message {
+    margin: 0;
+    color: #dc2626;
+    font-size: 14px;
+    font-weight: 500;
+    line-height: 1.5;
+}
+
+.review-error-retry-button {
+    background: #5E936C;
+    color: white;
+    border: none;
+    border-radius: 8px;
+    padding: 10px 20px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    box-shadow: 0 2px 4px rgba(94, 147, 108, 0.2);
+}
+
+.review-error-retry-button:hover {
+    background: #4a7857;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(94, 147, 108, 0.25);
+}
+
+.review-error-retry-button:active {
+    transform: translateY(0);
+}
+
+/* 빈 상태 */
+.review-modal-empty-state {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 60px 24px;
+    text-align: center;
+}
+
+.review-empty-icon {
+    font-size: 3rem;
+    margin-bottom: 16px;
+    opacity: 0.7;
+    filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.05));
+}
+
+.review-empty-title {
+    margin: 0 0 8px 0;
+    font-size: 1.2rem;
+    font-weight: 600;
+    color: #1a1d21;
+}
+
+.review-empty-description {
+    margin: 0;
+    color: #6b7684;
+    font-size: 14px;
+    line-height: 1.5;
+}
+
+/* 리뷰 리스트 */
+.review-modal-list-container {
+    padding: 0;
+    max-height: 400px;
+    overflow-y: auto;
+}
+
+.review-modal-list-container::-webkit-scrollbar {
+    width: 6px;
+}
+
+.review-modal-list-container::-webkit-scrollbar-track {
+    background: #f1f3f4;
+    border-radius: 3px;
+}
+
+.review-modal-list-container::-webkit-scrollbar-thumb {
+    background: #c1c7cd;
+    border-radius: 3px;
+}
+
+.review-modal-list-container::-webkit-scrollbar-thumb:hover {
+    background: #a1a7ad;
+}
+
+.review-list-item {
+    padding: 20px 24px;
+    border-bottom: 1px solid #f0f3f4;
+    transition: all 0.2s ease;
+    position: relative;
+    animation: review-item-fade-in 0.3s ease-out;
+}
+
+.review-list-item:hover {
+    background: #fafbfc;
+    box-shadow: 
+        inset 0 0 0 1px #f0f3f4,
+        0 2px 4px rgba(0, 0, 0, 0.02);
+    transform: translateX(2px);
+}
+
+.review-list-item:last-child {
+    border-bottom: none;
+}
+
+.review-list-item:nth-child(1) { animation-delay: 0.05s; }
+.review-list-item:nth-child(2) { animation-delay: 0.1s; }
+.review-list-item:nth-child(3) { animation-delay: 0.15s; }
+.review-list-item:nth-child(4) { animation-delay: 0.2s; }
+.review-list-item:nth-child(5) { animation-delay: 0.25s; }
+
+.review-item-header-section {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 12px;
+    gap: 16px;
+}
+
+.review-user-information {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    flex: 1;
+}
+
+.review-user-id-text {
+    font-weight: 600;
+    color: #1a1d21;
+    font-size: 14px;
+}
+
+.review-created-date {
+    color: #9ca3af;
+    font-size: 12px;
+    font-weight: 400;
+}
+
+.review-rating-section {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-shrink: 0;
+}
+
+.review-rating-stars {
+    display: flex;
+    gap: 1px;
+}
+
+.review-rating-stars .review-star:hover {
+    transform: scale(1.1);
+}
+
+.review-rating-number-text {
+    font-size: 12px;
+    color: #6b7684;
+    font-weight: 500;
+}
+
+.review-content-section {
+    margin-top: 12px;
+    padding-top: 8px;
+    border-top: 1px solid #f8f9fa;
+}
+
+.review-content-text {
+    margin: 0;
+    line-height: 1.6;
+    color: #374151;
+    font-size: 14px;
+    white-space: pre-wrap;
+    word-break: break-word;
+}
+
+/* 모달 푸터 */
+.review-modal-footer {
+    padding: 20px 24px;
+    border-top: 1px solid #f0f3f4;
+    background: #fafbfc;
+    display: flex;
+    justify-content: center;
+}
+
+.review-modal-close-footer-button {
+    background: #6b7684;
+    color: white;
+    border: none;
+    border-radius: 8px;
+    padding: 12px 32px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    box-shadow: 0 2px 4px rgba(107, 118, 132, 0.2);
+}
+
+.review-modal-close-footer-button:hover {
+    background: #5a6370;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(107, 118, 132, 0.25);
+}
+
+.review-modal-close-footer-button:active {
+    transform: translateY(0);
+}
+
+/* 리뷰 모달 애니메이션 */
+@keyframes review-modal-fade-in {
+    from {
+        opacity: 0;
+    }
+    to {
+        opacity: 1;
+    }
+}
+
+@keyframes review-modal-slide-up {
+    from {
+        transform: translateY(30px);
+        opacity: 0;
+    }
+    to {
+        transform: translateY(0);
+        opacity: 1;
+    }
+}
+
+@keyframes review-item-fade-in {
+    from {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* 리뷰 모달 접근성 */
+.review-modal-close-button:focus,
+.review-error-retry-button:focus,
+.review-modal-close-footer-button:focus {
+    outline: 2px solid #5E936C;
+    outline-offset: 2px;
+}
+
+/* 리뷰 모달 태블릿 */
+@media (min-width: 768px) and (max-width: 1024px) {
+    .review-modal-overlay {
+        padding: 16px;
+    }
+
+    .review-modal-content {
+        max-height: 85vh;
+    }
+
+    .review-modal-header {
+        padding: 20px;
+    }
+
+    .review-modal-statistics {
+        padding: 16px 20px;
+    }
+
+    .review-list-item {
+        padding: 16px 20px;
+    }
+
+    .review-modal-footer {
+        padding: 16px 20px;
+    }
+}
+
+/* 리뷰 모달 모바일 */
+@media (max-width: 767px) {
+    .review-modal-overlay {
+        padding: 12px;
+        align-items: flex-end;
+    }
+
+    .review-modal-content {
+        max-height: 90vh;
+        border-radius: 16px 16px 0 0;
+        margin-bottom: 0;
+    }
+
+    .review-modal-header {
+        padding: 16px;
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 8px;
+        position: relative;
+    }
+
+    .review-modal-close-button {
+        position: absolute;
+        top: 16px;
+        right: 16px;
+    }
+
+    .review-modal-main-title {
+        font-size: 1.3rem;
+    }
+
+    .review-modal-statistics {
+        padding: 16px;
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 12px;
+    }
+
+    .review-stats-rating-section {
+        gap: 8px;
+    }
+
+    .review-average-rating-number {
+        font-size: 1.5rem;
+    }
+
+    .review-star {
+        font-size: 1rem;
+    }
+
+    .review-list-item {
+        padding: 16px;
+    }
+
+    .review-item-header-section {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 8px;
+    }
+
+    .review-rating-section {
+        align-self: flex-end;
+    }
+
+    .review-modal-footer {
+        padding: 16px;
+    }
+
+    .review-modal-close-footer-button {
+        width: 100%;
+        padding: 14px 32px;
+    }
+
+    /* 작은 모바일 화면 */
+    @media (max-width: 480px) {
+        .review-modal-overlay {
+            padding: 0;
+            align-items: stretch;
+        }
+
+        .review-modal-content {
+            height: 100vh;
+            max-height: 100vh;
+            border-radius: 0;
+            margin: 0;
+        }
+
+        .review-modal-empty-state,
+        .review-modal-error-state,
+        .review-modal-loading-state {
+            padding: 40px 16px;
+        }
+
+        .review-empty-icon,
+        .review-error-icon {
+            font-size: 2rem;
+        }
+    }
+}
+
+/* 리뷰 모달 애니메이션 비활성화 */
+@media (prefers-reduced-motion: reduce) {
+    .review-modal-overlay,
+    .review-modal-content,
+    .review-list-item {
+        animation: none;
+    }
+    
+    .review-loading-spinner {
+        animation: none;
+        border-top-color: #5E936C;
+    }
+}

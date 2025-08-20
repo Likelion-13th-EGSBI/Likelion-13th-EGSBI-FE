@@ -4,6 +4,256 @@ import EventCard from "../components/EventCard"; // EventCard 컴포넌트 impor
 import '../css/myuploadevent.css';
 import { useNavigate } from "react-router-dom";
 
+// ReviewModal 컴포넌트
+const ReviewModal = ({ isOpen, onClose, eventId, eventName }) => {
+    const [reviews, setReviews] = useState([]);
+    const [loading, setLoading] = useState(false);
+    const [error, setError] = useState(null);
+
+    // 액세스 토큰을 localStorage에서 가져오는 함수
+    const getAccessToken = () => {
+        return localStorage.getItem('accessToken');
+    };
+
+    // 리뷰 데이터 가져오기
+    const fetchReviews = async () => {
+        if (!eventId) return;
+        
+        setLoading(true);
+        setError(null);
+        
+        try {
+            const accessToken = getAccessToken();
+            if (!accessToken) {
+                throw new Error('인증 토큰이 없습니다.');
+            }
+
+            const response = await fetch(
+                `https://gateway.gamja.cloud/api/activity/review/eventlist?eventId=${eventId}`,
+                {
+                    method: 'GET',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Accept': 'application/json',
+                        'Authorization': `Bearer ${accessToken}`
+                    }
+                }
+            );
+
+            if (!response.ok) {
+                if (response.status === 401) {
+                    throw new Error('인증이 만료되었습니다. 다시 로그인해주세요.');
+                } else if (response.status === 404) {
+                    throw new Error('해당 행사의 리뷰를 찾을 수 없습니다.');
+                }
+                throw new Error(`서버 오류: ${response.status}`);
+            }
+
+            const data = await response.json();
+            
+            // API 응답이 배열인 경우와 객체 형태인 경우 모두 처리
+            if (Array.isArray(data)) {
+                setReviews(data);
+            } else if (data && Array.isArray(data.content)) {
+                setReviews(data.content);
+            } else {
+                setReviews([]);
+            }
+            
+        } catch (error) {
+            console.error('리뷰 조회 오류:', error);
+            setError(error.message);
+            setReviews([]);
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    // 모달이 열릴 때 리뷰 데이터 가져오기
+    useEffect(() => {
+        if (isOpen && eventId) {
+            fetchReviews();
+        }
+    }, [isOpen, eventId]);
+
+    // 모달이 닫힐 때 상태 초기화
+    useEffect(() => {
+        if (!isOpen) {
+            setReviews([]);
+            setError(null);
+        }
+    }, [isOpen]);
+
+    // 별점 렌더링
+    const renderStars = (rating) => {
+        const stars = [];
+        const fullStars = Math.floor(rating);
+        const hasHalfStar = rating % 1 !== 0;
+        
+        for (let i = 0; i < fullStars; i++) {
+            stars.push(<span key={i} className="review-star review-star-filled">★</span>);
+        }
+        
+        if (hasHalfStar) {
+            stars.push(<span key="half" className="review-star review-star-half">★</span>);
+        }
+        
+        const remainingStars = 5 - Math.ceil(rating);
+        for (let i = 0; i < remainingStars; i++) {
+            stars.push(<span key={`empty-${i}`} className="review-star review-star-empty">☆</span>);
+        }
+        
+        return stars;
+    };
+
+    // 날짜 포맷팅
+    const formatDate = (dateString) => {
+        if (!dateString) return '';
+        
+        try {
+            const date = new Date(dateString);
+            return date.toLocaleDateString('ko-KR', {
+                year: 'numeric',
+                month: 'long',
+                day: 'numeric',
+                hour: '2-digit',
+                minute: '2-digit'
+            });
+        } catch (error) {
+            return dateString;
+        }
+    };
+
+    // 평균 별점 계산
+    const calculateAverageRating = () => {
+        if (reviews.length === 0) return 0;
+        const total = reviews.reduce((sum, review) => sum + (review.rating || 0), 0);
+        return (total / reviews.length).toFixed(1);
+    };
+
+    // ESC 키로 모달 닫기
+    useEffect(() => {
+        const handleEsc = (event) => {
+            if (event.keyCode === 27) {
+                onClose();
+            }
+        };
+        
+        if (isOpen) {
+            document.addEventListener('keydown', handleEsc);
+            document.body.style.overflow = 'hidden'; // 스크롤 방지
+        }
+        
+        return () => {
+            document.removeEventListener('keydown', handleEsc);
+            document.body.style.overflow = 'unset';
+        };
+    }, [isOpen, onClose]);
+
+    if (!isOpen) return null;
+
+    return (
+        <div className="review-modal-overlay" onClick={onClose}>
+            <div className="review-modal-content" onClick={(e) => e.stopPropagation()}>
+                {/* 헤더 */}
+                <div className="review-modal-header">
+                    <div className="review-modal-title-section">
+                        <h2 className="review-modal-main-title">리뷰</h2>
+                        <p className="review-modal-event-name">{eventName}</p>
+                    </div>
+                    <button className="review-modal-close-button" onClick={onClose}>
+                        ✕
+                    </button>
+                </div>
+
+                {/* 리뷰 통계 */}
+                {!loading && !error && reviews.length > 0 && (
+                    <div className="review-modal-statistics">
+                        <div className="review-stats-rating-section">
+                            <span className="review-average-rating-number">{calculateAverageRating()}</span>
+                            <div className="review-stars-container">
+                                {renderStars(parseFloat(calculateAverageRating()))}
+                            </div>
+                        </div>
+                        <div className="review-stats-count-section">
+                            총 <strong className="review-count-number">{reviews.length}</strong>개의 리뷰
+                        </div>
+                    </div>
+                )}
+
+                {/* 콘텐츠 */}
+                <div className="review-modal-body">
+                    {loading && (
+                        <div className="review-modal-loading-state">
+                            <div className="review-loading-spinner"></div>
+                            <p className="review-loading-text">리뷰를 불러오는 중...</p>
+                        </div>
+                    )}
+
+                    {error && (
+                        <div className="review-modal-error-state">
+                            <div className="review-error-icon">⚠️</div>
+                            <p className="review-error-message">{error}</p>
+                            <button 
+                                className="review-error-retry-button"
+                                onClick={fetchReviews}
+                            >
+                                다시 시도
+                            </button>
+                        </div>
+                    )}
+
+                    {!loading && !error && reviews.length === 0 && (
+                        <div className="review-modal-empty-state">
+                            <div className="review-empty-icon">📝</div>
+                            <h3 className="review-empty-title">아직 리뷰가 없어요</h3>
+                        </div>
+                    )}
+
+                    {!loading && !error && reviews.length > 0 && (
+                        <div className="review-modal-list-container">
+                            {reviews.map((review, index) => (
+                                <div key={review.id || index} className="review-list-item">
+                                    <div className="review-item-header-section">
+                                        <div className="review-user-information">
+                                            <span className="review-user-id-text">
+                                                사용자 {review.userId || '익명'}
+                                            </span>
+                                            <span className="review-created-date">
+                                                {formatDate(review.createdAt)}
+                                            </span>
+                                        </div>
+                                        <div className="review-rating-section">
+                                            <div className="review-rating-stars">
+                                                {renderStars(review.rating || 0)}
+                                            </div>
+                                            <span className="review-rating-number-text">
+                                                ({review.rating || 0})
+                                            </span>
+                                        </div>
+                                    </div>
+                                    {review.content && (
+                                        <div className="review-content-section">
+                                            <p className="review-content-text">{review.content}</p>
+                                        </div>
+                                    )}
+                                </div>
+                            ))}
+                        </div>
+                    )}
+                </div>
+
+                {/* 푸터 */}
+                <div className="review-modal-footer">
+                    <button className="review-modal-close-footer-button" onClick={onClose}>
+                        닫기
+                    </button>
+                </div>
+            </div>
+        </div>
+    );
+};
+
 const MyUploadEvent = () => {
     const navigate = useNavigate();
     const [events, setEvents] = useState([]);
@@ -12,6 +262,13 @@ const MyUploadEvent = () => {
     const [currentPage, setCurrentPage] = useState(0);
     const [hasMore, setHasMore] = useState(true);
     const [pageSize] = useState(10); // 페이지당 아이템 수
+    
+    // 리뷰 모달 상태
+    const [reviewModal, setReviewModal] = useState({
+        isOpen: false,
+        eventId: null,
+        eventName: ''
+    });
 
     // 현재 사용자의 ID를 localStorage에서 가져오는 함수
     const getCurrentUserId = () => {
@@ -339,10 +596,22 @@ const MyUploadEvent = () => {
         });
     };
 
-    const handleViewReviews = (eventId) => {
-        // 리뷰 보기 페이지로 이동
-        console.log('리뷰 보기:', eventId);
-        navigate(`/event/${eventId}/reviews`);
+    const handleViewReviews = (eventId, eventName) => {
+        // 리뷰 모달 열기
+        console.log('리뷰 보기:', eventId, eventName);
+        setReviewModal({
+            isOpen: true,
+            eventId: eventId,
+            eventName: eventName || '행사'
+        });
+    };
+
+    const handleCloseReviewModal = () => {
+        setReviewModal({
+            isOpen: false,
+            eventId: null,
+            eventName: ''
+        });
     };
 
     const isEventEnded = (endTime) => {
@@ -444,7 +713,7 @@ const MyUploadEvent = () => {
                                             {eventEnded ? (
                                                 <button 
                                                     className="myuploadevent-action-btn review-btn"
-                                                    onClick={() => handleViewReviews(event.id)}
+                                                    onClick={() => handleViewReviews(event.id, event.name)}
                                                 >
                                                     리뷰 보기
                                                 </button>
@@ -479,6 +748,14 @@ const MyUploadEvent = () => {
                     </>
                 )}
             </div>
+            
+            {/* 리뷰 모달 */}
+            <ReviewModal 
+                isOpen={reviewModal.isOpen}
+                onClose={handleCloseReviewModal}
+                eventId={reviewModal.eventId}
+                eventName={reviewModal.eventName}
+            />
         </Layout>
     );
 };
