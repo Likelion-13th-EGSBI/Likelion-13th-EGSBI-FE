@@ -240,3 +240,5 @@
 }
 /* 0점일 때 텍스트 */
 .rating-empty{ font-size:13px; color:rgba(0,0,0,.55); }
+
+.profile-nickname{ font-size:14px; color:rgba(0,0,0,.70); margin-top:2px; }
