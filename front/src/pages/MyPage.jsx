@@ -4,7 +4,6 @@ import { useNavigate } from "react-router-dom";
 import Layout from "../components/Layout";
 import "../css/mypage.css";
 
-/* ===== 고정 메뉴 ===== */
 const MENU_ITEMS = [
   { key: "bookmarks", icon: "🔖", title: "북마크한 행사", desc: "관심 있는 행사" },
   { key: "subscriptions", icon: "👥", title: "구독한 주최자", desc: "팔로우한 주최자" },
@@ -14,14 +13,17 @@ const MENU_ITEMS = [
 
 const BASE_URL = "https://gateway.gamja.cloud";
 
-/** 빈 본문/비 JSON도 안전하게 파싱 */
+/** profileId -> 이미지 URL */
+const toProfileUrl = (id) => {
+  if (!id && id !== 0) return "";
+  const n = Number(id);
+  if (!Number.isFinite(n) || n <= 0) return "";
+  return `${BASE_URL}/api/image/${n}`;
+};
+
 async function safeJson(res) {
-  const ct = res.headers.get("content-type") || "";
   const text = await res.text().catch(() => "");
-  if (!text || !text.trim()) return null;
-  if (ct.includes("application/json")) {
-    try { return JSON.parse(text); } catch { return null; }
-  }
+  if (!text) return null;
   try { return JSON.parse(text); } catch { return null; }
 }
 
@@ -29,42 +31,40 @@ const MyPage = ({ onPageChange }) => {
   const navigate = useNavigate();
   const [user, setUser] = useState(null);
 
-  /* 1) 로컬스토리지 캐시로 즉시 표기 (닉네임/이미지/리비전 포함) */
+  /** 1) 로컬 로그인 체크 (이미지 URL은 저장/사용하지 않음) */
   useEffect(() => {
     const userEmail = localStorage.getItem("userEmail");
     const userId = localStorage.getItem("userId");
     const nicknameLS = localStorage.getItem("nickname") || "";
-    const avatarUrlLS = localStorage.getItem("profileImageUrl") || "";
-    const avatarRevLS = localStorage.getItem("profileImageRev") || "";
 
     if (userEmail && userId) {
       setUser({
         id: userId,
         email: userEmail,
-        name: nicknameLS || userEmail.split("@")[0], // 닉네임 우선
+        name: nicknameLS || userEmail.split("@")[0],
         nickname: nicknameLS || "",
-        avatarUrl: avatarUrlLS || "",
-        profileImageRev: avatarRevLS || "",
-        rating: 0, // API로 덮어씀
+        profileId: null,
+        avatarUrl: "",
+        rating: 0,
       });
     } else {
       navigate("/login");
     }
   }, [navigate]);
 
-  /* 2) EditProfile 저장 직후 실시간 반영 (커스텀 이벤트) */
+  /** 2) EditProfile 저장 직후 실시간 반영 */
   useEffect(() => {
     const handler = (e) => {
-      const { nickname, profileImageUrl, profileImageRev } = e.detail || {};
+      const { nickname, profileId, profileImageUrl } = e.detail || {};
       setUser((prev) => {
         if (!prev) return prev;
-        const nextName = nickname ?? prev.nickname ?? prev.name;
+        const nextName = (nickname ?? prev.nickname) || prev.name;
         return {
           ...prev,
           nickname: nickname ?? prev.nickname,
           name: nextName,
-          avatarUrl: profileImageUrl ?? prev.avatarUrl,
-          profileImageRev: profileImageRev ?? prev.profileImageRev,
+          profileId: profileId ?? prev.profileId,
+          avatarUrl: profileImageUrl ?? (profileId ? toProfileUrl(profileId) : prev.avatarUrl),
         };
       });
     };
@@ -72,39 +72,16 @@ const MyPage = ({ onPageChange }) => {
     return () => window.removeEventListener("user:profileUpdated", handler);
   }, []);
 
-  /* 3) 다른 탭 동기화 (storage 이벤트) */
+  /** 3) 서버에서 최신 프로필 조회 */
   useEffect(() => {
-    const onStorage = (e) => {
-      if (!["nickname", "profileImageUrl", "profileImageRev"].includes(e.key)) return;
-      setUser((prev) => {
-        if (!prev) return prev;
-        const nick = localStorage.getItem("nickname") || prev.nickname || "";
-        const img  = localStorage.getItem("profileImageUrl") || prev.avatarUrl || "";
-        const rev  = localStorage.getItem("profileImageRev") || prev.profileImageRev || "";
-        return {
-          ...prev,
-          nickname: nick,
-          name: nick || prev.name,
-          avatarUrl: img,
-          profileImageRev: rev,
-        };
-      });
-    };
-    window.addEventListener("storage", onStorage);
-    return () => window.removeEventListener("storage", onStorage);
-  }, []);
-
-  /* 4) 서버에서 최신 프로필 조회해서 덮어쓰기 (항상 최신 유지) */
-  useEffect(() => {
-    if (!user?.email) return;
+    if (!user?.id) return;
     let alive = true;
     (async () => {
       try {
         const token = localStorage.getItem("accessToken") || "";
         const res = await fetch(
-          `${BASE_URL}/api/user/info?email=${encodeURIComponent(user.email)}&_=${Date.now()}`,
+          `${BASE_URL}/api/user/info?userId=${encodeURIComponent(user.id)}`,
           {
-            method: "GET",
             headers: {
               Accept: "application/json",
               ...(token ? { Authorization: `Bearer ${token}` } : {}),
@@ -115,11 +92,10 @@ const MyPage = ({ onPageChange }) => {
         const data = await safeJson(res);
         if (!res.ok) throw new Error(data?.message || `사용자 정보 조회 실패 (${res.status})`);
 
-        const nextNick   = data?.nickname ?? "";
-        const nextAvatar = data?.profileImageUrl ?? "";
-        const nextRev    = String(Date.now()); // 새로 내려받았으니 캐시버스터 갱신
-
         if (!alive) return;
+
+        const nextNick = data?.nickname ?? "";
+        const nextProfileId = data?.profileId ?? null;
 
         setUser((prev) => {
           if (!prev) return prev;
@@ -128,23 +104,21 @@ const MyPage = ({ onPageChange }) => {
             ...prev,
             nickname: nextNick || prev.nickname || "",
             name: nextName,
-            avatarUrl: nextAvatar || prev.avatarUrl || "",
-            profileImageRev: nextRev || prev.profileImageRev || "",
+            profileId: nextProfileId,
+            avatarUrl: toProfileUrl(nextProfileId),
           };
         });
 
-        // 캐시 갱신(다음 진입/다른 화면 반영용)
+        // 닉네임만 캐시
         localStorage.setItem("nickname", nextNick || "");
-        localStorage.setItem("profileImageUrl", nextAvatar || "");
-        localStorage.setItem("profileImageRev", nextRev);
       } catch (err) {
         console.error("[user/info] API 오류:", err);
       }
     })();
     return () => { alive = false; };
-  }, [user?.email]);
+  }, [user?.id]);
 
-  /* 5) 평균 평점 API 연결 */
+  /** 4) 평균 평점 */
   useEffect(() => {
     const fetchRating = async () => {
       if (!user?.id) return;
@@ -179,20 +153,14 @@ const MyPage = ({ onPageChange }) => {
     fetchRating();
   }, [user?.id]);
 
-  /* --- 표시용 파생값 --- */
+  /** 표시 파생값 */
   const email = user?.email || "email@example.com";
   const nickname = user?.nickname || localStorage.getItem("nickname") || "";
-  const rawName = user?.name || ""; // 이름(없으면 이메일 prefix)
-  const titleName = rawName || (email ? email.split("@")[0] : "사용자"); // 큰 제목은 이름 우선
+  const rawName = user?.name || "";
+  const titleName = rawName || (email ? email.split("@")[0] : "사용자");
   const showNicknameLine = nickname && nickname !== titleName;
 
-  // 프로필 이미지 + 캐시버스터 쿼리 파라미터
-  const avatarBase = user?.avatarUrl || localStorage.getItem("profileImageUrl") || "";
-  const imgRev = user?.profileImageRev || localStorage.getItem("profileImageRev") || "";
-  const avatarUrl = (avatarBase && imgRev)
-    ? `${avatarBase}${avatarBase.includes("?") ? "&" : "?"}_=${encodeURIComponent(imgRev)}`
-    : avatarBase;
-
+  const avatarUrl = user?.avatarUrl || "";
   const initial = useMemo(() => (titleName ? titleName[0] : "U"), [titleName]);
 
   const rating = typeof user?.rating === "number" ? user.rating : 0;
@@ -200,7 +168,6 @@ const MyPage = ({ onPageChange }) => {
   const hasHalf = rating - full >= 0.5;
   const empty = 5 - full - (hasHalf ? 1 : 0);
 
-  /* 로그아웃 */
   const handleLogout = () => {
     const confirmLogout = window.confirm("정말 로그아웃 하시겠습니까?");
     if (!confirmLogout) return;
@@ -210,8 +177,6 @@ const MyPage = ({ onPageChange }) => {
       localStorage.removeItem("userEmail");
       localStorage.removeItem("tokenExpiration");
       localStorage.removeItem("nickname");
-      localStorage.removeItem("profileImageUrl");
-      localStorage.removeItem("profileImageRev");
       navigate("/login");
       window.location.reload();
     } catch (error) {
@@ -220,7 +185,6 @@ const MyPage = ({ onPageChange }) => {
     }
   };
 
-  /* 메뉴 라우팅 */
   const handleMenuClick = (key) => {
     switch (key) {
       case "bookmarks": navigate("/bookmarks"); break;
@@ -231,7 +195,6 @@ const MyPage = ({ onPageChange }) => {
     }
   };
 
-  /* 로딩 */
   if (!user) {
     return (
       <Layout pageTitle="마이페이지" activeMenuItem="mypage">
@@ -252,10 +215,10 @@ const MyPage = ({ onPageChange }) => {
               <div className="profile-summary-left">
                 {avatarUrl ? (
                   <img
-                    key={avatarUrl} // 캐시버스터 반영 강제 리렌더
                     className="profile-avatar-image"
                     src={avatarUrl}
                     alt={`${titleName} 프로필`}
+                    onError={(e) => { e.currentTarget.src = "/imgs/profile-fallback.png"; }}
                   />
                 ) : (
                   <div className="profile-avatar" aria-hidden="true">{initial}</div>
@@ -266,7 +229,6 @@ const MyPage = ({ onPageChange }) => {
                   {showNicknameLine && <span className="profile-nickname">{nickname}</span>}
                   <p className="profile-email">{email}</p>
 
-                  {/* ⭐ 평균 별점만 표시 */}
                   {rating > 0 ? (
                     <div className="profile-rating compact" aria-label={`평점 ${rating.toFixed(1)}점`}>
                       <div className="rating-stars" aria-hidden="true">
@@ -284,7 +246,6 @@ const MyPage = ({ onPageChange }) => {
                 </div>
               </div>
 
-              {/* 우측 정보 수정 버튼 */}
               <div className="profile-actions">
                 <button className="profile-edit-button" onClick={() => navigate("/mypage/edit")}>
                   📝 프로필 수정
