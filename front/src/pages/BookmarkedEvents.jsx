@@ -1,37 +1,99 @@
 // src/pages/BookmarkedEvents.jsx
 import React, { useEffect, useRef, useState } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
+import axios from "axios";
 import Layout from "../components/Layout";
 import EventCard from "../components/EventCard";
 import BottomBar from "../components/BottomBar";
 import "../css/eventcard.css";
 import "../css/bookmarkedevents.css";
 
-// --------- 더미 데이터 ----------
-const DUMMY = Array.from({ length: 50 }, (_, i) => ({
-  id: i + 1,
-  image: "https://via.placeholder.com/400x250?text=Event+" + (i + 1),
-  imageUrl: "https://via.placeholder.com/400x250?text=Event+" + (i + 1),
-  title: `북마크 행사 ${i + 1}`,
-  summary: `이것은 북마크한 행사 ${i + 1}의 설명입니다.`,
-  description: "행사 상세 설명(더미). 실제에선 서버에서 받아옵니다.",
-  hashtags: ["문화", "전시"],
-  date: `2025-09-${(i % 30 + 1).toString().padStart(2, "0")}`,
-  time: "14:00 - 17:00",
-  location: "서울시 강남구",
-  lat: 37.5665 + Math.random() * 0.02,
-  lng: 126.978 + Math.random() * 0.02,
-  fee: i % 2 === 0 ? "무료" : (5000 + i * 100).toLocaleString() + "원",
-  endDate: i % 4 === 0 ? "2025-07-31" : "2025-12-31",
-  ownerId: 123,
-  ownerName: "라이언 스튜디오",
-  ownerProfile: null,
-  bookmarked: true,
-}));
-// ---------------------------------
+/* ===============================
+   ✅ API & Auth 유틸
+   =============================== */
+const EVENT_BASE = "https://gateway.gamja.cloud";
+const ACTIVITY_BASE = "https://gateway.gamja.cloud";
+const IMAGE_BASE = "https://gateway.gamja.cloud";
+const PER_PAGE = 12;
 
+function getAccessToken() {
+  return (
+    localStorage.getItem("Token") ||
+    localStorage.getItem("accessToken") ||
+    ""
+  );
+}
+function getUserId() {
+  const v = localStorage.getItem("userid") ?? localStorage.getItem("userId");
+  return v ? Number(v) : null;
+}
+function authHeaders() {
+  const token = getAccessToken();
+  const uid = getUserId();
+  return {
+    Authorization: token ? `Bearer ${token}` : "",
+    "X-User-Id": uid ?? "",
+  };
+}
+
+const eventApi = axios.create({ baseURL: EVENT_BASE });
+const activityApi = axios.create({ baseURL: ACTIVITY_BASE });
+const imageApi = axios.create({ baseURL: IMAGE_BASE });
+
+/* DTO 내 이미지 id 키 유연 처리 */
+function pickImageId(ev) {
+  return (
+    ev?.posterId ??
+    ev?.imageId ??
+    ev?.poster_id ??
+    ev?.poster?.id ??
+    null
+  );
+}
+
+/* EventDTO → 화면 모델 매핑 (이미지 id만 보관) */
+function mapEventDTO(ev) {
+  const startDateStr = ev?.startTime ? new Date(ev.startTime).toISOString().slice(0, 10) : "";
+  const endDateStr = ev?.endTime ? new Date(ev.endTime).toISOString().slice(0, 10) : "";
+  const fee =
+    typeof ev?.entryFee === "number"
+      ? ev.entryFee === 0
+        ? "무료"
+        : `${Number(ev.entryFee).toLocaleString()}원`
+      : "";
+
+  return {
+    id: ev.id,
+    // 🔽 이미지 관련
+    imageId: pickImageId(ev),   // ← 여기 저장
+    image: "",                  // (하위 호환)
+    imageUrl: "",               // blob object URL 채울 자리
+
+    title: ev.name ?? `이벤트 #${ev.id}`,
+    summary: ev.description ?? "",
+    description: ev.description ?? "",
+    hashtags: Array.isArray(ev.hashtags) ? ev.hashtags : [],
+    date: startDateStr,
+    time: "",
+    location: ev.address ?? "",
+    lat: typeof ev.latitude === "number" ? ev.latitude : undefined,
+    lng: typeof ev.longitude === "number" ? ev.longitude : undefined,
+    fee,
+    endDate: endDateStr,
+    ownerId: ev.organizerId,
+    ownerName: "",
+    ownerProfile: null,
+    bookmarked: true,
+
+    // 정렬용 키
+    _start: ev?.startTime ? new Date(ev.startTime).getTime() : Number.POSITIVE_INFINITY,
+    _end: ev?.endTime ? new Date(ev.endTime).getTime() : Number.NaN,
+  };
+}
+
+// 거리 계산
 const haversineKm = (a, b) => {
-  if (!a || !b) return Infinity;
+  if (!a || !b || typeof b.lat !== "number" || typeof b.lng !== "number") return Infinity;
   const R = 6371;
   const dLat = ((b.lat - a.lat) * Math.PI) / 180;
   const dLng = ((b.lng - a.lng) * Math.PI) / 180;
@@ -43,30 +105,48 @@ const haversineKm = (a, b) => {
   return 2 * R * Math.asin(Math.sqrt(s));
 };
 
-// 기존 브릿지는 중복 방지 위해 끔 (Layout이 iPad에서 BottomBar 직접 렌더)
+// 마감 판정
+const isClosed = (e) => {
+  const today = new Date(); today.setHours(0, 0, 0, 0);
+  const end = e.endDate ? new Date(e.endDate) : null;
+  const start = e.date ? new Date(e.date) : null;
+  if (end) { end.setHours(0, 0, 0, 0); return +end < +today; }
+  if (start) { start.setHours(0, 0, 0, 0); return +start < +today; }
+  return true; // 날짜 없으면 마감 취급
+};
+
+// 기존 브릿지 끔
 const useTabletBridge = () => false;
 
 const BookmarkedEvents = () => {
+  /* ===============================
+     상태
+     =============================== */
   const [events, setEvents] = useState([]);
   const [loading, setLoading] = useState(false);
   const [hasMore, setHasMore] = useState(true);
   const [page, setPage] = useState(1);
 
-  const [view, setView] = useState("list");
-  const [sortMode, setSortMode] = useState("recent");
-  const [includeClosed, setIncludeClosed] = useState(false);
+  // 보기/범위/정렬
+  const [view, setView] = useState("list");          // 'list' | 'map'
+  const [scope, setScope] = useState("active");      // 'active' | 'closed'
+  const [sortMode, setSortMode] = useState("recent");// 'recent' | 'distance'
 
   const [myPos, setMyPos] = useState(null);
   const [geoError, setGeoError] = useState("");
 
-  const tabletBridge = useTabletBridge();
+  const [bookmarkCount, setBookmarkCount] = useState(0);
 
+  // 전체 캐시
+  const allEventsRef = useRef([]);
+
+  const tabletBridge = useTabletBridge();
   const navigate = useNavigate();
   const location = useLocation();
   const observerTarget = useRef(null);
   const loadingRef = useRef(false);
 
-  // 지도 관련 ref들
+  // 지도 관련
   const overlayRef = useRef(null);
   const mapBoxRef = useRef(null);
   const mapInstanceRef = useRef(null);
@@ -74,6 +154,11 @@ const BookmarkedEvents = () => {
   const sessionRef = useRef(0);
   const navBlockRef = useRef(false);
   const geoRequestedRef = useRef(false);
+
+  // 🔵 이미지 캐시 (imageId -> objectURL), 중복요청 방지, 정리용
+  const imgUrlCacheRef = useRef(new Map());     // imageId -> objectURL
+  const imgPendingRef = useRef(new Set());      // imageId 로딩 중
+  const createdUrlsRef = useRef(new Set());     // revoke용
 
   /* =========================
      (A) 페이지 플래그 & 리스너
@@ -113,9 +198,275 @@ const BookmarkedEvents = () => {
     else if (html.dataset.page === "bookmarked") delete html.dataset.page;
   }, [location.pathname]);
 
+  /* ===============================
+     (B) Event 서버 API
+     =============================== */
+  async function fetchBookmarksFromEventServer() {
+    const headers = authHeaders();
+    if (!headers.Authorization || !headers["X-User-Id"]) {
+      navigate("/login");
+      return [];
+    }
+    try {
+      const res = await eventApi.get("/api/event/bookmarks", { headers });
+      const arr = Array.isArray(res.data) ? res.data : [];
+      const mapped = arr.map(mapEventDTO);
+      setBookmarkCount(mapped.length);
+      return mapped;
+    } catch (err) {
+      console.error("GET /api/event/bookmarks error:", err);
+      if (axios.isAxiosError(err) && err.response?.status === 401) navigate("/login");
+      setBookmarkCount(0);
+      return [];
+    }
+  }
+
+  // 이미지 조회: blob → objectURL (보안 헤더 필요하므로 fetch 사용)
+  async function fetchImageObjectUrl(imageId) {
+    if (!imageId) return "";
+
+    // 캐시
+    if (imgUrlCacheRef.current.has(imageId)) {
+      return imgUrlCacheRef.current.get(imageId);
+    }
+    if (imgPendingRef.current.has(imageId)) {
+      // 이미 로딩 중이면 잠깐 대기(간단 폴링)
+      await new Promise((r) => setTimeout(r, 120));
+      return imgUrlCacheRef.current.get(imageId) || "";
+    }
+
+    try {
+      imgPendingRef.current.add(imageId);
+      const headers = authHeaders();
+
+      // axios로 blob 요청
+      const res = await imageApi.get(`/api/image/${imageId}`, {
+        headers,
+        responseType: "blob",
+      });
+
+      const blob = res.data;
+      if (!(blob instanceof Blob)) return "";
+
+      const url = URL.createObjectURL(blob);
+      imgUrlCacheRef.current.set(imageId, url);
+      createdUrlsRef.current.add(url);
+      return url;
+    } catch (e) {
+      console.error("GET /api/image/{id} error:", imageId, e);
+      return "";
+    } finally {
+      imgPendingRef.current.delete(imageId);
+    }
+  }
+
+  // 토글(낙관적 업데이트)
+  async function toggleBookmarkOnServer(eventId) {
+    const headers = authHeaders();
+    try {
+      await activityApi.post(
+        "/api/activity/bookmark/toggle",
+        { eventId: Number(eventId) },
+        { headers }
+      );
+      return true;
+    } catch (err) {
+      console.error("POST /api/activity/bookmark/toggle error:", err);
+      return false;
+    }
+  }
+
+  /* ===============================
+     (C) 정렬/필터/페이지 적용
+     =============================== */
+  const applySortAndFilter = (list, opts = {}) => {
+    const s = opts.scope ?? scope;
+    const sort = opts.sortMode ?? sortMode;
+    const pos = opts.pos ?? myPos;
+
+    // 1) 범위 필터
+    let data =
+      s === "closed"
+        ? list.filter((e) => isClosed(e))
+        : list.filter((e) => !isClosed(e));
+
+    // 2) 정렬
+    if (sort === "distance" && pos) {
+      data.sort((a, b) => {
+        const da = haversineKm(pos, { lat: a.lat, lng: a.lng });
+        const db = haversineKm(pos, { lat: b.lat, lng: b.lng });
+        return da - db;
+      });
+    } else if (sort === "recent") {
+      if (s === "closed") {
+        // 최근 마감순 (endTime 없으면 startTime 사용)
+        data.sort((a, b) => {
+          const ae = a._end ?? Number.NaN;
+          const be = b._end ?? Number.NaN;
+          const aKey = Number.isNaN(ae) ? a._start : ae;
+          const bKey = Number.isNaN(be) ? b._start : be;
+          return bKey - aKey; // 내림차순
+        });
+      } else {
+        // 다가오는 순 (오름차순)
+        data.sort((a, b) => (a._start ?? Infinity) - (b._start ?? Infinity));
+      }
+    }
+
+    return data;
+  };
+
+  const slicePage = (list, pageNum) => {
+    const startIndex = (pageNum - 1) * PER_PAGE;
+    const pageData = list.slice(startIndex, startIndex + PER_PAGE);
+    const more = startIndex + PER_PAGE < list.length;
+    return { pageData, more };
+  };
+
+  async function loadEvents(opts = {}) {
+    const currentPage = opts.page ?? 1;
+    if (loadingRef.current && currentPage > 1) return;
+
+    loadingRef.current = true;
+    setLoading(true);
+
+    try {
+      if (currentPage === 1) {
+        const serverList = await fetchBookmarksFromEventServer();
+        allEventsRef.current = serverList;
+      }
+
+      const sorted = applySortAndFilter(allEventsRef.current, opts);
+      const { pageData, more } = slicePage(sorted, currentPage);
+
+      if (currentPage === 1) setEvents(pageData);
+      else setEvents((prev) => [...prev, ...pageData]);
+
+      setHasMore(more);
+    } finally {
+      loadingRef.current = false;
+      setLoading(false);
+    }
+  }
+
+  /* ===============================
+     (D) 초기 로드 & 반응
+     =============================== */
+  useEffect(() => { loadEvents({ scope, sortMode, pos: myPos, page: 1 }); }, []);
+
+  // 탭(진행중/마감) 전환
+  useEffect(() => {
+    setPage(1); setHasMore(true);
+    loadEvents({ scope, sortMode, pos: myPos, page: 1 });
+  }, [scope]);
+
+  // 정렬 변경
+  useEffect(() => {
+    setPage(1); setHasMore(true);
+    if (sortMode === "distance" && !myPos && !geoRequestedRef.current) {
+      geoRequestedRef.current = true;
+      fetchMyLocation(false, (p) => {
+        loadEvents({ scope, sortMode: "distance", pos: p, page: 1 });
+      });
+    } else {
+      loadEvents({ scope, sortMode, pos: myPos, page: 1 });
+    }
+  }, [sortMode]);
+
+  // 내 위치 확보 후 거리 정렬 재요청
+  useEffect(() => {
+    if (sortMode === "distance" && myPos) {
+      setPage(1); setHasMore(true);
+      loadEvents({ scope, sortMode: "distance", pos: myPos, page: 1 });
+    }
+  }, [myPos]);
+
+  // 무한 스크롤
+  useEffect(() => { if (page > 1) loadEvents({ page, scope, sortMode, pos: myPos }); }, [page]);
+
+  useEffect(() => {
+    const observer = new IntersectionObserver(
+      (entries) => { if (entries[0].isIntersecting && !loading && hasMore) setPage((prev) => prev + 1); },
+      { threshold: 1 }
+    );
+    if (observerTarget.current) observer.observe(observerTarget.current);
+    return () => { if (observerTarget.current) observer.unobserve(observerTarget.current); };
+  }, [loading, hasMore]);
+
+  const goDetail = (id) => navigate(`/events/${id}`);
+
+  const removeFromBookmarks = async (id) => {
+    navBlockRef.current = true;
+    const ok = window.confirm("해당 행사를 북마크에서 해제하시겠습니까?");
+    if (!ok) { setTimeout(() => (navBlockRef.current = false), 0); return; }
+
+    // 낙관적 업데이트
+    setEvents((prev) => prev.filter((e) => e.id !== id));
+    allEventsRef.current = allEventsRef.current.filter((e) => e.id !== id);
+    setBookmarkCount((c) => Math.max(0, c - 1));
+
+    const success = await toggleBookmarkOnServer(id);
+    if (!success) {
+      await loadEvents({ page: 1, scope, sortMode, pos: myPos });
+      window.alert("해제에 실패했습니다. 잠시 후 다시 시도해주세요.");
+    }
+    setTimeout(() => (navBlockRef.current = false), 0);
+  };
+
+  // 위치 가져오기
+  const fetchMyLocation = (silent = false, onSuccessOnce) => {
+    if (!navigator.geolocation) { if (!silent) setGeoError("이 브라우저에서는 위치를 지원하지 않습니다."); return; }
+    setGeoError("");
+    navigator.geolocation.getCurrentPosition(
+      (pos) => { const p = { lat: pos.coords.latitude, lng: pos.coords.longitude }; setMyPos(p); onSuccessOnce && onSuccessOnce(p); },
+      (err) => { if (!silent) setGeoError(err.code === err.PERMISSION_DENIED ? "위치 권한이 거부되었습니다." : "내 위치를 가져오지 못했습니다."); },
+      { enableHighAccuracy: true, timeout: 8000, maximumAge: 60_000 }
+    );
+  };
+
+  /* ===============================
+     (E) 이미지 로딩 훅
+     - 화면에 올라온 이벤트들 중 imageId가 있고 imageUrl이 비어있으면 blob으로 수신
+     =============================== */
+  useEffect(() => {
+    let cancelled = false;
+
+    (async () => {
+      const targets = events.filter((e) => e.imageId && !e.imageUrl);
+      if (targets.length === 0) return;
+
+      for (const ev of targets) {
+        const url = await fetchImageObjectUrl(ev.imageId);
+        if (cancelled) return;
+        if (!url) continue;
+
+        // 해당 ev.id에만 url 주입 (불필요한 리렌더 최소화)
+        setEvents((prev) =>
+          prev.map((x) => (x.id === ev.id && !x.imageUrl ? { ...x, imageUrl: url } : x))
+        );
+      }
+    })();
+
+    return () => { cancelled = true; };
+  }, [events]);
+
+  // 언마운트 시 blob URL 정리
+  useEffect(() => {
+    return () => {
+      for (const url of createdUrlsRef.current) {
+        URL.revokeObjectURL(url);
+      }
+      createdUrlsRef.current.clear();
+      imgUrlCacheRef.current.clear();
+      imgPendingRef.current.clear();
+    };
+  }, []);
+
   /* =========================
-     (B) 내 위치 파란점 CSS 주입
+     (F) 지도 관련 (기존 코드 유지)
      ========================= */
+
+  // 내 위치 파란점 CSS
   const myPosCssInjectedRef = useRef(false);
   const injectMyPosCSS = () => {
     if (myPosCssInjectedRef.current) return;
@@ -142,118 +493,6 @@ const BookmarkedEvents = () => {
     myPosCssInjectedRef.current = true;
   };
 
-  const loadEvents = async (opts = {}) => {
-    if (loadingRef.current && opts.page > 1) return;
-    loadingRef.current = true;
-    setLoading(true);
-
-    const flag = opts.includeClosed ?? includeClosed;
-    const sort = opts.sortMode ?? sortMode;
-    const pos = opts.pos ?? myPos;
-    const currentPage = opts.page ?? 1;
-    const perPage = 12;
-
-    try {
-      const allData = [...(flag ? DUMMY : DUMMY.filter((e) => {
-        const end = new Date(e.endDate || e.date); end.setHours(0, 0, 0, 0);
-        const today = new Date(); today.setHours(0, 0, 0, 0);
-        return +end >= +today;
-      }))].filter((e) => e.bookmarked);
-
-      if (sort === "distance" && pos) {
-        allData.sort((a, b) => {
-          const distA = typeof a.lat === "number" && typeof a.lng === "number" ? haversineKm(pos, { lat: a.lat, lng: a.lng }) : Infinity;
-          const distB = typeof b.lat === "number" && typeof b.lng === "number" ? haversineKm(pos, { lat: b.lat, lng: b.lng }) : Infinity;
-          return distA - distB;
-        });
-      } else if (sort === "recent") {
-        allData.sort((a, b) => new Date(b.date) - new Date(a.date));
-      }
-
-      const startIndex = (currentPage - 1) * perPage;
-      const paginatedData = allData.slice(startIndex, startIndex + perPage);
-
-      if (currentPage === 1) setEvents(paginatedData);
-      else setEvents((prev) => [...prev, ...paginatedData]);
-
-      setHasMore(startIndex + perPage < allData.length);
-    } catch (e) {
-      console.error(e);
-    } finally {
-      loadingRef.current = false;
-      setLoading(false);
-    }
-  };
-
-  // 최초 로드
-  useEffect(() => { loadEvents({ includeClosed, sortMode, pos: myPos, page: 1 }); }, []);
-
-  // 마감 포함 토글 감지
-  useEffect(() => {
-    setPage(1); setHasMore(true);
-    loadEvents({ includeClosed, sortMode, pos: myPos, page: 1 });
-  }, [includeClosed]);
-
-  // 정렬 기준 변경 감지
-  useEffect(() => {
-    setPage(1); setHasMore(true);
-    if (sortMode === "distance" && !myPos && !geoRequestedRef.current) {
-      geoRequestedRef.current = true;
-      fetchMyLocation(false, (p) => {
-        loadEvents({ includeClosed, sortMode: "distance", pos: p, page: 1 });
-      });
-    } else {
-      loadEvents({ includeClosed, sortMode, pos: myPos, page: 1 });
-    }
-  }, [sortMode]);
-
-  // 내 위치 확보 후 거리 정렬 재요청
-  useEffect(() => {
-    if (sortMode === "distance" && myPos) {
-      setPage(1); setHasMore(true);
-      loadEvents({ includeClosed, sortMode: "distance", pos: myPos, page: 1 });
-    }
-  }, [myPos]);
-
-  // 페이지 변경 시 데이터 로드 (무한 스크롤)
-  useEffect(() => { if (page > 1) loadEvents({ page }); }, [page]);
-
-  // 무한 스크롤 옵저버 설정
-  useEffect(() => {
-    const observer = new IntersectionObserver(
-      (entries) => { if (entries[0].isIntersecting && !loading && hasMore) setPage((prev) => prev + 1); },
-      { threshold: 1 }
-    );
-    if (observerTarget.current) observer.observe(observerTarget.current);
-    return () => { if (observerTarget.current) observer.unobserve(observerTarget.current); };
-  }, [loading, hasMore]);
-
-  const goDetail = (id) => navigate(`/events/${id}`);
-
-  const removeFromBookmarks = (id) => {
-    navBlockRef.current = true;
-    const ok = window.confirm("삭제하시겠습니까?");
-    if (!ok) { setTimeout(() => (navBlockRef.current = false), 0); return; }
-    setEvents((prev) => prev.filter((e) => e.id !== id));
-    window.alert("삭제가 완료되었습니다.");
-    setTimeout(() => (navBlockRef.current = false), 0);
-  };
-
-  // 위치 가져오기
-  const fetchMyLocation = (silent = false, onSuccessOnce) => {
-    if (!navigator.geolocation) { if (!silent) setGeoError("이 브라우저에서는 위치를 지원하지 않습니다."); return; }
-    setGeoError("");
-    navigator.geolocation.getCurrentPosition(
-      (pos) => { const p = { lat: pos.coords.latitude, lng: pos.coords.longitude }; setMyPos(p); onSuccessOnce && onSuccessOnce(p); },
-      (err) => { if (!silent) setGeoError(err.code === err.PERMISSION_DENIED ? "위치 권한이 거부되었습니다." : "내 위치를 가져오지 못했습니다."); },
-      { enableHighAccuracy: true, timeout: 8000, maximumAge: 60_000 }
-    );
-  };
-
-  /* =========================
-     (C) 스크롤 잠금 / 높이 보정
-     ========================= */
-
   // 지도 뷰에서 스크롤 잠금
   useEffect(() => {
     if (view === "map") {
@@ -269,7 +508,7 @@ const BookmarkedEvents = () => {
     };
   }, [view]);
 
-  // 지도 뷰에서 토글/하단바 실측 → --map-offset 주입 + relayout
+  // 지도 뷰에서 토글/하단바 높이 반영
   useEffect(() => {
     if (view !== "map") return;
 
@@ -315,14 +554,14 @@ const BookmarkedEvents = () => {
     };
   }, [view]);
 
-  // 지도 진입 시 권한 한번만
+  // 지도 들어갈 때 한 번만 위치 요청
   const requestGeoAtMapEnter = () => {
     if (geoRequestedRef.current) return;
     geoRequestedRef.current = true;
 
     const after = (p) => {
       if (sortMode === "distance") {
-        loadEvents({ includeClosed, sortMode: "distance", pos: p, page: 1 });
+        loadEvents({ scope, sortMode: "distance", pos: p, page: 1 });
       }
     };
 
@@ -383,7 +622,6 @@ const BookmarkedEvents = () => {
       mapContainer.innerHTML = "";
       mapContainer.style.touchAction = "pan-x pan-y";
 
-      // 파란점 CSS 주입
       injectMyPosCSS();
 
       const primary =
@@ -440,19 +678,14 @@ const BookmarkedEvents = () => {
 
           const content = document.createElement("div");
           content.className = "custom-infowindow";
-          const feeText =
-            typeof ev.fee === "string"
-              ? ev.fee
-              : ev.fee
-              ? `${Number(ev.fee).toLocaleString()}원`
-              : "무료";
+          const feeText = ev.fee || "무료";
 
           content.innerHTML = `
             <div class="inner">
               <div class="meta">
                 <div class="title">${ev.title}</div>
                 <div class="desc">${ev.location ?? ""}</div>
-                <div class="sub">${ev.date} · ${ev.time ?? ""} · ${feeText}</div>
+                <div class="sub">${ev.date ?? ""}${ev.time ? " · " + ev.time : ""}${feeText ? " · " + feeText : ""}</div>
                 <button class="outline-btn" type="button">상세보기</button>
               </div>
               <div class="arrow" aria-hidden="true"></div>
@@ -483,7 +716,7 @@ const BookmarkedEvents = () => {
 
       const wantFocus = focusMyPosRef.current;
 
-      // 내 위치 파란점(오버레이)
+      // 내 위치 파란점
       if (myPos) {
         const pos = new kakao.maps.LatLng(myPos.lat, myPos.lng);
 
@@ -510,7 +743,7 @@ const BookmarkedEvents = () => {
       if (!bounds.isEmpty() && !wantFocus) { map.setBounds(bounds); }
       focusMyPosRef.current = false;
 
-      // 지도 우측 상단 컨트롤: 내 위치 버튼
+      // 우측 상단 위치 버튼
       const ctrl = document.createElement("div");
       ctrl.style.position = "absolute";
       ctrl.style.top = "12px";
@@ -529,7 +762,7 @@ const BookmarkedEvents = () => {
         focusMyPosRef.current = true;
         fetchMyLocation(false, (p) => {
           if (sortMode === "distance") {
-            loadEvents({ includeClosed, sortMode: "distance", pos: p, page: 1 });
+            loadEvents({ scope, sortMode: "distance", pos: p, page: 1 });
           }
           if (window.kakao?.maps && mapInstanceRef.current) {
             const latlng = new window.kakao.maps.LatLng(p.lat, p.lng);
@@ -579,39 +812,60 @@ const BookmarkedEvents = () => {
         box.style.height = "0";
       }
     };
-  }, [view, events, myPos, sortMode, includeClosed]);
+  }, [view, events, myPos, sortMode, scope]);
 
+  /* ===============================
+     (G) 렌더
+     =============================== */
   return (
     <Layout>
       <div className={`events-page events-page--bookmarked is-under-topbar has-mobile-bottom-nav ${view === "map" ? "is-map" : ""}`}>
         <div className="events-toggle">
-          <div style={{ display: "flex", gap: 8 }}>
-            <button className={`pill-btn ${view === "list" ? "active" : ""}`} onClick={() => setView("list")}>
+          <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
+            {/* 기존 패턴 유지: 북마크 보기 / 지도보기 */}
+            <button
+              className={`pill-btn ${view === "list" && scope === "active" ? "active" : ""}`}
+              onClick={() => { setScope("active"); setView("list"); }}
+            >
               북마크 행사보기
             </button>
-            <button className={`pill-btn ${view === "map" ? "active" : ""}`} onClick={() => setView("map")}>
+
+            {/* 마감된 행사만 보기 */}
+            <button
+              className={`pill-btn ${view === "list" && scope === "closed" ? "active" : ""}`}
+              onClick={() => { setScope("closed"); setView("list"); }}
+            >
+              마감된 행사
+            </button>
+
+            <button
+              className={`pill-btn ${view === "map" ? "active" : ""}`}
+              onClick={() => setView("map")}
+              title="지도보기"
+            >
               지도보기
             </button>
           </div>
 
-          <div className="toggle-options">
+          <div className="toggle-options" style={{ display: "flex", alignItems: "center", gap: 12 }}>
+            <div className="pill-badge" title="북마크 개수">북마크 {bookmarkCount}개</div>
+
             <label htmlFor="sortMode" className="sr-only">정렬</label>
-            <select id="sortMode" className="pill-select" value={sortMode} onChange={(e) => setSortMode(e.target.value)}>
-              <option value="recent">최신순</option>
+            <select
+              id="sortMode"
+              className="pill-select"
+              value={sortMode}
+              onChange={(e) => setSortMode(e.target.value)}
+            >
+              <option value="recent">
+                {scope === "closed" ? "최근 마감순" : "다가오는 순"}
+              </option>
               <option value="distance">거리순</option>
             </select>
-
-            <label
-              htmlFor="toggleClosed"
-              style={{ display: "inline-flex", alignItems: "center", gap: 6, cursor: "pointer", userSelect: "none" }}
-              title="마감된 행사 포함/제외"
-            >
-              <input id="toggleClosed" type="checkbox" checked={includeClosed} onChange={(e) => setIncludeClosed(e.target.checked)} />
-              <span>마감 포함</span>
-            </label>
           </div>
         </div>
 
+        {/* 거리순 힌트 */}
         {sortMode === "distance" && !myPos && (
           <div className="hint-bar" style={{ marginTop: 8, padding: "10px 12px", border: "1px dashed #ccc", borderRadius: 12, background: "rgba(0,0,0,0.02)" }}>
             <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12 }}>
@@ -620,7 +874,7 @@ const BookmarkedEvents = () => {
                 className="pill-btn"
                 onClick={() => {
                   if (!geoRequestedRef.current) geoRequestedRef.current = true;
-                  fetchMyLocation(false, (p) => loadEvents({ includeClosed, sortMode: "distance", pos: p, page: 1 }));
+                  fetchMyLocation(false, (p) => loadEvents({ scope, sortMode: "distance", pos: p, page: 1 }));
                 }}
               >
                 내 위치 가져오기
@@ -637,7 +891,9 @@ const BookmarkedEvents = () => {
                 <div className="events-empty" style={{ gridColumn: "1 / -1" }}>
                   <div className="emoji">📌</div>
                   <div className="title">표시할 행사가 없어요</div>
-                  <div className="desc">필터 또는 정렬을 바꿔보세요.</div>
+                  <div className="desc">
+                    {scope === "closed" ? "마감된 행사가 없어요." : "다가오는 북마크 행사가 없어요."}
+                  </div>
                 </div>
               ) : (
                 events.map((ev) => (
@@ -654,15 +910,15 @@ const BookmarkedEvents = () => {
                     aria-label={`${ev.title} 상세보기`}
                   >
                     <EventCard
-                      image={ev.image}
+                      image={ev.imageUrl || ev.image}  // ← blob URL 우선 사용
                       title={ev.title}
                       summary={ev.summary}
-                      hashtags={ev.hashtags?.map((t) => `#${t}`)}
+                      hashtags={Array.isArray(ev.hashtags) ? ev.hashtags.map((t) => ("" + t).startsWith("#") ? t : `#${t}`) : []}
                       date={ev.date}
                       location={ev.location}
                       time={ev.time}
                       fee={ev.fee}
-                      bookmarked={ev.bookmarked}
+                      bookmarked={true}
                       onBookmarkToggle={() => removeFromBookmarks(ev.id)}
                     />
                   </div>
