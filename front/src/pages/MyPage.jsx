@@ -4,7 +4,6 @@ import { useNavigate } from "react-router-dom";
 import Layout from "../components/Layout";
 import "../css/mypage.css";
 
-/* ===== 고정 메뉴 ===== */
 const MENU_ITEMS = [
   { key: "bookmarks", icon: "🔖", title: "북마크한 행사", desc: "관심 있는 행사" },
   { key: "subscriptions", icon: "👥", title: "구독한 주최자", desc: "팔로우한 주최자" },
@@ -14,101 +13,58 @@ const MENU_ITEMS = [
 
 const BASE_URL = "https://gateway.gamja.cloud";
 
-/** 빈 본문/비 JSON도 안전하게 파싱 */
+/** profileId -> 이미지 URL */
+const toProfileUrl = (id) => {
+  if (!id && id !== 0) return "";
+  const n = Number(id);
+  if (!Number.isFinite(n) || n <= 0) return "";
+  return `${BASE_URL}/api/image/${n}`;
+};
+
 async function safeJson(res) {
-  const ct = res.headers.get("content-type") || "";
   const text = await res.text().catch(() => "");
-  if (!text || !text.trim()) return null;
-  if (ct.includes("application/json")) {
-    try { return JSON.parse(text); } catch { return null; }
-  }
+  if (!text) return null;
   try { return JSON.parse(text); } catch { return null; }
 }
-
-/* ===== 공통 헬퍼 ===== */
-const getAuthHeaders = () => {
-  const token =
-    localStorage.getItem("accessToken") ||
-    localStorage.getItem("Token") ||
-    "";
-  return token ? { Authorization: `Bearer ${token}` } : {};
-};
-
-/* ===== 이미지 도우미 ===== */
-// 캐시버스터 안전 판별
-const shouldAppendRev = (u) => {
-  if (!u) return false;
-  if (/^(data:|blob:)/i.test(u)) return false; // 프리뷰/로컬
-  if (/[?&](X-Amz-|X-Goog-Signature|GoogleAccessId|Signature=|Token=|Expires=)/i.test(u)) return false; // 서명 URL
-  return true;
-};
-// 절대 URL 변환
-const absoluteUrl = (base, pathOrUrl) => {
-  if (!pathOrUrl) return "";
-  if (/^(https?:|data:|blob:)/i.test(pathOrUrl)) return pathOrUrl;
-  if (pathOrUrl.startsWith("/")) return `${base}${pathOrUrl}`;
-  return `${base}/${pathOrUrl}`;
-};
-// 다양한 형태에서 imageId 추출 (숫자/문자/URL)
-const extractImageId = (v) => {
-  if (v == null) return null;
-  if (typeof v === "number" && Number.isFinite(v)) return v;
-  if (typeof v === "string") {
-    const onlyDigits = v.trim();
-    if (/^\d+$/.test(onlyDigits)) return Number(onlyDigits);
-    const m = onlyDigits.match(/\/api\/image\/(\d+)(?:\D|$)/);
-    if (m) return Number(m[1]);
-  }
-  return null;
-};
 
 const MyPage = ({ onPageChange }) => {
   const navigate = useNavigate();
   const [user, setUser] = useState(null);
 
-  // blob ObjectURL (GET /api/image/{id}로 받은 바이너리)
-  const [avatarObjectUrl, setAvatarObjectUrl] = useState("");
-
-  /* 1) 로컬스토리지 캐시로 즉시 표기 (닉네임/이미지/리비전/이미지ID 포함) */
+  /** 1) 로컬 로그인 체크 (이미지 URL은 저장/사용하지 않음) */
   useEffect(() => {
     const userEmail = localStorage.getItem("userEmail");
     const userId = localStorage.getItem("userId");
-
     const nicknameLS = localStorage.getItem("nickname") || "";
-    const avatarUrlLS = localStorage.getItem("profileImageUrl") || "";
-    const avatarRevLS = localStorage.getItem("profileImageRev") || "";
-    const avatarIdLS = localStorage.getItem("profileImageId");
 
     if (userEmail && userId) {
       setUser({
         id: userId,
         email: userEmail,
-        name: nicknameLS || userEmail.split("@")[0], // 닉네임 우선
+        name: nicknameLS || userEmail.split("@")[0],
         nickname: nicknameLS || "",
-        avatarUrl: avatarUrlLS || "",
-        profileImageRev: avatarRevLS || "",
-        profileImageId: avatarIdLS ? Number(avatarIdLS) : null,
-        rating: 0, // API로 덮어씌움
+        profileId: null,
+        avatarUrl: "",
+        rating: 0,
       });
     } else {
       navigate("/login");
     }
   }, [navigate]);
 
-  /* 2) EditProfile 저장 직후 실시간 반영 (커스텀 이벤트) */
+  /** 2) EditProfile 저장 직후 실시간 반영 */
   useEffect(() => {
     const handler = (e) => {
-      const { nickname, profileImageUrl, profileImageRev, profileImageId } = e.detail || {};
+      const { nickname, profileId, profileImageUrl } = e.detail || {};
       setUser((prev) => {
         if (!prev) return prev;
-        const nextName = nickname ?? prev.nickname ?? prev.name;
+        const nextName = (nickname ?? prev.nickname) || prev.name;
         return {
           ...prev,
           nickname: nickname ?? prev.nickname,
           name: nextName,
-          avatarUrl: profileImageUrl ?? prev.avatarUrl,
-          profileImageRev: profileImageRev ?? prev.profileImageRev,
-          profileImageId: profileImageId != null ? profileImageId : prev.profileImageId,
+          profileId: profileId ?? prev.profileId,
+          avatarUrl: profileImageUrl ?? (profileId ? toProfileUrl(profileId) : prev.avatarUrl),
         };
       });
     };
@@ -116,37 +72,19 @@ const MyPage = ({ onPageChange }) => {
     return () => window.removeEventListener("user:profileUpdated", handler);
   }, []);
 
-  /* 3) 다른 탭 동기화 (storage 이벤트) */
+  /** 3) 서버에서 최신 프로필 조회 */
   useEffect(() => {
-    const onStorage = (e) => {
-      if (!["nickname", "profileImageUrl", "profileImageRev", "profileImageId"].includes(e.key)) return;
-      setUser((prev) => {
-        if (!prev) return prev;
-        const nick = localStorage.getItem("nickname") || prev.nickname || "";
-        const img  = localStorage.getItem("profileImageUrl") || prev.avatarUrl || "";
-        const rev  = localStorage.getItem("profileImageRev") || prev.profileImageRev || "";
-        const idLS = localStorage.getItem("profileImageId");
-        const id   = idLS != null ? Number(idLS) : prev.profileImageId ?? null;
-        return { ...prev, nickname: nick, name: nick || prev.name, avatarUrl: img, profileImageRev: rev, profileImageId: id };
-      });
-    };
-    window.addEventListener("storage", onStorage);
-    return () => window.removeEventListener("storage", onStorage);
-  }, []);
-
-  /* 4) 서버에서 최신 프로필 조회해서 덮어쓰기 (항상 최신 유지) */
-  useEffect(() => {
-    if (!user?.email) return;
+    if (!user?.id) return;
     let alive = true;
     (async () => {
       try {
+        const token = localStorage.getItem("accessToken") || "";
         const res = await fetch(
-          `${BASE_URL}/api/user/info?email=${encodeURIComponent(user.email)}&_=${Date.now()}`,
+          `${BASE_URL}/api/user/info?userId=${encodeURIComponent(user.id)}`,
           {
-            method: "GET",
             headers: {
               Accept: "application/json",
-              ...getAuthHeaders(),
+              ...(token ? { Authorization: `Bearer ${token}` } : {}),
             },
             cache: "no-store",
           }
@@ -154,12 +92,10 @@ const MyPage = ({ onPageChange }) => {
         const data = await safeJson(res);
         if (!res.ok) throw new Error(data?.message || `사용자 정보 조회 실패 (${res.status})`);
 
-        const nextNick    = data?.nickname ?? "";
-        const nextAvatar  = data?.profileImageUrl ?? data?.avatarUrl ?? ""; // 문자열 URL일 수도
-        const nextImageId = extractImageId(data?.profileImageId ?? data?.imageId ?? data?.avatarImageId ?? nextAvatar);
-        const nextRev     = String(Date.now()); // 새 조회 시 캐시버스터 갱신
-
         if (!alive) return;
+
+        const nextNick = data?.nickname ?? "";
+        const nextProfileId = data?.profileId ?? null;
 
         setUser((prev) => {
           if (!prev) return prev;
@@ -168,80 +104,31 @@ const MyPage = ({ onPageChange }) => {
             ...prev,
             nickname: nextNick || prev.nickname || "",
             name: nextName,
-            avatarUrl: nextAvatar || prev.avatarUrl || "",
-            profileImageId: nextImageId != null ? nextImageId : (prev.profileImageId ?? null),
-            profileImageRev: nextRev || prev.profileImageRev || "",
+            profileId: nextProfileId,
+            avatarUrl: toProfileUrl(nextProfileId),
           };
         });
 
-        // 캐시 갱신(다음 진입/다른 화면 반영용) — 빈값이면 정리
+        // 닉네임만 캐시
         localStorage.setItem("nickname", nextNick || "");
-        if (typeof nextAvatar === "string") {
-          if (nextAvatar) localStorage.setItem("profileImageUrl", nextAvatar);
-          else localStorage.removeItem("profileImageUrl");
-        }
-        if (nextImageId != null) localStorage.setItem("profileImageId", String(nextImageId));
-        else localStorage.removeItem("profileImageId");
-        localStorage.setItem("profileImageRev", nextRev);
       } catch (err) {
         console.error("[user/info] API 오류:", err);
       }
     })();
     return () => { alive = false; };
-  }, [user?.email]);
+  }, [user?.id]);
 
-  /* 4-1) 이미지 ID가 있으면: GET /api/image/{id} → blob URL 생성 */
-  useEffect(() => {
-    const imageId = user?.profileImageId ?? extractImageId(user?.avatarUrl);
-    if (!imageId) {
-      // 이미지ID 없으면 기존 objectUrl 정리
-      if (avatarObjectUrl) URL.revokeObjectURL(avatarObjectUrl);
-      setAvatarObjectUrl("");
-      return;
-    }
-
-    let cancelled = false;
-    const fetchBlob = async () => {
-      try {
-        const res = await fetch(`${BASE_URL}/api/image/${imageId}`, {
-          method: "GET",
-          headers: { ...getAuthHeaders() },
-        });
-        if (!res.ok) throw new Error(`이미지 조회 실패 (${res.status})`);
-        const blob = await res.blob();
-        const url = URL.createObjectURL(blob);
-        if (!cancelled) {
-          // 기존 URL 정리 후 교체
-          if (avatarObjectUrl) URL.revokeObjectURL(avatarObjectUrl);
-          setAvatarObjectUrl(url);
-        }
-      } catch (err) {
-        console.error("[image:get] 오류:", err);
-        if (!cancelled) {
-          if (avatarObjectUrl) URL.revokeObjectURL(avatarObjectUrl);
-          setAvatarObjectUrl("");
-        }
-      }
-    };
-    fetchBlob();
-    return () => { cancelled = true; };
-  }, [user?.profileImageId, user?.avatarUrl]); // id나 url이 바뀌면 다시 시도
-
-  // 컴포넌트 언마운트 시 blob URL 정리(누수 방지)
-  useEffect(() => {
-    return () => { if (avatarObjectUrl) URL.revokeObjectURL(avatarObjectUrl); };
-  }, [avatarObjectUrl]);
-
-  /* 5) 평균 평점 API 연결 */
+  /** 4) 평균 평점 */
   useEffect(() => {
     const fetchRating = async () => {
       if (!user?.id) return;
       try {
+        const accessToken = localStorage.getItem("accessToken") || "";
         const res = await fetch(`${BASE_URL}/api/activity/review/rating`, {
           method: "GET",
           headers: {
             "X-User-Id": String(user.id),
-            ...getAuthHeaders(),
+            ...(accessToken ? { Authorization: `Bearer ${accessToken}` } : {}),
           },
         });
         if (!res.ok) throw new Error(`평균 평점 조회 실패 (${res.status})`);
@@ -266,22 +153,14 @@ const MyPage = ({ onPageChange }) => {
     fetchRating();
   }, [user?.id]);
 
-  /* --- 표시용 파생값 --- */
+  /** 표시 파생값 */
   const email = user?.email || "email@example.com";
   const nickname = user?.nickname || localStorage.getItem("nickname") || "";
-  const rawName = user?.name || ""; // 이름(없으면 이메일 prefix)
-  const titleName = rawName || (email ? email.split("@")[0] : "사용자"); // 큰 제목은 이름 우선
+  const rawName = user?.name || "";
+  const titleName = rawName || (email ? email.split("@")[0] : "사용자");
   const showNicknameLine = nickname && nickname !== titleName;
 
-  // 우선순위: blob ObjectURL > HTTP URL(+rev)
-  const imgRev = user?.profileImageRev || localStorage.getItem("profileImageRev") || "";
-  const httpBaseRaw = user?.avatarUrl || localStorage.getItem("profileImageUrl") || "";
-  const httpBaseAbs = absoluteUrl(BASE_URL, httpBaseRaw);
-  const httpUrl = (httpBaseAbs && imgRev && shouldAppendRev(httpBaseAbs))
-    ? `${httpBaseAbs}${httpBaseAbs.includes("?") ? "&" : "?"}_=${encodeURIComponent(imgRev)}`
-    : httpBaseAbs;
-
-  const finalAvatarSrc = avatarObjectUrl || httpUrl;
+  const avatarUrl = user?.avatarUrl || "";
   const initial = useMemo(() => (titleName ? titleName[0] : "U"), [titleName]);
 
   const rating = typeof user?.rating === "number" ? user.rating : 0;
@@ -289,20 +168,15 @@ const MyPage = ({ onPageChange }) => {
   const hasHalf = rating - full >= 0.5;
   const empty = 5 - full - (hasHalf ? 1 : 0);
 
-  /* 로그아웃 */
   const handleLogout = () => {
     const confirmLogout = window.confirm("정말 로그아웃 하시겠습니까?");
     if (!confirmLogout) return;
     try {
       localStorage.removeItem("accessToken");
-      localStorage.removeItem("Token");
       localStorage.removeItem("userId");
       localStorage.removeItem("userEmail");
       localStorage.removeItem("tokenExpiration");
       localStorage.removeItem("nickname");
-      localStorage.removeItem("profileImageUrl");
-      localStorage.removeItem("profileImageRev");
-      localStorage.removeItem("profileImageId");
       navigate("/login");
       window.location.reload();
     } catch (error) {
@@ -311,7 +185,6 @@ const MyPage = ({ onPageChange }) => {
     }
   };
 
-  /* 메뉴 라우팅 */
   const handleMenuClick = (key) => {
     switch (key) {
       case "bookmarks": navigate("/bookmarks"); break;
@@ -322,7 +195,6 @@ const MyPage = ({ onPageChange }) => {
     }
   };
 
-  /* 로딩 */
   if (!user) {
     return (
       <Layout pageTitle="마이페이지" activeMenuItem="mypage">
@@ -341,12 +213,12 @@ const MyPage = ({ onPageChange }) => {
             {/* 상단 요약 카드 */}
             <section className="profile-summary-card" aria-label="프로필 요약">
               <div className="profile-summary-left">
-                {finalAvatarSrc ? (
+                {avatarUrl ? (
                   <img
-                    key={finalAvatarSrc} // 소스 변경 시 강제 리렌더
                     className="profile-avatar-image"
-                    src={finalAvatarSrc}
+                    src={avatarUrl}
                     alt={`${titleName} 프로필`}
+                    onError={(e) => { e.currentTarget.src = "/imgs/profile-fallback.png"; }}
                   />
                 ) : (
                   <div className="profile-avatar" aria-hidden="true">{initial}</div>
@@ -357,7 +229,6 @@ const MyPage = ({ onPageChange }) => {
                   {showNicknameLine && <span className="profile-nickname">{nickname}</span>}
                   <p className="profile-email">{email}</p>
 
-                  {/* ⭐ 평균 별점만 표시 */}
                   {rating > 0 ? (
                     <div className="profile-rating compact" aria-label={`평점 ${rating.toFixed(1)}점`}>
                       <div className="rating-stars" aria-hidden="true">
@@ -375,7 +246,6 @@ const MyPage = ({ onPageChange }) => {
                 </div>
               </div>
 
-              {/* 우측 정보 수정 버튼 */}
               <div className="profile-actions">
                 <button className="profile-edit-button" onClick={() => navigate("/mypage/edit")}>
                   📝 프로필 수정
