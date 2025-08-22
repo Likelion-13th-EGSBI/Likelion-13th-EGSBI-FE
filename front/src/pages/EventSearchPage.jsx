@@ -12,12 +12,16 @@ const EventSearchPage = () => {
   const [isSearching, setIsSearching] = useState(false);
   const [hasSearched, setHasSearched] = useState(false);
   const [showFilters, setShowFilters] = useState(false);
+  const [bookmarkStates, setBookmarkStates] = useState({}); // 북마크 상태 관리
   const [filters, setFilters] = useState({
     sort: 'startTime,desc',
     page: 0,
     size: 20
   });
   const searchTimeoutRef = useRef(null);
+
+  // 토큰 가져오기 함수 (localStorage, sessionStorage, context 등에서)
+
 
   // TopBar에서 전달받은 검색어가 있으면 자동 검색
   useEffect(() => {
@@ -58,9 +62,98 @@ const EventSearchPage = () => {
       location: event.address,
       time: formatTime(event.startTime),
       fee: event.entryFee ? `${event.entryFee.toLocaleString()}원` : '무료',
-      bookmarked: false, // TODO: 북마크 상태 확인 필요
+      bookmarked: bookmarkStates[event.id] || false,
       bookmarking: false
     };
+  };
+
+  // 북마크 리스트 가져오기 API 호출
+  const fetchBookmarkList = async () => {
+    const token = localStorage.getItem('accessToken');
+    if (!token) {
+      return [];
+    }
+
+    try {
+      const response = await fetch('https://gateway.gamja.cloud/api/activity/bookmark/list', {
+        method: 'GET',
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      });
+
+      if (response.ok) {
+        const bookmarkList = await response.json();
+        // 북마크된 이벤트 ID들을 추출해서 상태 객체로 변환
+        const bookmarkStatesFromAPI = {};
+        bookmarkList.forEach(bookmark => {
+          bookmarkStatesFromAPI[bookmark.eventId] = true;
+        });
+        return bookmarkStatesFromAPI;
+      } else {
+        console.error('북마크 리스트 조회 실패:', response.status);
+        return {};
+      }
+    } catch (error) {
+      console.error('북마크 리스트 API 호출 실패:', error);
+      return {};
+    }
+  };
+
+  // 북마크 토글 API 호출
+  const toggleBookmark = async (eventId) => {
+    const token = localStorage.getItem('accessToken');
+    if (!token) {
+      console.error('인증 토큰이 없습니다.');
+      alert('로그인이 필요합니다.');
+      return;
+    }
+
+    // 북마크 상태를 임시로 업데이트 (낙관적 업데이트)
+    const previousState = bookmarkStates[eventId] || false;
+    setBookmarkStates(prev => ({
+      ...prev,
+      [eventId]: !previousState
+    }));
+
+    try {
+      const response = await fetch('https://gateway.gamja.cloud/api/activity/bookmark/toggle', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-User-Id': token, // 헤더로 토큰 전송
+        },
+        body: JSON.stringify({
+          eventId: eventId
+        }),
+      });
+
+      if (!response.ok) {
+        // API 호출 실패 시 상태 되돌리기
+        setBookmarkStates(prev => ({
+          ...prev,
+          [eventId]: previousState
+        }));
+        
+        if (response.status === 401) {
+          alert('인증이 만료되었습니다. 다시 로그인해주세요.');
+        } else {
+          alert('북마크 처리 중 오류가 발생했습니다.');
+        }
+        console.error('북마크 토글 실패:', response.status, response.statusText);
+      } else {
+        console.log('북마크 토글 성공:', eventId);
+        // 성공한 경우에는 이미 상태가 업데이트되어 있으므로 추가 작업 불필요
+      }
+    } catch (error) {
+      // 네트워크 오류 등의 경우 상태 되돌리기
+      setBookmarkStates(prev => ({
+        ...prev,
+        [eventId]: previousState
+      }));
+      console.error('북마크 API 호출 실패:', error);
+      alert('네트워크 오류가 발생했습니다.');
+    }
   };
 
   // 검색 API 호출
@@ -100,6 +193,14 @@ const EventSearchPage = () => {
         });
         
         setSearchResults(futureEvents);
+
+        // 북마크 상태를 서버에서 가져와서 설정
+        const bookmarkStatesFromAPI = await fetchBookmarkList();
+        const initialBookmarkStates = {};
+        futureEvents.forEach(event => {
+          initialBookmarkStates[event.id] = bookmarkStatesFromAPI[event.id] || false;
+        });
+        setBookmarkStates(prev => ({ ...prev, ...initialBookmarkStates }));
       } else {
         console.error('검색 실패:', response.status);
         setSearchResults([]);
@@ -151,8 +252,7 @@ const EventSearchPage = () => {
 
   // 북마크 토글 핸들러
   const handleBookmarkToggle = (eventId) => {
-    // TODO: 북마크 API 호출
-    console.log('북마크 토글:', eventId);
+    toggleBookmark(eventId);
   };
 
   // 이벤트 카드 클릭 핸들러
