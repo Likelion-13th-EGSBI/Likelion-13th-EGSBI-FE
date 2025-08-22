@@ -198,6 +198,7 @@ const LoginPage = () => {
       localStorage.setItem('userId', tokenData.id.toString());
       localStorage.setItem('userEmail', tokenData.email);
       localStorage.setItem('userName', tokenData.name);
+      localStorage.setItem('profileId', tokenData.profileId);
       
       // 만료 시간 계산하여 저장 (현재 시간 + expiresIn초)
       const expirationTime = Date.now() + (tokenData.expiresIn * 1000);
