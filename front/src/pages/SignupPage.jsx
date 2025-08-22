@@ -52,8 +52,6 @@ const SignupPage = () => {
     return emailRegex.test(email);
   };
 
-
-
   const validatePassword = (password) => {
     return password.length >= 8;
   };
@@ -64,7 +62,6 @@ const SignupPage = () => {
       alert('이름을 입력해주세요.');
       return false;
     }
-
 
     if (!validateEmail(email)) {
       alert('올바른 이메일 주소를 입력해주세요.');
@@ -143,24 +140,41 @@ const SignupPage = () => {
         // Content-Type 헤더를 설정하지 않음 - 브라우저가 자동으로 multipart/form-data로 설정
       });
       
+      // response의 content-type을 확인하여 적절한 파싱 방법 선택
+      const contentType = response.headers.get('content-type');
+      let result;
+      
+      if (contentType && contentType.includes('application/json')) {
+        try {
+          result = await response.json();
+        } catch (jsonError) {
+          result = await response.text();
+        }
+      } else {
+        result = await response.text();
+      }
+
       if (!response.ok) {
         let errorMessage;
-        try {
-          const errorData = await response.json();
-          errorMessage = errorData.message || errorData.error || `HTTP ${response.status}`;
-        } catch {
-          errorMessage = await response.text() || `HTTP ${response.status}`;
+        if (typeof result === 'object' && result !== null) {
+          errorMessage = result.message || result.error || `HTTP ${response.status}`;
+        } else {
+          errorMessage = result || `HTTP ${response.status}`;
         }
         throw new Error(`회원가입 실패 (${response.status}): ${errorMessage}`);
       }
       
-      const result = await response.json();
       console.log('Signup successful:', result);
       
-      alert('회원가입이 완료되었습니다!');
+      alert('회원가입이 완료되었습니다! 이메일 인증을 진행해주세요.');
       
-      // 회원가입 성공 후 로그인 페이지로 이동
-      navigate('/login');
+      // 회원가입 성공 후 이메일 인증 페이지로 이동 (이메일 주소를 파라미터로 전달)
+      navigate('/email-verification', { 
+        state: { 
+          email: email.trim(),
+          fromSignup: true 
+        } 
+      });
       
     } catch (error) {
       console.error('회원가입 실패:', error);
@@ -173,11 +187,11 @@ const SignupPage = () => {
   return (
     <div className="signup-container">
       <div className="signup-header">
-        <img src={logo} className="signup-header-logo" alt="로고" />
+        <img src={logo} alt="로고" className="signup-header-img" />
       </div>
       <div className="signup-inner">
         <h1 className="signup-title">회원가입</h1>
-        <form className="signup-input-form" onSubmit={handleSubmit}>
+        <form className="signup-form" onSubmit={handleSubmit}>
           <div className="signup-profile-section">
             {previewURL ? (
               <img
@@ -189,8 +203,8 @@ const SignupPage = () => {
               <FaUserCircle className="signup-profile-icon" />
             )}
 
-            <div className="signup-profile-upload-wrapper">
-              <label htmlFor="profile-upload" className="signup-profile-btn">
+            <div className="signup-upload-wrapper">
+              <label htmlFor="profile-upload" className="signup-upload-label">
                 프로필 이미지 업로드
               </label>
               <input
@@ -198,13 +212,13 @@ const SignupPage = () => {
                 type="file"
                 accept="image/*"
                 onChange={handleFileChange}
-                className="signup-profile-input"
+                className="signup-upload-input"
               />
             </div>
           </div>
 
           <input
-            className="signup-name"
+            className="signup-input-field"
             type="text"
             placeholder="이름"
             value={name}
@@ -214,7 +228,7 @@ const SignupPage = () => {
           />
 
           <input
-            className="signup-phone"
+            className="signup-input-field"
             type="tel"
             placeholder="전화번호"
             value={phone}
@@ -224,7 +238,7 @@ const SignupPage = () => {
           />
 
           <input
-            className="signup-email"
+            className="signup-input-field"
             type="email"
             placeholder="이메일"
             value={email}
@@ -234,7 +248,7 @@ const SignupPage = () => {
           />
 
           <input
-            className="signup-nickname"
+            className="signup-input-field"
             type="text"
             placeholder="닉네임"
             value={nickname}
@@ -244,7 +258,7 @@ const SignupPage = () => {
           />
 
           <input
-            className="signup-password"
+            className="signup-input-field"
             type="password"
             placeholder="비밀번호 (최소 8자)"
             value={password}
@@ -254,7 +268,7 @@ const SignupPage = () => {
           />
 
           <button 
-            className="signup-btn" 
+            className="signup-submit-btn"
             type="submit"
             disabled={isSubmitting}
           >
@@ -263,16 +277,14 @@ const SignupPage = () => {
         </form>
 
         <div className="signup-login-link">
-          <p>
+          <p className="signup-login-link-text">
             이미 계정이 있으신가요?{' '}
-            <button 
-              type="button" 
-              onClick={handleLoginClick}
+            <span 
               className="signup-login-btn"
-              disabled={isSubmitting}
+              onClick={handleLoginClick}
             >
               로그인
-            </button>
+            </span>
           </p>
         </div>
       </div>

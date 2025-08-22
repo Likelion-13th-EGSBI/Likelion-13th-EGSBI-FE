@@ -21,6 +21,7 @@ import MainPage from './pages/MainPage';
 import Eventall from './pages/EventAll';
 import Location from './pages/LocationSettings';
 import CheckInPage from './pages/CheckInPage';
+import EmailVerificationPage from './pages/EmailVerificationPage';
 
 
 function App() {
@@ -46,7 +47,7 @@ function App() {
       <Route path="/event-all" element={<Eventall />} />
       <Route path="/location" element={<Location />} />
       <Route path="/join" element={<CheckInPage />} />
-
+      <Route path="/email-verification" element={<EmailVerificationPage />} />
         
         
         
