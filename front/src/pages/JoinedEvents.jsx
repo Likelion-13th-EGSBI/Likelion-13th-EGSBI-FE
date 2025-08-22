@@ -1,3 +1,4 @@
+// src/pages/JoinedEvents.jsx
 import React, { useEffect, useMemo, useRef, useState, useCallback } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import Layout from "../components/Layout";
@@ -7,84 +8,115 @@ import "../css/joinedevents.css";
 import "../css/review-modal.css";
 
 /* ================================
-   API 연결 준비(ENV 없이도 안전)
-   - 실제 연동 시 ENABLE_QR_VERIFY 를 true로
-   - fetch 주석 해제하고 API_BASE 필요시 채우기
+   API 연결
    ================================ */
-const API_BASE = "";              // 같은 도메인 프록시라면 비워두세요 (예: "/api/...")
-const ENABLE_QR_VERIFY = false;   // ← 나중에 true로 바꾸면 QR 검증 동작
+const API_BASE = "https://gateway.gamja.cloud"; // 프록시 쓰면 "" 로
+const ENABLE_QR_VERIFY = false;
+const SHOW_DEV_TEST = false; // ← 필요 시 true로 바꾸면 “테스트 참여 등록” 버튼 노출
+const IMAGE_REQUIRES_AUTH = false; // 이미지 엔드포인트가 인증 필요하면 true
 
-// --------- 더미 데이터: 15개 ----------
-const ALL_DUMMY = Array.from({ length: 15 }, (_, i) => {
-  const endPast = i % 7 === 0;
-  return {
-    id: 10_000 + i + 1,
-    image: "",
-    imageUrl: "",
-    title: `내가 참여한 행사 ${i + 1}`,
-    summary: `참여한 행사 ${i + 1}의 간단 설명입니다.`,
-    description: "행사 상세(더미). 실제에선 서버에서 받아옵니다.",
-    hashtags: ["참여", "커뮤니티"],
-    date: `2025-09-${((i % 28) + 1).toString().padStart(2, "0")}`,
-    endDate: endPast
-      ? "2025-07-31"
-      : `2025-12-${((i % 27) + 1).toString().padStart(2, "0")}`,
-    time: "14:00 - 17:00",
-    location: i % 2 ? "서울 강남구" : "부산 해운대구",
-    fee: i % 2 === 0 ? "무료" : `${(5000 + (i % 5) * 1000).toLocaleString()}원`,
-    ownerId: 123,
-    ownerName: "라이언 스튜디오",
-    ownerProfile: null,
-    attended: true,       // ← 배포 테스트용 더미. QR 게이팅 테스트하려면 false로 바꿔보세요.
-    reviewed: i % 9 === 0 // 일부는 이미 리뷰 작성됨
-  };
-});
-
-// ----- 유틸 -----
-const filterByDeadline = (arr, includeClosed = false) => {
-  const today = new Date(); today.setHours(0,0,0,0);
-  if (includeClosed) return arr;
-  return arr.filter((e) => {
-    const end = new Date(e.endDate || e.date); end.setHours(0,0,0,0);
-    return +end >= +today;
-  });
-};
-const sortByDateDesc = (arr) =>
-  [...arr].sort((a, b) => new Date(b.date) - new Date(a.date));
-const PAGE_SIZE = 18;
-
-const canWriteReview = (ev) => ev.attended && !ev.reviewed;
-
-/* ================================
-   (준비만) 참석 인증 API 래퍼
-   - 현재는 비활성(ENABLE_QR_VERIFY=false)
-   - 실제 연결 시 fetch 주석 해제
-   ================================ */
-async function verifyAttendanceToken(attendToken) {
-  if (!ENABLE_QR_VERIFY) return null;
-
-  // ▼ 실제 API 나오면 이 블록의 주석을 해제하세요.
-  /*
-  const res = await fetch(
-    `${API_BASE}/api/attendance/verify?token=${encodeURIComponent(attendToken)}`,
-    {
-      method: "GET", // 필요 시 "POST"
-      headers: { "Content-Type": "application/json" },
-      credentials: "include", // 쿠키 인증 시
-    }
+// ---- Auth/Storage 유틸 ----
+function getAccessToken() {
+  return (
+    localStorage.getItem("Token") ||
+    localStorage.getItem("accessToken") ||
+    ""
   );
-  if (!res.ok) {
-    const text = await res.text().catch(() => "");
-    throw new Error(`VERIFY_FAILED ${res.status} ${text}`);
-  }
-  // 기대 응답: { ok: true, eventId, alreadyAttended, reviewed }
-  return await res.json();
-  */
-
-  return null;
+}
+function getUserId() {
+  const v = localStorage.getItem("userid") ?? localStorage.getItem("userId");
+  return v ? Number(v) : null;
+}
+function authHeaders(extra = {}) {
+  const token = getAccessToken();
+  const uid = getUserId();
+  return {
+    Accept: "application/json",
+    ...(token ? { Authorization: `Bearer ${token}` } : {}),
+    ...(uid ? { "X-User-Id": String(uid) } : {}),
+    ...extra,
+  };
+}
+// 이미지 blob 요청용(불필요한 Accept 제거)
+function authHeadersImage(extra = {}) {
+  const token = getAccessToken();
+  const uid = getUserId();
+  return {
+    ...(token ? { Authorization: `Bearer ${token}` } : {}),
+    ...(uid ? { "X-User-Id": String(uid) } : {}),
+    ...extra,
+  };
+}
+async function safeJson(res) {
+  const text = await res.text().catch(() => "");
+  if (!text) return null;
+  try { return JSON.parse(text); } catch { return null; }
 }
 
-// ----- 간단 별점 컴포넌트 (로컬 정의) -----
+/* ================================
+   포맷 & 매핑 유틸
+   ================================ */
+function pad2(n) { return String(n).padStart(2, "0"); }
+function fmtDate(iso) {
+  if (!iso) return "";
+  const d = new Date(iso);
+  return `${d.getFullYear()}-${pad2(d.getMonth()+1)}-${pad2(d.getDate())}`;
+}
+function fmtTimeRange(startIso, endIso) {
+  if (!startIso && !endIso) return "";
+  const s = startIso ? new Date(startIso) : null;
+  const e = endIso ? new Date(endIso) : null;
+  const toHHMM = (d) => `${pad2(d.getHours())}:${pad2(d.getMinutes())}`;
+  if (s && e) return `${toHHMM(s)} - ${toHHMM(e)}`;
+  if (s) return `${toHHMM(s)}`;
+  if (e) return `${toHHMM(e)}`;
+  return "";
+}
+
+// ★ 포스터 이미지 URL 규칙
+function toPosterUrl(posterId) {
+  if (!posterId && posterId !== 0) return "";
+  return `${API_BASE}/api/image/${posterId}`;
+}
+
+// Participation → 카드 플레이스홀더(단건조회 전 기본값)
+function toSkeletonFromParticipation(eventId) {
+  return {
+    id: eventId,
+    image: "",
+    title: `행사 #${eventId}`,
+    summary: "참여하신 행사입니다.",
+    description: "",
+    hashtags: ["참여"],
+    date: "",
+    time: "",
+    location: "",
+    fee: "",
+    attended: true,
+    reviewed: false,
+  };
+}
+
+// EventDTO → 카드 데이터 매핑
+function mapEventDtoToCard(dto) {
+  return {
+    id: dto?.id,
+    image: dto?.posterId ? toPosterUrl(dto.posterId) : "",
+    title: dto?.name || `행사 #${dto?.id ?? ""}`,
+    summary: dto?.description || "",
+    description: dto?.description || "",
+    hashtags: dto?.hashtags || [],
+    date: fmtDate(dto?.startTime),
+    time: fmtTimeRange(dto?.startTime, dto?.endTime),
+    location: dto?.address || "",
+    fee: typeof dto?.entryFee === "number"
+      ? (dto.entryFee === 0 ? "무료" : `${dto.entryFee.toLocaleString()}원`)
+      : "",
+    // attended/reviewed 는 다른 로직에서 병합
+  };
+}
+
+// ---- 별점 ----
 const StarRating = ({ value, onChange, size = 28 }) => {
   const [hover, setHover] = useState(0);
   return (
@@ -111,22 +143,20 @@ const StarRating = ({ value, onChange, size = 28 }) => {
   );
 };
 
+const PAGE_SIZE = 18;
+const canWriteReview = (ev) => ev.attended && !ev.reviewed;
+
 const JoinedEvents = () => {
   const navigate = useNavigate();
   const location = useLocation();
 
-  // 기본 목록
-  const includeClosed = false; // 마감 제외
-  const baseList = useMemo(
-    () => sortByDateDesc(filterByDeadline(ALL_DUMMY, includeClosed)),
-    [includeClosed]
-  );
-
+  // 서버 원본 목록(Participation→eventId)
+  const [baseList, setBaseList] = useState([]); // [{id, ...skeleton}]
   // 페이지네이션/무한스크롤
   const [page, setPage] = useState(1);
-  const [slice, setSlice] = useState(() => baseList.slice(0, PAGE_SIZE));
+  const [slice, setSlice] = useState([]);
   const [loading, setLoading] = useState(false);
-  const [hasMore, setHasMore] = useState(baseList.length > PAGE_SIZE);
+  const [hasMore, setHasMore] = useState(false);
   const sentinelRef = useRef(null);
 
   // 리뷰 모달
@@ -136,27 +166,66 @@ const JoinedEvents = () => {
   const [content, setContent] = useState("");
   const [submitting, setSubmitting] = useState(false);
 
-  // 참석 인증 결과를 UI에 반영하기 위한 override 맵 (id -> partial)
-  const [overridesById, setOverridesById] = useState({});
-  // QR 검증 상태 배너
-  const [verifyState, setVerifyState] = useState({
-    phase: "idle", // idle|checking|success|error
-    message: "",
-    eventId: null,
-  });
+  // 상태 override & 캐시
+  const [overridesById, setOverridesById] = useState({});      // attended/reviewed 등
+  const [reviewCache, setReviewCache] = useState({});          // eventId -> boolean
+  const [eventInfoById, setEventInfoById] = useState({});      // eventId -> mapped card
+  const inFlightInfo = useRef(new Set());                      // 중복 요청 방지
 
-  // 쿼리/상태에서 토큰 추출 (둘 다 지원)
+  // QR 배너(미사용)
+  const [verifyState, setVerifyState] = useState({ phase: "idle", message: "", eventId: null });
+
+  // 쿼리 토큰
   const searchParams = new URLSearchParams(location.search);
   const attendToken =
     searchParams.get("attend_token") || (location.state && location.state.attendToken) || null;
 
-  // 기본 목록이 바뀌면 페이지 초기화
-  useEffect(() => {
-    setPage(1);
-    setSlice(baseList.slice(0, PAGE_SIZE));
-    setHasMore(baseList.length > PAGE_SIZE);
-  }, [baseList]);
+  /* ===== 참여 목록 불러오기 ===== */
+  const loadParticipations = useCallback(async () => {
+    const uid = getUserId();
+    const token = getAccessToken();
 
+    // 가드: 로그인 정보 없으면 즉시 안내
+    if (!uid || !token) {
+      console.warn("[participation/list] 헤더 누락", { uid, hasToken: !!token });
+      setBaseList([]);
+      setSlice([]);
+      setHasMore(false);
+      return;
+    }
+
+    try {
+      const res = await fetch(`${API_BASE}/api/activity/participation/list`, {
+        method: "GET",
+        headers: authHeaders(),
+      });
+
+      const body = await safeJson(res);
+
+      if (!res.ok) {
+        throw new Error(`LIST_FAILED ${res.status} ${JSON.stringify(body)}`);
+      }
+
+      const arr = Array.isArray(body) ? body : [];
+      const events = arr.map((p) => toSkeletonFromParticipation(p.eventId)); // skeleton
+      setBaseList(events);
+
+      // 초기 페이징
+      setPage(1);
+      const first = events.slice(0, PAGE_SIZE);
+      setSlice(first);
+      setHasMore(events.length > PAGE_SIZE);
+    } catch (e) {
+      console.error("[participation/list] 실패:", e);
+      setBaseList([]);
+      setSlice([]);
+      setHasMore(false);
+    }
+  }, []);
+
+  useEffect(() => { loadParticipations(); }, [loadParticipations]);
+
+  /* ===== 무한 스크롤 ===== */
   const loadMore = useCallback(() => {
     if (loading || !hasMore) return;
     setLoading(true);
@@ -174,46 +243,116 @@ const JoinedEvents = () => {
     const el = sentinelRef.current;
     if (!el) return;
     const io = new IntersectionObserver(
-      (entries) => {
-        const [entry] = entries;
-        if (entry.isIntersecting) loadMore();
-      },
+      (entries) => entries[0]?.isIntersecting && loadMore(),
       { root: null, rootMargin: "400px 0px", threshold: 0 }
     );
     io.observe(el);
     return () => io.disconnect();
   }, [loadMore]);
 
-  const goDetail = (id) => navigate(`/events/${id}`);
+  /* ===== 행사 단건 조회(상세) 캐싱 ===== */
+  const ensureEventInfo = useCallback(async (eventId) => {
+    if (eventInfoById[eventId]) return;           // 이미 있음
+    if (inFlightInfo.current.has(eventId)) return; // 진행 중
+    inFlightInfo.current.add(eventId);
 
-  const openReview = (ev) => {
-    setTarget(ev);
-    setRating(0);
-    setContent("");
-    setModalOpen(true);
-  };
-  const closeReview = () => {
-    setModalOpen(false);
-    setTarget(null);
-    setRating(0);
-    setContent("");
-  };
+    try {
+      const res = await fetch(`${API_BASE}/api/event/info/${encodeURIComponent(eventId)}`, {
+        method: "GET",
+        headers: authHeaders(), // 토큰 없어도 열려있다면 Authorization만 빠질 뿐
+      });
+      const dto = await safeJson(res);
+      if (!res.ok) throw new Error(`EVENT_INFO_FAILED ${res.status}`);
 
+      const mapped = mapEventDtoToCard(dto || {});
+
+      // 이미지가 인증 필요할 때 blob으로 로드
+      if (IMAGE_REQUIRES_AUTH && dto?.posterId) {
+        try {
+          const imgRes = await fetch(`${API_BASE}/api/image/${dto.posterId}`, {
+            method: "GET",
+            headers: authHeadersImage(),
+          });
+          if (imgRes.ok) {
+            const blob = await imgRes.blob();
+            mapped.image = URL.createObjectURL(blob);
+          }
+        } catch (e) {
+          console.warn("이미지 blob 로드 실패:", e);
+        }
+      }
+
+      setEventInfoById((prev) => ({ ...prev, [eventId]: mapped }));
+    } catch (e) {
+      console.warn(`[event/info] 실패(eventId=${eventId}):`, e);
+    } finally {
+      inFlightInfo.current.delete(eventId);
+    }
+  }, [eventInfoById]);
+
+  // 현재 노출 구간에 대해 상세/리뷰 상태 채우기
+  useEffect(() => {
+    slice.forEach((ev) => {
+      if (!eventInfoById[ev.id]) ensureEventInfo(ev.id);
+    });
+  }, [slice, eventInfoById, ensureEventInfo]);
+
+  /* ===== 리뷰 여부 채우기 ===== */
+  const ensureReviewStatus = useCallback(async (eventId) => {
+    if (reviewCache[eventId] !== undefined) return;
+    try {
+      const res = await fetch(
+        `${API_BASE}/api/activity/review/eventlist?eventId=${encodeURIComponent(eventId)}`,
+        { method: "GET", headers: authHeaders() }
+      );
+      const list = await safeJson(res);
+      if (!res.ok) throw new Error(`REVIEW_LIST_FAILED ${res.status}`);
+      const myId = getUserId();
+      const iWrote = Array.isArray(list) && list.some((r) => Number(r?.userId) === myId);
+      setReviewCache((prev) => ({ ...prev, [eventId]: !!iWrote }));
+      if (iWrote) {
+        setOverridesById((prev) => ({
+          ...prev,
+          [eventId]: { ...(prev[eventId] || {}), reviewed: true },
+        }));
+      }
+    } catch (e) {
+      console.warn(`[review/eventlist] 실패(eventId=${eventId}):`, e);
+    }
+  }, [reviewCache]);
+
+  useEffect(() => {
+    slice.forEach((ev) => {
+      const merged = overridesById[ev.id] ? { ...ev, ...overridesById[ev.id] } : ev;
+      if (!merged.reviewed) ensureReviewStatus(ev.id);
+    });
+  }, [slice, overridesById, ensureReviewStatus]);
+
+  /* ===== 리뷰 작성 ===== */
   const submitReview = async () => {
     if (!target) return;
-    if (rating === 0) { alert("별점을 선택해 주세요."); return; }
-    if (!content.trim()) { alert("후기 내용을 입력해 주세요."); return; }
+    if (rating === 0) return alert("별점을 선택해 주세요.");
+    if (!content.trim()) return alert("후기 내용을 입력해 주세요.");
     setSubmitting(true);
     try {
-      // 실제 API 연동 지점
-      // await fetch(`${API_BASE}/api/events/${target.id}/reviews`, { ... });
-
-      // 더미 반영: 작성 완료 처리
+      const res = await fetch(
+        `${API_BASE}/api/activity/review/${encodeURIComponent(target.id)}`,
+        {
+          method: "POST",
+          headers: authHeaders({ "Content-Type": "application/json" }),
+          body: JSON.stringify({ content: content.trim(), rating }),
+        }
+      );
+      if (!(res.status === 201 || res.ok)) {
+        const txt = await res.text().catch(() => "");
+        throw new Error(`REVIEW_CREATE_FAILED ${res.status} ${txt}`);
+      }
       setSlice((prev) => prev.map((e) => (e.id === target.id ? { ...e, reviewed: true } : e)));
       setOverridesById((prev) => ({
         ...prev,
         [target.id]: { ...(prev[target.id] || {}), reviewed: true },
       }));
+      setReviewCache((prev) => ({ ...prev, [target.id]: true }));
       alert("후기가 등록되었습니다.");
       closeReview();
     } catch (e) {
@@ -224,94 +363,65 @@ const JoinedEvents = () => {
     }
   };
 
-  // ===== QR 참석 인증 처리 (현재 비활성: ENABLE_QR_VERIFY=false) =====
+  /* ===== (선택) 테스트용 참여 등록 ===== */
+  const devJoin = async (eventId) => {
+    try {
+      const res = await fetch(`${API_BASE}/api/activity/participation/join`, {
+        method: "POST",
+        headers: authHeaders({ "Content-Type": "application/json" }),
+        body: JSON.stringify({ eventId }),
+      });
+      const body = await safeJson(res);
+      if (!res.ok) throw new Error(`JOIN_FAILED ${res.status}`);
+      await loadParticipations();
+      alert(`테스트 참여 등록 완료 (eventId=${eventId})`);
+    } catch (e) {
+      console.error(e);
+      alert("테스트 참여 등록 실패");
+    }
+  };
+
+  /* ===== QR (미사용) ===== */
   useEffect(() => {
     let cancelled = false;
     async function runVerify() {
       if (!attendToken) return;
-
-      // 플래그 꺼져있으면: 토큰은 조용히 제거만(중복 검증 방지)
       if (!ENABLE_QR_VERIFY) {
         navigate(location.pathname, { replace: true });
         return;
       }
-
-      setVerifyState({ phase: "checking", message: "참석 인증 확인 중…", eventId: null });
-
-      try {
-        const res = await verifyAttendanceToken(attendToken); // 현재는 null 반환
-        if (cancelled) return;
-
-        if (!res || !res.ok) {
-          setVerifyState({ phase: "error", message: "참석 인증에 실패했어요.", eventId: null });
-        } else {
-          const { eventId, reviewed, alreadyAttended } = res;
-          setOverridesById((prev) => ({
-            ...prev,
-            [eventId]: { ...(prev[eventId] || {}), attended: true, reviewed: !!reviewed },
-          }));
-          setVerifyState({
-            phase: "success",
-            message: alreadyAttended ? "이미 참석 인증된 행사예요." : "참석 인증 완료!",
-            eventId,
-          });
-        }
-      } catch (err) {
-        console.error(err);
-        if (!cancelled) {
-          setVerifyState({ phase: "error", message: "참석 인증에 실패했어요.", eventId: null });
-        }
-      } finally {
-        if (!cancelled) {
-          // URL 정리
-          navigate(location.pathname, { replace: true });
-          // 배너 자동 숨김
-          setTimeout(() => {
-            if (!cancelled) setVerifyState((s) => ({ ...s, phase: "idle", message: "" }));
-          }, 2400);
-        }
-      }
+      // QR 검증 API 나오면 여기 연결
+      setTimeout(() => {
+        if (!cancelled) setVerifyState((s) => ({ ...s, phase: "idle", message: "" }));
+      }, 2400);
     }
     runVerify();
     return () => { cancelled = true; };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [attendToken]);
 
+  // 네비/모달
+  const goDetail = (id) => navigate(`/events/${id}`);
+  const openReview = (ev) => { setTarget(ev); setRating(0); setContent(""); setModalOpen(true); };
+  const closeReview = () => { setModalOpen(false); setTarget(null); setRating(0); setContent(""); };
+
+  const uid = getUserId();
+  const hasToken = !!getAccessToken();
+
   return (
     <Layout>
       <div className="events-page is-under-topbar joined-page">
-        {/* QR 배너: 플래그 켜졌을 때만 의미가 있음 */}
-        {ENABLE_QR_VERIFY && verifyState.phase !== "idle" && (
-          <div
-            role="status"
-            aria-live="polite"
-            style={{
-              margin: "8px 12px 0",
-              padding: "10px 12px",
-              borderRadius: 12,
-              fontWeight: 600,
-              fontSize: 14,
-              background:
-                verifyState.phase === "checking"
-                  ? "#F3F4F6"
-                  : verifyState.phase === "success"
-                  ? "#E8F5E9"
-                  : "#FDECEA",
-              color:
-                verifyState.phase === "checking"
-                  ? "#374151"
-                  : verifyState.phase === "success"
-                  ? "#2E7D32"
-                  : "#C62828",
-              border:
-                verifyState.phase === "checking"
-                  ? "1px solid #e5e7eb"
-                  : verifyState.phase === "success"
-                  ? "1px solid #c8e6c9"
-                  : "1px solid #f5c6cb",
-            }}
-          >
-            {verifyState.message}
+        {/* 상단 진단 영역 */}
+        {!uid || !hasToken ? (
+          <div style={{ margin: "12px", padding: "10px 12px", borderRadius: 12, border: "1px solid #f5c6cb", background: "#FDECEA", color: "#C62828", fontSize: 14 }}>
+            로그인 정보가 없어 참여 목록을 불러올 수 없어요. (X-User-Id / Authorization 누락)
+          </div>
+        ) : null}
+
+        {/* DEV: 테스트 참여 등록 버튼 */}
+        {SHOW_DEV_TEST && (
+          <div style={{ margin: "0 12px 8px" }}>
+            <button className="btn outline" onClick={() => devJoin(52)}>테스트 참여 등록(eventId=52)</button>
           </div>
         )}
 
@@ -319,30 +429,22 @@ const JoinedEvents = () => {
           <>
             <div className="events-grid">
               {slice.map((ev) => {
-                // 참석 인증/리뷰 상태를 overrides로 병합해서 사용
-                const merged = overridesById[ev.id]
-                  ? { ...ev, ...overridesById[ev.id] }
-                  : ev;
-
+                // 상세 정보(eventInfoById) → 참여상태 오버라이드(overridesById) → 스켈레톤 순서로 병합
+                const merged = {
+                  ...ev,
+                  ...(eventInfoById[ev.id] || {}),
+                  ...(overridesById[ev.id] || {}),
+                };
                 const eligible = canWriteReview(merged);
                 return (
-                  <div
-                    key={ev.id}
-                    className="joined-card"
-                    aria-label={`${merged.title} 카드`}
-                    role="group"
-                  >
-                    {/* 카드 탭 영역(상세 이동) */}
+                  <div key={ev.id} className="joined-card" aria-label={`${merged.title} 카드`} role="group">
                     <div
                       className="joined-card-tap"
                       role="button"
                       tabIndex={0}
                       onClick={() => goDetail(merged.id)}
                       onKeyDown={(e) => {
-                        if (e.key === "Enter" || e.key === " ") {
-                          e.preventDefault();
-                          goDetail(merged.id);
-                        }
+                        if (e.key === "Enter" || e.key === " ") { e.preventDefault(); goDetail(merged.id); }
                       }}
                       style={{ cursor: "pointer", outline: "none" }}
                     >
@@ -358,24 +460,16 @@ const JoinedEvents = () => {
                       />
                     </div>
 
-                    {/* 하단 액션 */}
                     <div className="joined-card-actions">
                       <button
                         type="button"
                         className="btn primary joined-card-action-btn"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          openReview(merged);
-                        }}
+                        onClick={(e) => { e.stopPropagation(); openReview(merged); }}
                         disabled={!eligible}
                         aria-disabled={!eligible}
                         aria-label={merged.reviewed ? "리뷰 완료" : "리뷰 작성"}
                         title={
-                          eligible
-                            ? "리뷰 작성"
-                            : merged.reviewed
-                            ? "이미 리뷰를 작성했습니다"
-                            : "리뷰 작성이 아직 불가합니다"
+                          eligible ? "리뷰 작성" : merged.reviewed ? "이미 리뷰를 작성했습니다" : "리뷰 작성이 아직 불가합니다"
                         }
                       >
                         {merged.reviewed ? "리뷰 완료" : "리뷰 작성"}
@@ -387,23 +481,18 @@ const JoinedEvents = () => {
             </div>
 
             <div ref={sentinelRef} style={{ height: 1 }} />
-
-            {loading && (
-              <div className="events-empty" style={{ padding: "16px 0" }}>
-                <div className="title">불러오는 중…</div>
-              </div>
-            )}
-            {!hasMore && (
-              <div className="events-empty" style={{ padding: "8px 0" }}>
-                <div className="desc">마지막 행사까지 모두 보셨어요.</div>
-              </div>
-            )}
+            {loading && <div className="events-empty" style={{ padding: "16px 0" }}><div className="title">불러오는 중…</div></div>}
+            {!hasMore && <div className="events-empty" style={{ padding: "8px 0" }}><div className="desc">마지막 행사까지 모두 보셨어요.</div></div>}
           </>
         ) : (
           <div className="events-empty">
             <div className="emoji">🗓️</div>
             <div className="title">표시할 행사가 없어요</div>
-            <div className="desc">마감 제외 옵션으로 인해 비어있을 수 있어요.</div>
+            <div className="desc">
+              {(!uid || !hasToken)
+                ? "로그인 후 다시 시도해 주세요."
+                : "참여한 행사가 없거나 아직 참여 처리를 하지 않았을 수 있어요."}
+            </div>
           </div>
         )}
 
@@ -433,9 +522,7 @@ const JoinedEvents = () => {
                 />
               </div>
               <div className="review-modal__footer">
-                <button className="btn outline" onClick={closeReview} disabled={submitting}>
-                  취소
-                </button>
+                <button className="btn outline" onClick={closeReview} disabled={submitting}>취소</button>
                 <button className="btn primary" onClick={submitReview} disabled={submitting}>
                   {submitting ? "제출 중..." : "제출"}
                 </button>
