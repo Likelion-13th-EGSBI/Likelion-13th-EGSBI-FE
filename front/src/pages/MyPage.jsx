@@ -27,6 +27,24 @@ async function safeJson(res) {
   try { return JSON.parse(text); } catch { return null; }
 }
 
+// ✅ 새 규칙: 0.5 단위로 고정 (소수 있으면 무조건 반쪽)
+//  - 4.0 -> ★★★★
+//  - 4.1~4.9 -> ★★★★☆
+function computeStars(r) {
+  // 안전 클램프
+  const rating = Math.max(0, Math.min(5, Number.isFinite(r) ? r : 0));
+
+  // 5.0은 예외적으로 5개 꽉찬 별
+  if (rating >= 5) return { rating, full: 5, hasHalf: false, empty: 0 };
+
+  const full = Math.floor(rating);
+  const hasHalf = rating > full;          // 소수점이 있으면 무조건 반쪽
+  const empty = 5 - full - (hasHalf ? 1 : 0);
+
+  return { rating, full, hasHalf, empty };
+}
+
+
 const MyPage = ({ onPageChange }) => {
   const navigate = useNavigate();
   const [user, setUser] = useState(null);
@@ -163,10 +181,10 @@ const MyPage = ({ onPageChange }) => {
   const avatarUrl = user?.avatarUrl || "";
   const initial = useMemo(() => (titleName ? titleName[0] : "U"), [titleName]);
 
-  const rating = typeof user?.rating === "number" ? user.rating : 0;
-  const full = Math.floor(rating);
-  const hasHalf = rating - full >= 0.5;
-  const empty = 5 - full - (hasHalf ? 1 : 0);
+  // ⭐ 반쪽별/올림 규칙 적용된 값들
+  const { rating, full, hasHalf, empty } = computeStars(
+    typeof user?.rating === "number" ? user.rating : 0
+  );
 
   const handleLogout = () => {
     const confirmLogout = window.confirm("정말 로그아웃 하시겠습니까?");
@@ -232,9 +250,13 @@ const MyPage = ({ onPageChange }) => {
                   {rating > 0 ? (
                     <div className="profile-rating compact" aria-label={`평점 ${rating.toFixed(1)}점`}>
                       <div className="rating-stars" aria-hidden="true">
-                        {Array.from({ length: full }).map((_, i) => <span key={`f${i}`} className="star full">★</span>)}
+                        {Array.from({ length: full }).map((_, i) => (
+                          <span key={`f${i}`} className="star full">★</span>
+                        ))}
                         {hasHalf && <span className="star half">★</span>}
-                        {Array.from({ length: empty }).map((_, i) => <span key={`e${i}`} className="star empty">★</span>)}
+                        {Array.from({ length: empty }).map((_, i) => (
+                          <span key={`e${i}`} className="star empty">★</span>
+                        ))}
                       </div>
                       <span className="rating-value">{rating.toFixed(1)}</span>
                     </div>
