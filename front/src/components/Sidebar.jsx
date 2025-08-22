@@ -1,17 +1,57 @@
-import React, { useMemo } from 'react';
+import React, { useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Home, FileText, ThumbsUp, Heart, UploadCloud, CalendarCheck, User, MapPin, LogOut, LogIn } from 'lucide-react';
 import logo from '../imgs/mainlogo.png';
 import '../css/sidebar.css';
 
+// 프로필 이미지 캐시를 위한 전역 변수
+let profileImageCache = {};
+
 const Sidebar = ({ activeMenuItem }) => {
   const navigate = useNavigate();
+  const [profileImageUrl, setProfileImageUrl] = useState(null);
 
   // 로그인 여부 & 사용자 정보 → 토큰 유무로 판단
   const accessToken = localStorage.getItem('accessToken');
   const userId = localStorage.getItem('userId');
+  const profileId = localStorage.getItem('profileId');
   const isLoggedIn = !!(accessToken && userId);
   const userName = localStorage.getItem('userName');
+
+  // 프로필 이미지 불러오기 함수
+  const loadProfileImage = async () => {
+    if (!profileId || !accessToken) return;
+
+    // 캐시에서 먼저 확인
+    if (profileImageCache[profileId]) {
+      setProfileImageUrl(profileImageCache[profileId]);
+      return;
+    }
+
+    try {
+      const response = await fetch(`https://gateway.gamja.cloud/api/image/${profileId}`, {
+        headers: {
+          'Authorization': `Bearer ${accessToken}`
+        }
+      });
+      
+      if (response.ok) {
+        const blob = await response.blob();
+        const imageUrl = URL.createObjectURL(blob);
+        
+        // 캐시에 저장
+        profileImageCache[profileId] = imageUrl;
+        setProfileImageUrl(imageUrl);
+      }
+    } catch (error) {
+      console.error('프로필 이미지 로드 실패:', error);
+    }
+  };
+
+  // 로그인된 상태에서 프로필 이미지가 없으면 바로 로드
+  if (isLoggedIn && profileId && !profileImageUrl && !profileImageCache[profileId]) {
+    loadProfileImage();
+  }
 
   // 반드시 id 값이 Layout의 routeToId value와 100% 일치해야 함
   const mainMenuItems = useMemo(
@@ -58,12 +98,20 @@ const Sidebar = ({ activeMenuItem }) => {
 
   // 로그아웃
   const handleLogout = () => {
+    // 캐시 정리
+    Object.values(profileImageCache).forEach(url => {
+      URL.revokeObjectURL(url);
+    });
+    profileImageCache = {};
+    
     localStorage.removeItem('accessToken');
     localStorage.removeItem('userId');
     localStorage.removeItem('userEmail');
     localStorage.removeItem('userNickname');
     localStorage.removeItem('userName');
+    localStorage.removeItem('profileId');
     localStorage.removeItem('tokenExpiration');
+    setProfileImageUrl(null);
     navigate('/');
   };
 
@@ -79,7 +127,17 @@ const Sidebar = ({ activeMenuItem }) => {
         <div className="sidebar-user-card rich">
           {isLoggedIn ? (
             <div className="sidebar-user-logged-in">
-              <div className="sidebar-user-avatar xl">{getUserInitial()}</div>
+              <div className="sidebar-user-avatar xl">
+                {profileImageUrl || profileImageCache[profileId] ? (
+                  <img 
+                    src={profileImageUrl || profileImageCache[profileId]} 
+                    alt="프로필 이미지" 
+                    className="sidebar-profile-image"
+                  />
+                ) : (
+                  getUserInitial()
+                )}
+              </div>
               <div className="sidebar-user-details">
                 <span className="sidebar-user-name xl">{userName || '사용자'}</span>
               </div>

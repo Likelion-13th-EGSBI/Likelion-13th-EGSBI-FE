@@ -22,7 +22,7 @@ import Eventall from './pages/EventAll';
 import Location from './pages/LocationSettings';
 import CheckInPage from './pages/CheckInPage';
 import EmailVerificationPage from './pages/EmailVerificationPage';
-
+import EventSearchPage from './pages/EventSearchPage';
 
 function App() {
   return (
@@ -48,6 +48,7 @@ function App() {
       <Route path="/location" element={<Location />} />
       <Route path="/join" element={<CheckInPage />} />
       <Route path="/email-verification" element={<EmailVerificationPage />} />
+      <Route path="/search" element={<EventSearchPage />} />
         
         
         
