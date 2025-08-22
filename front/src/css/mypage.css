@@ -69,6 +69,7 @@
 .rating-stars .star{ font-size:14px; }
 .star.full{ color:var(--orange); }
 .star.empty{ color:rgba(0,0,0,.25); }
+/* 전역 half(다른 페이지 호환용) */
 .star.half{
   background:linear-gradient(90deg,var(--orange) 50%,rgba(0,0,0,.25) 50%);
   -webkit-background-clip:text; background-clip:text; color:transparent;
@@ -202,43 +203,42 @@
   .profile-edit-button{ transition:none !important; }
 }
 
-/* === ⭐ 별점 가로 정렬/간격 타이트 + 값 없을 때 텍스트 === */
+/* === ⭐ 별점: 가로 정렬 타이트 & 반쪽별 정확 표시 === */
 .profile-rating.compact{
-  display:flex; align-items:center; gap:0px; /* 숫자와 별 간격 */
-  margin-top:6px; line-height:1;
+  display:flex; align-items:center; gap:0px;
+  margin-top:6px; line-height:1; white-space:nowrap;
 }
 .profile-rating.compact .rating-stars{
   display:inline-flex; align-items:center; gap:0; line-height:1;
+  justify-content:flex-start; flex:0 0 auto; width:auto;
 }
-/* 각 별 기본 설정 */
 .profile-rating.compact .star{
   display:inline-block; font-size:16px; line-height:1;
 }
-/* 글리프 사이드베어링 제거용: 별끼리 살짝 겹치게 */
-.profile-rating.compact .star + .star{
-  margin-left:-3px; /* 더 붙이고 싶으면 -4px, 너무 겹치면 -2px */
-}
-/* 반쪽 별은 오버레이로 */
+.profile-rating.compact .star + .star{ margin-left:-3px; }
+
+/* 반쪽별(오버레이) – 전역 half 규칙을 무력화하고 정확히 절반만 채움 */
 .profile-rating.compact .star.half{
-  position:relative; color:rgba(0,0,0,.25); z-index:1;
+  position:relative; color:rgba(0,0,0,.28); z-index:1;
+  background:none; -webkit-background-clip:initial; background-clip:initial;
 }
 .profile-rating.compact .star.half::after{
-  content:"★"; position:absolute; left:0; top:0; width:50%;
-  color:var(--orange); overflow:hidden;
+  content:"★"; position:absolute; left:0; top:0;
+  display:inline-block; width:0.5em; overflow:hidden;
+  color:var(--orange); line-height:1; pointer-events:none;
 }
+
 /* 색상 재확인 */
 .profile-rating.compact .star.full  { color:var(--orange); }
 .profile-rating.compact .star.empty { color:rgba(0,0,0,.28); }
 
-/* 숫자 배지: 반 칸 위로 */
+/* 숫자 배지 */
 .profile-rating .rating-value{
-  margin-left:2px;
-  transform:translateY(-1px);
+  margin-left:2px; transform:translateY(-1px);
   font-size:12.5px; font-weight:700; font-variant-numeric:tabular-nums;
   color:#6b7280; background:rgba(242,155,80,.12);
   padding:3px 6px; border-radius:8px; line-height:1;
 }
-/* 0점일 때 텍스트 */
 .rating-empty{ font-size:13px; color:rgba(0,0,0,.55); }
 
 .profile-nickname{ font-size:14px; color:rgba(0,0,0,.70); margin-top:2px; }

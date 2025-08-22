@@ -11,7 +11,6 @@ import "../css/review-modal.css";
    API 연결
    ================================ */
 const API_BASE = "https://gateway.gamja.cloud"; // 프록시 쓰면 "" 로
-const SHOW_DEV_TEST = false; // ← 필요 시 true로 바꾸면 “테스트 참여 등록” 버튼 노출
 const IMAGE_REQUIRES_AUTH = false; // 이미지 엔드포인트가 인증 필요하면 true
 
 // ---- Auth/Storage 유틸 ----
