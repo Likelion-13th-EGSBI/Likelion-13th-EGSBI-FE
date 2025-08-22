@@ -699,7 +699,6 @@ const EventEdit = () => {
       const eventJson = {
         hashtags: eventData.hashtags || [],
         endTime: endDateTime,
-        organizerId: parseInt(userId),
         name: eventData.eventName,
         latitude: parseFloat(eventData.latitude) || 37.5665,
         longitude: parseFloat(eventData.longitude) || 126.978,

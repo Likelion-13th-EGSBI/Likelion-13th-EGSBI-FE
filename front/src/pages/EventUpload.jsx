@@ -969,7 +969,6 @@ const submitEventToAPI = async (eventData, imageFile) => {
       name: eventData.eventName,
       startTime: startDateTime,
       endTime: endDateTime,
-      organizerId: parseInt(userId),
       latitude: parseFloat(eventData.latitude) || 37.5665,
       longitude: parseFloat(eventData.longitude) || 126.978,
       entryFee: parseInt(eventData.fee) || 0,
