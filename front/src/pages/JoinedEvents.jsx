@@ -1,5 +1,5 @@
 // src/pages/JoinedEvents.jsx
-import React, { useEffect, useMemo, useRef, useState, useCallback } from "react";
+import React, { useEffect, useRef, useState, useCallback } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import Layout from "../components/Layout";
 import EventCard from "../components/EventCard";
@@ -11,7 +11,6 @@ import "../css/review-modal.css";
    API 연결
    ================================ */
 const API_BASE = "https://gateway.gamja.cloud"; // 프록시 쓰면 "" 로
-const ENABLE_QR_VERIFY = false;
 const SHOW_DEV_TEST = false; // ← 필요 시 true로 바꾸면 “테스트 참여 등록” 버튼 노출
 const IMAGE_REQUIRES_AUTH = false; // 이미지 엔드포인트가 인증 필요하면 true
 
@@ -112,7 +111,6 @@ function mapEventDtoToCard(dto) {
     fee: typeof dto?.entryFee === "number"
       ? (dto.entryFee === 0 ? "무료" : `${dto.entryFee.toLocaleString()}원`)
       : "",
-    // attended/reviewed 는 다른 로직에서 병합
   };
 }
 
@@ -167,13 +165,10 @@ const JoinedEvents = () => {
   const [submitting, setSubmitting] = useState(false);
 
   // 상태 override & 캐시
-  const [overridesById, setOverridesById] = useState({});      // attended/reviewed 등
-  const [reviewCache, setReviewCache] = useState({});          // eventId -> boolean
-  const [eventInfoById, setEventInfoById] = useState({});      // eventId -> mapped card
-  const inFlightInfo = useRef(new Set());                      // 중복 요청 방지
-
-  // QR 배너(미사용)
-  const [verifyState, setVerifyState] = useState({ phase: "idle", message: "", eventId: null });
+  const [overridesById, setOverridesById] = useState({});
+  const [reviewCache, setReviewCache] = useState({});
+  const [eventInfoById, setEventInfoById] = useState({});
+  const inFlightInfo = useRef(new Set());
 
   // 쿼리 토큰
   const searchParams = new URLSearchParams(location.search);
@@ -185,9 +180,7 @@ const JoinedEvents = () => {
     const uid = getUserId();
     const token = getAccessToken();
 
-    // 가드: 로그인 정보 없으면 즉시 안내
     if (!uid || !token) {
-      console.warn("[participation/list] 헤더 누락", { uid, hasToken: !!token });
       setBaseList([]);
       setSlice([]);
       setHasMore(false);
@@ -201,16 +194,12 @@ const JoinedEvents = () => {
       });
 
       const body = await safeJson(res);
-
-      if (!res.ok) {
-        throw new Error(`LIST_FAILED ${res.status} ${JSON.stringify(body)}`);
-      }
+      if (!res.ok) throw new Error(`LIST_FAILED ${res.status}`);
 
       const arr = Array.isArray(body) ? body : [];
-      const events = arr.map((p) => toSkeletonFromParticipation(p.eventId)); // skeleton
+      const events = arr.map((p) => toSkeletonFromParticipation(p.eventId));
       setBaseList(events);
 
-      // 초기 페이징
       setPage(1);
       const first = events.slice(0, PAGE_SIZE);
       setSlice(first);
@@ -252,21 +241,20 @@ const JoinedEvents = () => {
 
   /* ===== 행사 단건 조회(상세) 캐싱 ===== */
   const ensureEventInfo = useCallback(async (eventId) => {
-    if (eventInfoById[eventId]) return;           // 이미 있음
-    if (inFlightInfo.current.has(eventId)) return; // 진행 중
+    if (eventInfoById[eventId]) return;
+    if (inFlightInfo.current.has(eventId)) return;
     inFlightInfo.current.add(eventId);
 
     try {
       const res = await fetch(`${API_BASE}/api/event/info/${encodeURIComponent(eventId)}`, {
         method: "GET",
-        headers: authHeaders(), // 토큰 없어도 열려있다면 Authorization만 빠질 뿐
+        headers: authHeaders(),
       });
       const dto = await safeJson(res);
       if (!res.ok) throw new Error(`EVENT_INFO_FAILED ${res.status}`);
 
       const mapped = mapEventDtoToCard(dto || {});
 
-      // 이미지가 인증 필요할 때 blob으로 로드
       if (IMAGE_REQUIRES_AUTH && dto?.posterId) {
         try {
           const imgRes = await fetch(`${API_BASE}/api/image/${dto.posterId}`, {
@@ -290,7 +278,6 @@ const JoinedEvents = () => {
     }
   }, [eventInfoById]);
 
-  // 현재 노출 구간에 대해 상세/리뷰 상태 채우기
   useEffect(() => {
     slice.forEach((ev) => {
       if (!eventInfoById[ev.id]) ensureEventInfo(ev.id);
@@ -363,42 +350,11 @@ const JoinedEvents = () => {
     }
   };
 
-  /* ===== (선택) 테스트용 참여 등록 ===== */
-  const devJoin = async (eventId) => {
-    try {
-      const res = await fetch(`${API_BASE}/api/activity/participation/join`, {
-        method: "POST",
-        headers: authHeaders({ "Content-Type": "application/json" }),
-        body: JSON.stringify({ eventId }),
-      });
-      const body = await safeJson(res);
-      if (!res.ok) throw new Error(`JOIN_FAILED ${res.status}`);
-      await loadParticipations();
-      alert(`테스트 참여 등록 완료 (eventId=${eventId})`);
-    } catch (e) {
-      console.error(e);
-      alert("테스트 참여 등록 실패");
-    }
-  };
-
-  /* ===== QR (미사용) ===== */
+  /* ===== QR 토큰: 지금은 비활성화. 토큰만 URL에서 제거 ===== */
   useEffect(() => {
-    let cancelled = false;
-    async function runVerify() {
-      if (!attendToken) return;
-      if (!ENABLE_QR_VERIFY) {
-        navigate(location.pathname, { replace: true });
-        return;
-      }
-      // QR 검증 API 나오면 여기 연결
-      setTimeout(() => {
-        if (!cancelled) setVerifyState((s) => ({ ...s, phase: "idle", message: "" }));
-      }, 2400);
-    }
-    runVerify();
-    return () => { cancelled = true; };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [attendToken]);
+    if (!attendToken) return;
+    navigate(location.pathname, { replace: true });
+  }, [attendToken, navigate, location.pathname]);
 
   // 네비/모달
   const goDetail = (id) => navigate(`/events/${id}`);
@@ -411,25 +367,17 @@ const JoinedEvents = () => {
   return (
     <Layout>
       <div className="events-page is-under-topbar joined-page">
-        {/* 상단 진단 영역 */}
+        {/* 안내: 로그인 누락 */}
         {!uid || !hasToken ? (
-          <div style={{ margin: "12px", padding: "10px 12px", borderRadius: 12, border: "1px solid #f5c6cb", background: "#FDECEA", color: "#C62828", fontSize: 14 }}>
+          <div className="inline-alert error">
             로그인 정보가 없어 참여 목록을 불러올 수 없어요. (X-User-Id / Authorization 누락)
           </div>
         ) : null}
-
-        {/* DEV: 테스트 참여 등록 버튼 */}
-        {SHOW_DEV_TEST && (
-          <div style={{ margin: "0 12px 8px" }}>
-            <button className="btn outline" onClick={() => devJoin(52)}>테스트 참여 등록(eventId=52)</button>
-          </div>
-        )}
 
         {slice.length > 0 ? (
           <>
             <div className="events-grid">
               {slice.map((ev) => {
-                // 상세 정보(eventInfoById) → 참여상태 오버라이드(overridesById) → 스켈레톤 순서로 병합
                 const merged = {
                   ...ev,
                   ...(eventInfoById[ev.id] || {}),
@@ -485,8 +433,8 @@ const JoinedEvents = () => {
             {!hasMore && <div className="events-empty" style={{ padding: "8px 0" }}><div className="desc">마지막 행사까지 모두 보셨어요.</div></div>}
           </>
         ) : (
-          <div className="events-empty">
-            <div className="emoji">🗓️</div>
+          <div className="events-empty simple">
+            <div className="emoji" aria-hidden>📅</div>
             <div className="title">표시할 행사가 없어요</div>
             <div className="desc">
               {(!uid || !hasToken)
