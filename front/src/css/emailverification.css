@@ -1,0 +1,363 @@
+.emailverification-container {
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+    background-color: #fdfdfd;
+  }
+  
+  .emailverification-header {
+    display: none;
+  }
+  
+  .emailverification-header img {
+    width: 240px;
+    height: auto;
+    padding-left: 100px;
+  }
+  
+  @media (min-width: 768px) {
+    .emailverification-header {
+      display: flex;
+      align-items: center;
+      height: 102px;
+      padding: 0 24px;
+      background-color: #fff;
+      border-bottom: 1px solid #e5e7eb;
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      z-index: 10;
+    }
+    
+    .emailverification-container {
+      padding-top: 102px;
+    }
+  }
+  
+  .emailverification-inner {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    width: 100%;
+    max-width: 420px;
+    margin: 0 auto;
+    padding: 32px 24px;
+    flex: 1;
+    justify-content: center;
+  }
+  
+  .emailverification-title {
+    font-size: 24px;
+    font-weight: bold;
+    color: #333;
+    margin-bottom: 16px;
+    text-align: center;
+  }
+  
+  .emailverification-description {
+    font-size: 16px;
+    color: #6b7280;
+    text-align: center;
+    margin-bottom: 32px;
+    line-height: 1.5;
+  }
+  
+  .emailverification-form {
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+  }
+  
+  /* 이메일 입력 섹션 */
+  .emailverification-email-section {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+  
+  .emailverification-email-input {
+    width: 100%;
+    height: 48px;
+    background: #ffffff;
+    border: 2px solid #e0e0e0;
+    border-radius: 12px;
+    padding: 0 16px;
+    font-size: 15px;
+    transition: all 0.2s ease;
+    outline: none;
+    font-family: inherit;
+    box-sizing: border-box;
+  }
+  
+  .emailverification-email-input:focus {
+    border-color: #5E936C;
+    box-shadow: 0 0 0 3px rgba(94, 147, 108, 0.1);
+  }
+  
+  .emailverification-email-input:disabled {
+    background-color: #f3f4f6;
+    cursor: not-allowed;
+    opacity: 0.7;
+  }
+  
+  .emailverification-send-btn {
+    width: 100%;
+    height: 48px;
+    background: #5E936C;
+    color: white;
+    border: none;
+    border-radius: 12px;
+    font-size: 16px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    font-family: inherit;
+  }
+  
+  .emailverification-send-btn:hover:not(:disabled) {
+    background: #4a7857;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 16px rgba(94, 147, 108, 0.3);
+  }
+  
+  .emailverification-send-btn:disabled {
+    background: #9ca3af;
+    cursor: not-allowed;
+    transform: none;
+    box-shadow: none;
+  }
+  
+  /* 인증 코드 입력 섹션 */
+  .emailverification-code-section {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    animation: slideDown 0.3s ease-out;
+  }
+  
+  .emailverification-code-input {
+    width: 100%;
+    height: 48px;
+    background: #ffffff;
+    border: 2px solid #e0e0e0;
+    border-radius: 12px;
+    padding: 0 16px;
+    font-size: 16px;
+    transition: all 0.2s ease;
+    outline: none;
+    font-family: inherit;
+    text-align: center;
+    letter-spacing: 4px;
+    font-weight: 600;
+    box-sizing: border-box;
+  }
+  
+  .emailverification-code-input:focus {
+    border-color: #f59e0b;
+    box-shadow: 0 0 0 3px rgba(245, 158, 11, 0.1);
+  }
+  
+  .emailverification-code-input:disabled {
+    background-color: #f3f4f6;
+    cursor: not-allowed;
+    opacity: 0.7;
+  }
+  
+  .emailverification-verify-btn {
+    width: 100%;
+    height: 48px;
+    background: #f59e0b;
+    color: white;
+    border: none;
+    border-radius: 12px;
+    font-size: 16px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    font-family: inherit;
+  }
+  
+  .emailverification-verify-btn:hover:not(:disabled) {
+    background: #d97706;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 16px rgba(245, 158, 11, 0.3);
+  }
+  
+  .emailverification-verify-btn:disabled {
+    background: #9ca3af;
+    cursor: not-allowed;
+    transform: none;
+    box-shadow: none;
+  }
+  
+  /* 인증 성공 섹션 */
+  .emailverification-success-section {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 20px;
+    padding: 40px 20px;
+    background: #f0fdf4;
+    border-radius: 16px;
+    border: 2px solid #bbf7d0;
+    animation: fadeIn 0.5s ease-out;
+  }
+  
+  .emailverification-success-icon {
+    width: 80px;
+    height: 80px;
+    background: #10b981;
+    color: white;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 36px;
+    font-weight: bold;
+    animation: bounce 0.6s ease-out;
+  }
+  
+  .emailverification-success-title {
+    font-size: 24px;
+    font-weight: bold;
+    color: #065f46;
+    margin: 0;
+    text-align: center;
+  }
+  
+  .emailverification-success-description {
+    font-size: 16px;
+    color: #047857;
+    text-align: center;
+    line-height: 1.5;
+    margin: 0;
+  }
+  
+  /* 푸터 */
+  .emailverification-footer {
+    margin-top: 32px;
+    text-align: center;
+  }
+  
+  .emailverification-footer p {
+    color: #6b7280;
+    font-size: 14px;
+    margin: 0;
+  }
+  
+  .emailverification-login-btn {
+    background: none;
+    border: none;
+    color: #5E936C;
+    font-weight: 600;
+    text-decoration: underline;
+    cursor: pointer;
+    font-size: 14px;
+    transition: color 0.2s ease;
+  }
+  
+  .emailverification-login-btn:hover {
+    color: #4a7857;
+  }
+  
+  /* 애니메이션 */
+  @keyframes slideDown {
+    from {
+      opacity: 0;
+      transform: translateY(-10px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+  
+  @keyframes fadeIn {
+    from {
+      opacity: 0;
+      transform: scale(0.95);
+    }
+    to {
+      opacity: 1;
+      transform: scale(1);
+    }
+  }
+  
+  @keyframes bounce {
+    0%, 20%, 50%, 80%, 100% {
+      transform: translateY(0);
+    }
+    40% {
+      transform: translateY(-10px);
+    }
+    60% {
+      transform: translateY(-5px);
+    }
+  }
+  
+  /* 반응형 디자인 */
+  @media (max-width: 768px) {
+    .emailverification-inner {
+      padding: 24px 16px;
+      justify-content: flex-start;
+      padding-top: 40px;
+    }
+    
+    .emailverification-title {
+      font-size: 22px;
+    }
+    
+    .emailverification-email-section {
+      gap: 10px;
+    }
+    
+    .emailverification-code-section {
+      gap: 10px;
+    }
+  }
+  
+  @media (max-width: 480px) {
+    .emailverification-inner {
+      padding: 20px 12px;
+    }
+  
+    .emailverification-title {
+      font-size: 20px;
+    }
+  
+    .emailverification-description {
+      font-size: 15px;
+    }
+  
+    .emailverification-email-input,
+    .emailverification-code-input,
+    .emailverification-send-btn,
+    .emailverification-verify-btn {
+      height: 44px;
+      font-size: 15px;
+    }
+  
+    .emailverification-code-input {
+      letter-spacing: 2px;
+    }
+  
+    .emailverification-success-section {
+      padding: 30px 15px;
+    }
+  
+    .emailverification-success-icon {
+      width: 60px;
+      height: 60px;
+      font-size: 28px;
+    }
+  
+    .emailverification-success-title {
+      font-size: 20px;
+    }
+  
+    .emailverification-success-description {
+      font-size: 14px;
+    }
+  }
