@@ -1,4 +1,3 @@
-// src/pages/EventAll.jsx
 import React, { useEffect, useMemo, useState, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import Layout from "../components/Layout";
@@ -8,46 +7,49 @@ import "../css/eventall.css";
 const BASE_URL = "https://gateway.gamja.cloud";
 
 function getAuth() {
-  try { return JSON.parse(localStorage.getItem("auth") || "{}"); } catch { return {}; }
-}
-function saveAuth(patch) {
-  const next = { ...getAuth(), ...patch };
-  localStorage.setItem("auth", JSON.stringify(next));
-  return next;
+  try {
+    const obj = JSON.parse(localStorage.getItem("auth") || "{}");
+    const idRaw = obj?.id ?? localStorage.getItem("userId") ?? localStorage.getItem("userid") ?? "";
+    const idParsed = parseInt(String(idRaw).replace(/[^\d]/g, ""), 10);
+    const accessToken =
+      obj?.accessToken ||
+      localStorage.getItem("accessToken") ||
+      localStorage.getItem("Token") ||
+      localStorage.getItem("token") ||
+      "";
+    return { id: Number.isFinite(idParsed) && idParsed > 0 ? idParsed : null, accessToken: accessToken || "" };
+  } catch {
+    const idRaw = localStorage.getItem("userId") ?? localStorage.getItem("userid") ?? "";
+    const idParsed = parseInt(String(idRaw).replace(/[^\d]/g, ""), 10);
+    const token =
+      localStorage.getItem("accessToken") ||
+      localStorage.getItem("Token") ||
+      localStorage.getItem("token") ||
+      "";
+    return { id: Number.isFinite(idParsed) && idParsed > 0 ? idParsed : null, accessToken: token || "" };
+  }
 }
 function userHeaders() {
-  const { id } = getAuth();
+  const { id, accessToken } = getAuth();
   const h = {};
   if (id != null) h["X-User-Id"] = String(id);
+  if (accessToken) h["Authorization"] = `Bearer ${accessToken}`;
   return h;
 }
-async function http(path, { method = "GET", headers = {}, body, signal, _retried } = {}) {
+
+async function http(path, { method = "GET", headers = {}, body, signal } = {}) {
   const isJsonBody = body && !(body instanceof FormData);
   const res = await fetch(`${BASE_URL}${path}`, {
     method,
     headers: { ...(isJsonBody ? { "Content-Type": "application/json" } : {}), ...headers },
     body: body ? (isJsonBody ? JSON.stringify(body) : body) : undefined,
     signal,
-    credentials: "include",
+    credentials: "omit",
   });
-  if ((res.status === 401 || res.headers.get("WWW-Authenticate")) && !_retried) {
-    const { id } = getAuth();
-    if (id == null) {
-      alert("로그인이 필요합니다.");
-      const txt = await res.text().catch(() => "");
-      throw new Error(`${res.status} ${res.statusText} ${txt}`);
-    }
-    const renew = await fetch(`${BASE_URL}/api/user/renew`, { method: "POST", headers: { ...userHeaders() }, credentials: "include" });
-    if (!renew.ok) {
-      alert("로그인이 필요합니다.");
-      const txt = await res.text().catch(() => "");
-      throw new Error(`${res.status} ${res.statusText} ${txt}`);
-    }
-    try {
-      const data = await renew.json();
-      if (data && data.accessToken) saveAuth({ accessToken: data.accessToken });
-    } catch {}
-    return http(path, { method, headers, body, signal, _retried: true });
+  if (res.status === 401) {
+    alert("로그인이 필요합니다.");
+    const txt = await res.text().catch(() => "");
+    throw new Error(`${res.status} ${res.statusText} ${txt}`);
   }
   if (!res.ok) {
     const txt = await res.text().catch(() => "");
@@ -97,7 +99,8 @@ function normalizeEventOne(raw) {
     endTime: raw.endTime ?? null,
     address: raw.address ?? "",
     entryFee: Number.isFinite(raw.entryFee) ? raw.entryFee : 0,
-    posterId: raw.posterId ?? raw.qrImage ?? null,
+    posterId: raw.posterId ?? null,
+    qrImage: raw.qrImage ?? null,
     hashtags: raw.hashtags ?? [],
     createdAt: raw.createTime ?? null,
     lat: typeof lat === "number" ? lat : lat ? Number(lat) : null,
@@ -152,17 +155,6 @@ async function fetchEventsPopular() {
     throw e;
   }
 }
-async function fetchUserLocation(uid) {
-  if (!uid) return null;
-  try {
-    const p = await api.pubGet(`/api/user/location/${uid}`);
-    const u = p?.data ?? p;
-    const lat = u?.latitude;
-    const lng = u?.longitude;
-    if (typeof lat === "number" && typeof lng === "number") return { lat, lng, address: u?.address ?? null };
-  } catch {}
-  return null;
-}
 async function fetchMyBookmarkList() {
   try {
     const list = await api.uGet(`/api/activity/bookmark/list`);
@@ -206,19 +198,13 @@ export default function EventAll() {
 
   useEffect(() => {
     let alive = true;
-    (async () => {
-      const { id: uid } = getAuth();
-      const loc = await fetchUserLocation(uid);
-      if (alive && loc) {
-        setUserPos({ lat: loc.lat, lng: loc.lng });
-      } else if ("geolocation" in navigator) {
-        navigator.geolocation.getCurrentPosition(
-          (pos) => alive && setUserPos({ lat: pos.coords.latitude, lng: pos.coords.longitude }),
-          () => {},
-          { enableHighAccuracy: false, maximumAge: 600000, timeout: 3000 }
-        );
-      }
-    })();
+    if ("geolocation" in navigator) {
+      navigator.geolocation.getCurrentPosition(
+        (pos) => alive && setUserPos({ lat: pos.coords.latitude, lng: pos.coords.longitude }),
+        () => {},
+        { enableHighAccuracy: false, maximumAge: 600000, timeout: 3000 }
+      );
+    }
     return () => { alive = false; };
   }, []);
 
@@ -232,7 +218,6 @@ export default function EventAll() {
         list = await fetchEventsByDistance({ includeClosed, lat: userPos.lat, lng: userPos.lng, page: zeroPage, size: PER_PAGE });
       } else if (sort === "popular") {
         list = await fetchEventsPopular();
-        list = list.sort((a, b) => (b.bookmarkCount ?? 0) - (a.bookmarkCount ?? 0));
       } else {
         list = await fetchEventsLatest({ includeClosed, page: zeroPage, size: PER_PAGE });
       }
@@ -259,7 +244,12 @@ export default function EventAll() {
     return () => { alive = false; };
   }, [loadPage]);
 
-  const now = useMemo(() => new Date(), []);
+  const [now, setNow] = useState(() => new Date());
+  useEffect(() => {
+    const t = setInterval(() => setNow(new Date()), 60000);
+    return () => clearInterval(t);
+  }, []);
+
   const normalized = useMemo(() => {
     return (allEvents || []).map((e) => {
       const s = e.startTime ? new Date(e.startTime) : null;
@@ -288,25 +278,29 @@ export default function EventAll() {
   const pageItems = filtered;
 
   const toggleBookmark = async (id) => {
+    const { id: uid } = getAuth();
+    if (uid == null) {
+      alert("로그인이 필요합니다. 로그인 후 다시 시도해주세요.");
+      return;
+    }
     const prev = !!bookmarks[id];
     setBookmarks((p) => ({ ...p, [id]: !prev }));
     try {
       await toggleBookmarkOnServer(id);
-      try {
-        const newCount = await fetchBookmarkCount(id);
-        setAllEvents((prevEvents) => {
-          const updated = prevEvents.map((ev) => (ev.id === id ? { ...ev, bookmarkCount: newCount } : ev));
-          if (sort === "popular") {
-            return [...updated].sort((a, b) => (b.bookmarkCount ?? 0) - (a.bookmarkCount ?? 0));
-          }
-          return updated;
-        });
-      } catch {}
+      const [latestMap, newCount] = await Promise.all([fetchMyBookmarkList(), fetchBookmarkCount(id)]);
+      setBookmarks(latestMap);
+      setAllEvents((prevEvents) => {
+        const updated = prevEvents.map((ev) => (ev.id === id ? { ...ev, bookmarkCount: newCount } : ev));
+        if (sort === "popular") return [...updated];
+        return updated;
+      });
     } catch (e) {
       setBookmarks((p) => ({ ...p, [id]: prev }));
       const msg = String(e?.message || "");
       if (msg.includes("로그인이") || msg.includes("401")) {
         alert("로그인이 필요합니다. 로그인 후 다시 시도해주세요.");
+      } else {
+        alert("네트워크 오류가 발생했습니다. 잠시 후 다시 시도해주세요.");
       }
     }
   };
