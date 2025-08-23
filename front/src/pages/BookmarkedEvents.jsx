@@ -1,3 +1,4 @@
+/* eslint-disable react-hooks/exhaustive-deps */
 // src/pages/BookmarkedEvents.jsx
 import React, { useEffect, useRef, useState } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
@@ -40,21 +41,57 @@ const eventApi = axios.create({ baseURL: EVENT_BASE });
 const activityApi = axios.create({ baseURL: ACTIVITY_BASE });
 const imageApi = axios.create({ baseURL: IMAGE_BASE });
 
+/* ===== 날짜/시간 포맷 유틸 (로컬 기준) ===== */
+const pad2 = (n) => String(n).padStart(2, "0");
+function toDateStrLocal(d) {
+  return `${d.getFullYear()}-${pad2(d.getMonth() + 1)}-${pad2(d.getDate())}`;
+}
+function toHM(d) {
+  return `${pad2(d.getHours())}:${pad2(d.getMinutes())}`;
+}
+/** 자정(종일) 감지 */
+const isMidnight = (d) => !!d && d.getHours() === 0 && d.getMinutes() === 0;
+
 /* DTO 내 이미지 id 키 유연 처리 */
 function pickImageId(ev) {
-  return (
-    ev?.posterId ??
-    ev?.imageId ??
-    ev?.poster_id ??
-    ev?.poster?.id ??
-    null
-  );
+  return ev?.posterId ?? ev?.imageId ?? ev?.poster_id ?? ev?.poster?.id ?? null;
 }
 
 /* EventDTO → 화면 모델 매핑 (이미지 id만 보관) */
 function mapEventDTO(ev) {
-  const startDateStr = ev?.startTime ? new Date(ev.startTime).toISOString().slice(0, 10) : "";
-  const endDateStr = ev?.endTime ? new Date(ev.endTime).toISOString().slice(0, 10) : "";
+  const start = ev?.startTime ? new Date(ev.startTime) : null;
+  const end = ev?.endTime ? new Date(ev.endTime) : null;
+
+  /* eslint-disable no-console */
+  console.log("[DEBUG] local parsed", {
+    id: ev?.id,
+    startRaw: ev?.startTime ?? null,
+    startLocalString: start ? start.toString() : null,
+    startHM: start ? toHM(start) : null,
+    endRaw: ev?.endTime ?? null,
+    endLocalString: end ? end.toString() : null,
+    endHM: end ? toHM(end) : null,
+  });
+  /* eslint-enable no-console */
+
+  const startDateStr = start ? toDateStrLocal(start) : "";
+  const endDateStr = end ? toDateStrLocal(end) : "";
+
+  // ⏰ 시간 표시 규칙
+  let timeStr = "";
+  if (start) {
+    const sameDay = !!end && toDateStrLocal(end) === startDateStr;
+    if (sameDay) {
+      const parts = [];
+      if (!isMidnight(start)) parts.push(toHM(start));
+      if (end && !isMidnight(end)) parts.push(toHM(end));
+      timeStr = parts.join(" ~ "); // 둘 다 자정이면 빈 문자열(=종일)
+      // 원하면: if (!parts.length) timeStr = "종일";
+    } else {
+      timeStr = isMidnight(start) ? "" : toHM(start);
+    }
+  }
+
   const fee =
     typeof ev?.entryFee === "number"
       ? ev.entryFee === 0
@@ -64,17 +101,16 @@ function mapEventDTO(ev) {
 
   return {
     id: ev.id,
-    // 🔽 이미지 관련
-    imageId: pickImageId(ev),   // ← 여기 저장
-    image: "",                  // (하위 호환)
-    imageUrl: "",               // blob object URL 채울 자리
+    imageId: pickImageId(ev),
+    image: "",
+    imageUrl: "",
 
     title: ev.name ?? `이벤트 #${ev.id}`,
     summary: ev.description ?? "",
     description: ev.description ?? "",
     hashtags: Array.isArray(ev.hashtags) ? ev.hashtags : [],
     date: startDateStr,
-    time: "",
+    time: timeStr,
     location: ev.address ?? "",
     lat: typeof ev.latitude === "number" ? ev.latitude : undefined,
     lng: typeof ev.longitude === "number" ? ev.longitude : undefined,
@@ -85,9 +121,8 @@ function mapEventDTO(ev) {
     ownerProfile: null,
     bookmarked: true,
 
-    // 정렬용 키
-    _start: ev?.startTime ? new Date(ev.startTime).getTime() : Number.POSITIVE_INFINITY,
-    _end: ev?.endTime ? new Date(ev.endTime).getTime() : Number.NaN,
+    _start: start ? start.getTime() : Number.POSITIVE_INFINITY,
+    _end: end ? end.getTime() : Number.NaN,
   };
 }
 
@@ -115,9 +150,6 @@ const isClosed = (e) => {
   return true; // 날짜 없으면 마감 취급
 };
 
-// 기존 브릿지 끔
-const useTabletBridge = () => false;
-
 const BookmarkedEvents = () => {
   /* ===============================
      상태
@@ -127,20 +159,19 @@ const BookmarkedEvents = () => {
   const [hasMore, setHasMore] = useState(true);
   const [page, setPage] = useState(1);
 
-  // 보기/범위/정렬
-  const [view, setView] = useState("list");          // 'list' | 'map'
-  const [scope, setScope] = useState("active");      // 'active' | 'closed'
-  const [sortMode, setSortMode] = useState("recent");// 'recent' | 'distance'
+  // 보기 + 모드(필터+정렬)
+  const [view, setView] = useState("list");        // 'list' | 'map'
+  const [mode, setMode] = useState("recent");      // 'recent' | 'distance' | 'closed'
 
   const [myPos, setMyPos] = useState(null);
   const [geoError, setGeoError] = useState("");
 
+  // ✅ 북마크 카운트
   const [bookmarkCount, setBookmarkCount] = useState(0);
 
   // 전체 캐시
   const allEventsRef = useRef([]);
 
-  const tabletBridge = useTabletBridge();
   const navigate = useNavigate();
   const location = useLocation();
   const observerTarget = useRef(null);
@@ -155,10 +186,10 @@ const BookmarkedEvents = () => {
   const navBlockRef = useRef(false);
   const geoRequestedRef = useRef(false);
 
-  // 🔵 이미지 캐시 (imageId -> objectURL), 중복요청 방지, 정리용
-  const imgUrlCacheRef = useRef(new Map());     // imageId -> objectURL
-  const imgPendingRef = useRef(new Set());      // imageId 로딩 중
-  const createdUrlsRef = useRef(new Set());     // revoke용
+  // 🔵 이미지 캐시
+  const imgUrlCacheRef = useRef(new Map()); // imageId -> objectURL
+  const imgPendingRef = useRef(new Set());
+  const createdUrlsRef = useRef(new Set());
 
   /* =========================
      (A) 페이지 플래그 & 리스너
@@ -210,8 +241,24 @@ const BookmarkedEvents = () => {
     try {
       const res = await eventApi.get("/api/event/bookmarks", { headers });
       const arr = Array.isArray(res.data) ? res.data : [];
+
+      /* eslint-disable no-console */
+      console.groupCollapsed("[DEBUG] bookmark raw times");
+      arr.forEach((ev) => {
+        console.log({
+          id: ev.id,
+          startRaw: ev.startTime,
+          endRaw: ev.endTime,
+        });
+      });
+      console.groupEnd();
+      /* eslint-enable no-console */
+
       const mapped = arr.map(mapEventDTO);
+
+      // ✅ 카운트 반영
       setBookmarkCount(mapped.length);
+
       return mapped;
     } catch (err) {
       console.error("GET /api/event/bookmarks error:", err);
@@ -221,7 +268,7 @@ const BookmarkedEvents = () => {
     }
   }
 
-  // 이미지 조회: blob → objectURL (보안 헤더 필요하므로 fetch 사용)
+  // 이미지 조회: blob → objectURL
   async function fetchImageObjectUrl(imageId) {
     if (!imageId) return "";
 
@@ -230,7 +277,6 @@ const BookmarkedEvents = () => {
       return imgUrlCacheRef.current.get(imageId);
     }
     if (imgPendingRef.current.has(imageId)) {
-      // 이미 로딩 중이면 잠깐 대기(간단 폴링)
       await new Promise((r) => setTimeout(r, 120));
       return imgUrlCacheRef.current.get(imageId) || "";
     }
@@ -239,7 +285,6 @@ const BookmarkedEvents = () => {
       imgPendingRef.current.add(imageId);
       const headers = authHeaders();
 
-      // axios로 blob 요청
       const res = await imageApi.get(`/api/image/${imageId}`, {
         headers,
         responseType: "blob",
@@ -280,13 +325,15 @@ const BookmarkedEvents = () => {
      (C) 정렬/필터/페이지 적용
      =============================== */
   const applySortAndFilter = (list, opts = {}) => {
-    const s = opts.scope ?? scope;
-    const sort = opts.sortMode ?? sortMode;
+    const m = opts.mode ?? mode;
     const pos = opts.pos ?? myPos;
+
+    const scope = m === "closed" ? "closed" : "active";
+    const sort = m === "distance" ? "distance" : "recent"; // closed는 내부적으로 recent
 
     // 1) 범위 필터
     let data =
-      s === "closed"
+      scope === "closed"
         ? list.filter((e) => isClosed(e))
         : list.filter((e) => !isClosed(e));
 
@@ -298,8 +345,8 @@ const BookmarkedEvents = () => {
         return da - db;
       });
     } else if (sort === "recent") {
-      if (s === "closed") {
-        // 최근 마감순 (endTime 없으면 startTime 사용)
+      if (scope === "closed") {
+        // 최근 마감순
         data.sort((a, b) => {
           const ae = a._end ?? Number.NaN;
           const be = b._end ?? Number.NaN;
@@ -352,37 +399,30 @@ const BookmarkedEvents = () => {
   /* ===============================
      (D) 초기 로드 & 반응
      =============================== */
-  useEffect(() => { loadEvents({ scope, sortMode, pos: myPos, page: 1 }); }, []);
-
-  // 탭(진행중/마감) 전환
+  // ✅ A 방식: 초기 로드 useEffect([]) 제거
+  //    -> 아래 [mode] 이펙트 하나로 초기/변경 로드 모두 처리
   useEffect(() => {
     setPage(1); setHasMore(true);
-    loadEvents({ scope, sortMode, pos: myPos, page: 1 });
-  }, [scope]);
-
-  // 정렬 변경
-  useEffect(() => {
-    setPage(1); setHasMore(true);
-    if (sortMode === "distance" && !myPos && !geoRequestedRef.current) {
+    if (mode === "distance" && !myPos && !geoRequestedRef.current) {
       geoRequestedRef.current = true;
       fetchMyLocation(false, (p) => {
-        loadEvents({ scope, sortMode: "distance", pos: p, page: 1 });
+        loadEvents({ mode: "distance", pos: p, page: 1 });
       });
     } else {
-      loadEvents({ scope, sortMode, pos: myPos, page: 1 });
+      loadEvents({ mode, pos: myPos, page: 1 });
     }
-  }, [sortMode]);
+  }, [mode]);
 
   // 내 위치 확보 후 거리 정렬 재요청
   useEffect(() => {
-    if (sortMode === "distance" && myPos) {
+    if (mode === "distance" && myPos) {
       setPage(1); setHasMore(true);
-      loadEvents({ scope, sortMode: "distance", pos: myPos, page: 1 });
+      loadEvents({ mode: "distance", pos: myPos, page: 1 });
     }
   }, [myPos]);
 
   // 무한 스크롤
-  useEffect(() => { if (page > 1) loadEvents({ page, scope, sortMode, pos: myPos }); }, [page]);
+  useEffect(() => { if (page > 1) loadEvents({ page, mode, pos: myPos }); }, [page]);
 
   useEffect(() => {
     const observer = new IntersectionObserver(
@@ -403,11 +443,13 @@ const BookmarkedEvents = () => {
     // 낙관적 업데이트
     setEvents((prev) => prev.filter((e) => e.id !== id));
     allEventsRef.current = allEventsRef.current.filter((e) => e.id !== id);
+
+    // ✅ 카운트 즉시 감소
     setBookmarkCount((c) => Math.max(0, c - 1));
 
     const success = await toggleBookmarkOnServer(id);
     if (!success) {
-      await loadEvents({ page: 1, scope, sortMode, pos: myPos });
+      await loadEvents({ page: 1, mode, pos: myPos });
       window.alert("해제에 실패했습니다. 잠시 후 다시 시도해주세요.");
     }
     setTimeout(() => (navBlockRef.current = false), 0);
@@ -426,7 +468,6 @@ const BookmarkedEvents = () => {
 
   /* ===============================
      (E) 이미지 로딩 훅
-     - 화면에 올라온 이벤트들 중 imageId가 있고 imageUrl이 비어있으면 blob으로 수신
      =============================== */
   useEffect(() => {
     let cancelled = false;
@@ -440,7 +481,7 @@ const BookmarkedEvents = () => {
         if (cancelled) return;
         if (!url) continue;
 
-        // 해당 ev.id에만 url 주입 (불필요한 리렌더 최소화)
+        // 해당 ev.id에만 url 주입
         setEvents((prev) =>
           prev.map((x) => (x.id === ev.id && !x.imageUrl ? { ...x, imageUrl: url } : x))
         );
@@ -463,10 +504,8 @@ const BookmarkedEvents = () => {
   }, []);
 
   /* =========================
-     (F) 지도 관련 (기존 코드 유지)
+     (F) 지도 관련
      ========================= */
-
-  // 내 위치 파란점 CSS
   const myPosCssInjectedRef = useRef(false);
   const injectMyPosCSS = () => {
     if (myPosCssInjectedRef.current) return;
@@ -560,8 +599,8 @@ const BookmarkedEvents = () => {
     geoRequestedRef.current = true;
 
     const after = (p) => {
-      if (sortMode === "distance") {
-        loadEvents({ scope, sortMode: "distance", pos: p, page: 1 });
+      if (mode === "distance") {
+        loadEvents({ mode: "distance", pos: p, page: 1 });
       }
     };
 
@@ -761,8 +800,8 @@ const BookmarkedEvents = () => {
         e.stopPropagation();
         focusMyPosRef.current = true;
         fetchMyLocation(false, (p) => {
-          if (sortMode === "distance") {
-            loadEvents({ scope, sortMode: "distance", pos: p, page: 1 });
+          if (mode === "distance") {
+            loadEvents({ mode: "distance", pos: p, page: 1 });
           }
           if (window.kakao?.maps && mapInstanceRef.current) {
             const latlng = new window.kakao.maps.LatLng(p.lat, p.lng);
@@ -812,7 +851,7 @@ const BookmarkedEvents = () => {
         box.style.height = "0";
       }
     };
-  }, [view, events, myPos, sortMode, scope]);
+  }, [view, events, myPos, mode]);
 
   /* ===============================
      (G) 렌더
@@ -820,22 +859,14 @@ const BookmarkedEvents = () => {
   return (
     <Layout>
       <div className={`events-page events-page--bookmarked is-under-topbar has-mobile-bottom-nav ${view === "map" ? "is-map" : ""}`}>
-        <div className="events-toggle">
+        <div className="events-toggle" style={{ display: "grid", gridTemplateColumns: "1fr auto", gap: 12, alignItems: "center" }}>
+          {/* 왼쪽: 버튼 두 개만 */}
           <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
-            {/* 기존 패턴 유지: 북마크 보기 / 지도보기 */}
             <button
-              className={`pill-btn ${view === "list" && scope === "active" ? "active" : ""}`}
-              onClick={() => { setScope("active"); setView("list"); }}
+              className={`pill-btn ${view === "list" ? "active" : ""}`}
+              onClick={() => setView("list")}
             >
               북마크 행사보기
-            </button>
-
-            {/* 마감된 행사만 보기 */}
-            <button
-              className={`pill-btn ${view === "list" && scope === "closed" ? "active" : ""}`}
-              onClick={() => { setScope("closed"); setView("list"); }}
-            >
-              마감된 행사
             </button>
 
             <button
@@ -847,26 +878,26 @@ const BookmarkedEvents = () => {
             </button>
           </div>
 
-          <div className="toggle-options" style={{ display: "flex", alignItems: "center", gap: 12 }}>
+          {/* 오른쪽: 북마크 카운트 + 드롭다운 */}
+          <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
             <div className="pill-badge" title="북마크 개수">북마크 {bookmarkCount}개</div>
 
-            <label htmlFor="sortMode" className="sr-only">정렬</label>
+            <label htmlFor="mode" className="sr-only">정렬/필터</label>
             <select
-              id="sortMode"
+              id="mode"
               className="pill-select"
-              value={sortMode}
-              onChange={(e) => setSortMode(e.target.value)}
+              value={mode}
+              onChange={(e) => setMode(e.target.value)}
             >
-              <option value="recent">
-                {scope === "closed" ? "최근 마감순" : "다가오는 순"}
-              </option>
+              <option value="recent">다가오는 순</option>
               <option value="distance">거리순</option>
+              <option value="closed">마감된 행사</option>
             </select>
           </div>
         </div>
 
         {/* 거리순 힌트 */}
-        {sortMode === "distance" && !myPos && (
+        {mode === "distance" && !myPos && (
           <div className="hint-bar" style={{ marginTop: 8, padding: "10px 12px", border: "1px dashed #ccc", borderRadius: 12, background: "rgba(0,0,0,0.02)" }}>
             <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12 }}>
               <span>거리순 정렬을 위해 내 위치가 필요합니다.</span>
@@ -874,7 +905,7 @@ const BookmarkedEvents = () => {
                 className="pill-btn"
                 onClick={() => {
                   if (!geoRequestedRef.current) geoRequestedRef.current = true;
-                  fetchMyLocation(false, (p) => loadEvents({ scope, sortMode: "distance", pos: p, page: 1 }));
+                  fetchMyLocation(false, (p) => loadEvents({ mode: "distance", pos: p, page: 1 }));
                 }}
               >
                 내 위치 가져오기
@@ -892,7 +923,7 @@ const BookmarkedEvents = () => {
                   <div className="emoji">📌</div>
                   <div className="title">표시할 행사가 없어요</div>
                   <div className="desc">
-                    {scope === "closed" ? "마감된 행사가 없어요." : "다가오는 북마크 행사가 없어요."}
+                    {mode === "closed" ? "마감된 행사가 없어요." : "다가오는 북마크 행사가 없어요."}
                   </div>
                 </div>
               ) : (
@@ -910,7 +941,7 @@ const BookmarkedEvents = () => {
                     aria-label={`${ev.title} 상세보기`}
                   >
                     <EventCard
-                      image={ev.imageUrl || ev.image}  // ← blob URL 우선 사용
+                      image={ev.imageUrl || ev.image}
                       title={ev.title}
                       summary={ev.summary}
                       hashtags={Array.isArray(ev.hashtags) ? ev.hashtags.map((t) => ("" + t).startsWith("#") ? t : `#${t}`) : []}
@@ -953,3 +984,4 @@ const BookmarkedEvents = () => {
 };
 
 export default BookmarkedEvents;
+
