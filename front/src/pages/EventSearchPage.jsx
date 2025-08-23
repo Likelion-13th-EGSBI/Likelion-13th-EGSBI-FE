@@ -121,7 +121,7 @@ const EventSearchPage = () => {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'X-User-Id': token, // 헤더로 토큰 전송
+          'Authorization': `Bearer ${token}`
         },
         body: JSON.stringify({
           eventId: eventId
