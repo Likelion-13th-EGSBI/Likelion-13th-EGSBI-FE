@@ -8,130 +8,148 @@ import { FaCalendarAlt, FaClock, FaMapMarkerAlt, FaWonSign, FaRegHeart, FaHeart 
 
 const API_BASE = 'https://gateway.gamja.cloud';
 
-/* ======================= auth & utils ======================= */
-const getAuthHeaders = () => {
-  const token = localStorage.getItem('accessToken');
-  return token ? { Authorization: `Bearer ${token}` } : {};
-};
 const getUserId = () => {
-  const idStr = localStorage.getItem('userId');
-  const id = idStr ? parseInt(idStr, 10) : null;
-  return Number.isFinite(id) ? id : null;
+  const raw = localStorage.getItem('userId') || '';
+  const onlyDigits = (raw.match(/\d+/g) || []).join('');
+  const n = onlyDigits ? parseInt(onlyDigits, 10) : null;
+  return Number.isFinite(n) && n > 0 ? n : null;
 };
 
-const isValidId = (v) => Number.isFinite(v) && v > 0;
-const toIntOrNull = (v) => {
-  const n = typeof v === 'number' ? v : parseInt(v, 10);
-  return Number.isFinite(n) ? n : null;
+const isAiEndpoint = (url) => {
+  try { return new URL(url, API_BASE).pathname.startsWith('/api/ai/'); }
+  catch { return false; }
 };
 
-const extractDate = (isoString) => {
-  if (!isoString) return '-';
-  const d = new Date(isoString);
-  if (Number.isNaN(d.getTime())) return '-';
-  return d.toLocaleDateString('ko-KR', { year: 'numeric', month: '2-digit', day: '2-digit' });
+const requiresUserHeader = (url) => {
+  try {
+    const p = new URL(url, API_BASE).pathname;
+    // 이 화면에서 인증이 꼭 필요한 엔드포인트만 지정
+    return p.startsWith('/api/activity/bookmark/toggle');
+  } catch { return false; }
 };
-const extractTimeRange = (startISO, endISO) => {
-  const s = startISO ? new Date(startISO) : null;
-  const e = endISO ? new Date(endISO) : null;
-  const f = (x) =>
-    x?.toLocaleTimeString('ko-KR', { hour: '2-digit', minute: '2-digit', hour12: false }) ?? '';
+
+// 🔐 토큰 갱신
+async function renewAccessToken() {
+  const uid = getUserId();
+  if (!uid) { const e = new Error('401'); e.status = 401; throw e; }
+  const headers = new Headers();
+  headers.set('X-User-Id', String(uid));
+  const res = await fetch(`${API_BASE}/api/user/renew`, { method: 'POST', headers, mode: 'cors', cache: 'no-store' });
+  if (!res.ok) { const e = new Error(String(res.status)); e.status = res.status; throw e; }
+  const j = await res.json();
+  if (!j?.accessToken) { const e = new Error('no_token'); e.status = 401; throw e; }
+  localStorage.setItem('accessToken', j.accessToken);
+  return j.accessToken;
+}
+
+const buildHeaders = (url, init) => {
+  const h = new Headers(init?.headers || {});
+  const method = (init?.method || 'GET').toUpperCase();
+  const needsUser = requiresUserHeader(url);
+
+  h.set('Accept', isAiEndpoint(url) ? '*/*' : 'application/json');
+
+  if (needsUser) {
+    const uid = getUserId();
+    if (!uid) { const e = new Error('401'); e.status = 401; throw e; }
+    h.set('X-User-Id', String(uid));
+    const token = localStorage.getItem('accessToken');
+    if (token && !h.has('Authorization')) h.set('Authorization', `Bearer ${token}`);
+  }
+
+  if (method !== 'GET' && !h.has('Content-Type') && init?.body) {
+    h.set('Content-Type', 'application/json');
+  }
+  return h;
+};
+
+async function requestJson(input, init = {}) {
+  const url = typeof input === 'string' ? input : input?.url || '';
+  const needsUser = requiresUserHeader(url);
+
+  const doFetch = async () => {
+    const headers = buildHeaders(url, init);
+    return fetch(url, { ...init, headers, mode: 'cors', cache: 'no-store' });
+  };
+
+  // 1차 요청
+  let res = await doFetch();
+
+  // 401 또는 WWW-Authenticate가 있고 사용자 인증이 필요한 요청이면 → 토큰 갱신 후 1회 재시도
+  const hasWwwAuth = !!res.headers.get('WWW-Authenticate');
+  if (needsUser && (res.status === 401 || hasWwwAuth)) {
+    try {
+      await renewAccessToken();
+      res = await doFetch(); // 갱신된 토큰으로 재시도
+    } catch (e) {
+      // 갱신 자체 실패 → 그대로 에러 처리
+    }
+  }
+
+  const ct = res.headers.get('content-type') || '';
+  const parse = async () => {
+    if (ct.includes('application/json')) return res.json();
+    const t = await res.text();
+    try { return JSON.parse(t); } catch { return t; }
+  };
+
+  if (!res.ok) {
+    const body = await parse().catch(() => ({}));
+    const err = new Error(String(res.status));
+    err.status = res.status;
+    err.body = body;
+    throw err;
+  }
+  return parse();
+}
+
+const getJson = (url) => requestJson(url, { method: 'GET' });
+const postJson = (url, body) => requestJson(url, { method: 'POST', body: JSON.stringify(body ?? {}) });
+const postEmpty = (url) => requestJson(url, { method: 'POST' });
+
+const toDateText = (iso) => {
+  if (!iso) return '-';
+  const d = new Date(iso);
+  return Number.isNaN(d.getTime())
+    ? '-'
+    : d.toLocaleDateString('ko-KR', { year: 'numeric', month: '2-digit', day: '2-digit' });
+};
+
+const toTimeRange = (sISO, eISO) => {
+  const f = (x) => x?.toLocaleTimeString('ko-KR', { hour: '2-digit', minute: '2-digit', hour12: false }) ?? '';
+  const s = sISO ? new Date(sISO) : null;
+  const e = eISO ? new Date(eISO) : null;
   if (s && e) return `${f(s)} - ${f(e)}`;
   if (s) return f(s);
   return '-';
 };
 
-const getJson = async (url, opts = {}) => {
-  const mergedHeaders = { Accept: 'application/json', ...getAuthHeaders(), ...(opts.headers || {}) };
-  const res = await fetch(url, { mode: 'cors', cache: 'no-store', headers: mergedHeaders, ...opts });
-  const ct = res.headers.get('content-type') || '';
-  if (!res.ok) {
-    let bodyText = '', bodyJson = null;
-    try {
-      if (ct.includes('application/json')) { bodyJson = await res.json(); bodyText = JSON.stringify(bodyJson); }
-      else { bodyText = await res.text(); try { bodyJson = JSON.parse(bodyText); } catch { } }
-    } catch { }
-    const err = new Error(`${url} 실패 (${res.status})`);
-    Object.assign(err, { status: res.status, body: bodyText, bodyJson, url });
-    throw err;
+const mdToHtml = (src = '') => {
+  const esc = (s) => s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+  const inline = (s) =>
+    esc(s).replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>').replace(/\*(.+?)\*/g, '<em>$1</em>');
+  const lines = String(src).split(/\r?\n/);
+  let inList = false;
+  const out = [];
+  for (let raw of lines) {
+    const t = raw.trim();
+    if (!t) { if (inList) { out.push('</ul>'); inList = false; } continue; }
+    const h = t.match(/^(#{1,6})\s+(.*)$/);
+    if (h) { if (inList) { out.push('</ul>'); inList = false; } const lv = Math.min(h[1].length, 6); out.push(`<h${lv}>${inline(h[2])}</h${lv}>`); continue; }
+    const li = t.match(/^-+\s+(.*)$/);
+    if (li) { if (!inList) out.push('<ul>'); inList = true; out.push(`<li>${inline(li[1])}</li>`); continue; }
+    if (inList) { out.push('</ul>'); inList = false; }
+    out.push(`<p>${inline(t)}</p>`);
   }
-  if (ct.includes('application/json')) return res.json();
-  try { return JSON.parse(await res.text()); } catch { return res.text(); }
-};
-const postJson = async (url, bodyObj, extraHeaders = {}) =>
-  getJson(url, { method: 'POST', headers: { 'Content-Type': 'application/json', ...extraHeaders }, body: JSON.stringify(bodyObj ?? {}) });
-const postNoBody = async (url, extraHeaders = {}) =>
-  getJson(url, { method: 'POST', headers: { ...extraHeaders } });
-
-/* ======================= normalizer ======================= */
-const normalizeEvent = (payload) => {
-  const base = payload?.data ?? payload?.result ?? payload?.event ?? payload;
-  const raw = Array.isArray(base) ? base[0] : base;
-  if (!raw || typeof raw !== 'object') return null;
-
-  const id = toIntOrNull(raw.id ?? raw.eventId);
-  const orgIdNum = toIntOrNull(raw.organizerId ?? raw.ownerId);
-  const organizerId = isValidId(orgIdNum) ? orgIdNum : 0;
-
-  return {
-    id,
-    organizerId,
-    name: raw.name ?? raw.title ?? '',
-    description: raw.description ?? raw.content ?? '',
-    startTime: raw.startTime ?? raw.start_date ?? raw.start ?? null,
-    endTime: raw.endTime ?? raw.end_date ?? raw.end ?? null,
-    address: raw.address ?? raw.location ?? '',
-    entryFee: Number.isFinite(raw.entryFee) ? raw.entryFee : (raw.fee === '무료' ? 0 : (parseInt(raw.fee, 10) || 0)),
-    posterId: toIntOrNull(raw.posterId ?? raw.imageId ?? raw.qrImage),
-    hashtags: raw.hashtags ?? raw.tags ?? [],
-    bookmarked: typeof raw.bookmarked === 'boolean' ? raw.bookmarked : null,
-
-    // 선택: 주최자명/링크가 오면 사용
-    organizerName: raw.organizerName ?? raw.hostName ?? null,
-    sourceUrl: raw.sourceUrl ?? raw.url ?? raw.link ?? null,
-  };
+  if (inList) out.push('</ul>');
+  return out.join('');
 };
 
-/* ======================= bookmark helpers ======================= */
-const bmKey = (uid, eid) => `bm:${uid}:${eid}`;
-const writeBm = (uid, eid, val) => {
-  try { localStorage.setItem(bmKey(uid, eid), JSON.stringify({ v: !!val, t: Date.now() })); } catch { }
-};
-const readBm = (uid, eid, maxAge = 7 * 24 * 60 * 60 * 1000) => {
-  try {
-    const raw = localStorage.getItem(bmKey(uid, eid));
-    if (!raw) return null;
-    const o = JSON.parse(raw);
-    if (typeof o?.v !== 'boolean') return null;
-    if (typeof o?.t === 'number' && Date.now() - o.t > maxAge) return null;
-    return o.v;
-  } catch { return null; }
-};
-
-async function toggleBookmarkOnServer(eventId) {
-  const uid = getUserId();
-  const resp = await postJson(`${API_BASE}/api/activity/bookmark/toggle`, { eventId, userId: uid });
-  const d = resp?.data ?? resp ?? {};
-
-  const text = (typeof d === 'string' ? d : (d.message || d.status || '')).toString().toLowerCase();
-  const byCreatedAt = !!d.createdAt;
-  const byDeleted = !!d.deletedAt || /unbookmark|removed|deleted/i.test(text);
-  const byCount = Number.isFinite(d.bookmarkCount) ? d.bookmarkCount > 0 : null;
-
-  let bookmarkedNow = null;
-  if (byCreatedAt) bookmarkedNow = true;
-  else if (byDeleted) bookmarkedNow = false;
-  else if (byCount !== null) bookmarkedNow = byCount;
-
-  return { bookmarkedNow };
-}
-
-/* ======================= component ======================= */
 const EventDetail = () => {
   const { id } = useParams();
   const eventId = useMemo(() => {
     const n = id ? parseInt(id, 10) : null;
-    return Number.isFinite(n) ? n : null;
+    return Number.isFinite(n) && n > 0 ? n : null;
   }, [id]);
 
   const [event, setEvent] = useState(null);
@@ -143,113 +161,76 @@ const EventDetail = () => {
   const [loadingSummary, setLoadingSummary] = useState(false);
   const [error, setError] = useState(null);
 
-  // load event
   useEffect(() => {
-    if (!eventId || eventId <= 0) { setError('잘못된 이벤트 ID 입니다.'); setLoading(false); return; }
     let active = true;
     (async () => {
+      if (!eventId) { setError('잘못된 이벤트 ID 입니다.'); setLoading(false); return; }
       try {
-        setLoading(true); setError(null);
-        const payload = await getJson(`${API_BASE}/api/event/info/${eventId}`);
-        const data = normalizeEvent(payload);
-        if (!data || !data.id) throw new Error('응답에서 이벤트 데이터를 찾지 못했습니다.');
+        setLoading(true);
+        setError(null);
+        const data = await getJson(`${API_BASE}/api/event/info/${eventId}`);
         if (!active) return;
-
-        setEvent(data);
-
-        const uid = getUserId();
-        let initial = uid ? readBm(uid, data.id) : null;
-        if (initial === null && typeof data.bookmarked === 'boolean') initial = data.bookmarked;
-        setBookmarked(Boolean(initial));
-      } catch (err) {
-        console.error('이벤트 조회 실패:', err);
-        if (active) {
-          const msg = (err?.bodyJson?.message || err?.body || '').toString();
-          const notFoundLike = /event\s*not\s*found/i.test(msg);
-          if (err?.status === 404 || notFoundLike) setError(`존재하지 않는 이벤트입니다. (ID: ${eventId})`);
-          else if (err?.status === 401 || err?.status === 403) setError('로그인이 필요합니다.');
-          else if (err?.status === 500) {
-            const extra = process.env.NODE_ENV === 'development' && (err?.bodyJson?.message || err?.body)
-              ? `\n${String(err?.bodyJson?.message || err.body).slice(0, 300)}` : '';
-            setError(`서버 오류로 이벤트를 불러오지 못했습니다. (500)${extra}`);
-          } else setError(err?.message || '이벤트를 불러오지 못했습니다.');
-        }
-      } finally { if (active) setLoading(false); }
+        setEvent(data || null);
+      } catch (e) {
+        if (!active) return;
+        if (e?.status === 404) setError('조건에 맞는 행사가 없어요');
+        else setError('네트워크 오류가 발생했습니다.');
+      } finally {
+        if (active) setLoading(false);
+      }
     })();
     return () => { active = false; };
   }, [eventId]);
 
-  // view history
-  useEffect(() => {
-    if (!event) return;
-    const uid = getUserId(); if (!uid) return;
-    const payload = {
-      userId: uid,
-      eventId: event.id,
-      eventName: event.name,
-      eventThumbnail: event.posterId ? `${API_BASE}/api/image/${event.posterId}` : null,
-      viewedAt: new Date().toISOString().slice(0, 19),
-    };
-    postJson(`${API_BASE}/api/activity/history/add`, payload).catch(() => { });
-  }, [event]);
-
-  // AI summary (prod only & logged in)
   useEffect(() => {
     let active = true;
-    if (!eventId) return () => { active = false; };
-    const origin = window.location.origin;
-    const isLocal = origin.startsWith('http://127.0.0.1') || origin.startsWith('http://localhost');
-    const token = localStorage.getItem('accessToken');
-    if (isLocal || !token) return () => { active = false; };
+    if (!event?.id) return () => { active = false; };
     (async () => {
       try {
         setLoadingSummary(true);
-        const resp = await postNoBody(`${API_BASE}/api/ai/${eventId}`);
-        const text = typeof resp === 'string' ? resp : (resp?.data ?? resp ?? '');
+        const resp = await postEmpty(`${API_BASE}/api/ai/${event.id}`);
         if (!active) return;
+        const text = typeof resp === 'string' ? resp : (resp?.data ?? resp ?? '');
         setAiSummary(String(text));
-      } catch { } finally { if (active) setLoadingSummary(false); }
+      } catch (e) {
+        if (!active) return;
+        setAiSummary('');
+        console.warn('AI 요약 실패:', e?.status, e?.body);
+      } finally {
+        if (active) setLoadingSummary(false);
+      }
     })();
     return () => { active = false; };
-  }, [eventId]);
+  }, [event]);
 
   const isOwner = useMemo(() => {
     const uid = getUserId();
-    return isValidId(uid) && isValidId(event?.organizerId) ? uid === event.organizerId : false;
+    return uid && event?.organizerId ? uid === event.organizerId : false;
   }, [event]);
 
   const isFinished = useMemo(() => {
     if (!event?.endTime && !event?.startTime) return false;
     const end = event?.endTime ? new Date(event.endTime) : new Date(event.startTime);
-    if (Number.isNaN(end.getTime())) return false;
-    return Date.now() > end.getTime();
+    return Number.isNaN(end.getTime()) ? false : Date.now() > end.getTime();
   }, [event]);
 
-  const dateText = useMemo(() => extractDate(event?.startTime), [event]);
-  const timeText = useMemo(() => extractTimeRange(event?.startTime, event?.endTime), [event]);
+  const dateText = useMemo(() => toDateText(event?.startTime), [event]);
+  const timeText = useMemo(() => toTimeRange(event?.startTime, event?.endTime), [event]);
 
   const onToggleBookmark = async () => {
-    if (!event?.id) return;
+    if (!event?.id || bookmarking) return;
     const uid = getUserId();
     if (!uid) { alert('로그인이 필요합니다.'); return; }
-    if (bookmarking) return;
 
-    const next = !bookmarked;
+    const optimistic = !bookmarked;
     setBookmarking(true);
-    setBookmarked(next);
-
+    setBookmarked(optimistic);
     try {
-      const { bookmarkedNow } = await toggleBookmarkOnServer(event.id);
-      const final = (typeof bookmarkedNow === 'boolean') ? bookmarkedNow : next;
-      setBookmarked(final);
-      writeBm(uid, event.id, final);
+      await postJson(`${API_BASE}/api/activity/bookmark/toggle`, { eventId: event.id });
     } catch (e) {
-      console.warn('북마크 토글 실패:', e?.status || e?.message);
-      setBookmarked(!next);
-      if (e?.status === 401) {
-        localStorage.clear();
-        alert('세션이 만료되었습니다. 다시 로그인해주세요.');
-      }
+      setBookmarked(!optimistic);
+      if (e?.status === 401) alert('세션이 만료되었습니다. 다시 로그인해주세요.');
+      else alert('네트워크 오류가 발생했습니다.');
     } finally {
       setBookmarking(false);
     }
@@ -260,12 +241,10 @@ const EventDetail = () => {
       <div className="event-detail-container">
         {error && (
           <div className="error-box">
-            <p>이벤트를 불러오지 못했습니다.</p>
             <p className="error-detail" style={{ whiteSpace: 'pre-wrap' }}>{error}</p>
           </div>
         )}
 
-        {/* Hero */}
         <section className="ed-hero">
           <div className={`ed-cover ${event?.posterId ? '' : 'is-placeholder'}`}>
             {event?.posterId ? (
@@ -297,7 +276,6 @@ const EventDetail = () => {
 
         {!loading && event && !error && (
           <>
-            {/* Title & tags */}
             <section className="ed-head">
               <h1
                 className="event-title"
@@ -312,8 +290,6 @@ const EventDetail = () => {
               )}
             </section>
 
-
-            {/* Meta */}
             <section className="ed-meta-grid two-by-two">
               <div className="meta-item">
                 <FaCalendarAlt aria-hidden />
@@ -347,16 +323,17 @@ const EventDetail = () => {
               </div>
             </section>
 
-            {/* AI summary */}
             {(aiSummary || loadingSummary) && (
               <section className="ed-ai-summary">
-                <span className="ai-badge">AI 요약</span>
-                <p className="ai-text">{loadingSummary ? '요약 생성 중...' : aiSummary}</p>
+                <span className="ai-badge"> 🤖 AI 요약</span>
+                <div
+                  className="ai-text"
+                  dangerouslySetInnerHTML={{ __html: loadingSummary ? '요약 생성 중...' : mdToHtml(aiSummary) }}
+                />
               </section>
             )}
 
-            {/* Organizer: 내부 행사만 표시 (organizerId > 0) */}
-            {isValidId(event?.organizerId) && (
+            {event?.organizerId ? (
               <section className="ed-organizer">
                 <div className="ed-org-card">
                   <ul className="org-list" style={{ listStyle: 'none', padding: 0, margin: 0 }}>
@@ -370,9 +347,8 @@ const EventDetail = () => {
                   </ul>
                 </div>
               </section>
-            )}
+            ) : null}
 
-            {/* Description */}
             <section className="ed-body">
               <h2 className="ed-h2">상세 설명</h2>
               <div
@@ -383,8 +359,6 @@ const EventDetail = () => {
               />
             </section>
 
-
-            {/* Actions */}
             <section className="event-actions">
               {isOwner && <button className="btn edit-btn" disabled>행사 수정하기</button>}
               {isFinished && (
@@ -394,7 +368,6 @@ const EventDetail = () => {
               )}
             </section>
 
-            {/* Review popup */}
             {showReviewPopup && (
               <div className="review-popup" role="dialog" aria-modal="true" aria-label="행사 리뷰">
                 <div className="review-content">
