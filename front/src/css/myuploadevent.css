@@ -115,7 +115,6 @@
     padding: 80px 20px;
     max-width: 400px;
     margin: 0 auto;
-    grid-column: 1 / -1;
 }
 
 .myuploadevent-empty-icon {
@@ -153,20 +152,20 @@
     background: #4a7857;
 }
 
-.myuploadevent-events-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+/* ==================== 이벤트 컨테이너 ==================== */
+.myuploadevent-events-container {
+    display: flex;
+    flex-direction: row;
+    flex-wrap: wrap;
     gap: 20px;
-    padding-top: 20px;
-    /* 모든 그리드 아이템이 동일한 높이를 가지도록 설정 */
-    grid-auto-rows: 1fr;
+    padding: 20px;
+    justify-content: flex-start;
+    align-items: stretch;
 }
 
 /* ==================== 이벤트 래퍼 및 액션 버튼 ==================== */
 .myuploadevent-event-wrapper {
     display: flex;
-    width: 280px;
-    height: 100%; /* 부모 그리드 셀의 전체 높이 사용 */
     flex-direction: column;
     background: white;
     border-radius: 12px;
@@ -174,6 +173,12 @@
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
     transition: all 0.3s ease;
     border: 1px solid #e5e7eb;
+    /* 기본 크기: 데스크탑에서 4개씩 표시 - 고정 너비 */
+    flex: 0 0 calc(25% - 15px); /* flex-grow를 0으로 설정하여 늘어나지 않게 */
+    width: calc(25% - 15px); /* 명시적 너비 설정 */
+    min-width: 250px;
+    max-width: 280px; /* 최대 너비 제한 */
+    min-height: 400px; /* 최소 높이만 설정, 콘텐츠에 따라 늘어남 */
 }
 
 .myuploadevent-event-wrapper:hover {
@@ -188,14 +193,44 @@
     border: none !important;
     border-radius: 0 !important;
     margin: 0 !important;
-    flex: 1; /* 남은 공간을 모두 차지하도록 설정 */
+    flex: 1;
     display: flex;
     flex-direction: column;
+    height: 100%; /* 부모 높이에 맞춤 */
+}
+
+/* 이미지 영역 고정 크기 */
+.myuploadevent-event-wrapper .event-card .event-image,
+.myuploadevent-event-wrapper .event-card img {
+    height: 160px !important; /* 이미지 높이 줄임 */
+    object-fit: cover !important;
+    width: 100% !important;
+    flex-shrink: 0 !important; /* 이미지가 줄어들지 않도록 */
+    max-width: 100% !important; /* 너비 제한 */
+    border-radius: 8px 8px 0 0 !important; /* 상단 모서리만 둥글게 */
+}
+
+/* 이미지 컨테이너 */
+.myuploadevent-event-wrapper .event-card .event-image-container {
+    width: 100%;
+    height: 160px; /* 이미지 높이와 맞춤 */
+    overflow: hidden;
+    flex-shrink: 0;
+    border-radius: 8px 8px 0 0;
+}
+
+/* 컨텐츠 영역 */
+.myuploadevent-event-wrapper .event-card .event-content {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    padding: 12px !important; /* 패딩 줄임 */
+    justify-content: space-between;
 }
 
 /* EventCard 내부 컨텐츠가 flex로 늘어나도록 */
 .myuploadevent-event-wrapper .event-card > * {
-    flex-shrink: 0; /* 컨텐츠가 줄어들지 않도록 */
+    flex-shrink: 0;
 }
 
 /* 마지막 요소(설명이나 여백)가 남은 공간을 차지하도록 */
@@ -219,20 +254,20 @@
     overflow: hidden;
     text-overflow: ellipsis;
     display: -webkit-box;
-    -webkit-line-clamp: 3; /* 3줄까지 표시 */
+    -webkit-line-clamp: 3;
     -webkit-box-orient: vertical;
     line-height: 1.4;
-    max-height: calc(1.4em * 3); /* 3줄 높이로 제한 */
-    white-space: pre-line; /* 줄바꿈 문자를 실제 줄바꿈으로 표시 */
-    word-break: break-word; /* 긴 단어 줄바꿈 */
+    max-height: calc(1.4em * 3);
+    white-space: pre-line;
+    word-break: break-word;
 }
 
 .myuploadevent-action-buttons {
     padding: 12px 16px;
     border-top: 1px solid #f1f3f4;
     background: #fafbfc;
-    margin-top: auto; /* 버튼을 항상 하단에 고정 */
-    flex-shrink: 0; /* 버튼 영역이 줄어들지 않도록 */
+    margin-top: auto;
+    flex-shrink: 0;
 }
 
 .myuploadevent-action-btn {
@@ -326,6 +361,10 @@
 
 /* ==================== 태블릿 (768px - 1024px) ==================== */
 @media (min-width: 768px) and (max-width: 1024px) {
+    .myuploadevent-container {
+        padding-left: 30px; /* 사이드바 너비만큼 패딩 추가 */
+    }
+
     .myuploadevent-header {
         padding: 18px 20px;
     }
@@ -339,12 +378,18 @@
         padding: 0 20px;
     }
 
-    .myuploadevent-events-grid {
-        grid-template-columns: repeat(2, 280px); /* 태블릿에서 2열, 각각 280px */
+    .myuploadevent-events-container {
         gap: 18px;
-        padding: 18px;
-        justify-content: center; /* 중앙 정렬 */
-        grid-auto-rows: 1fr; /* 동일한 높이 유지 */
+        padding: 18px 20px;
+    }
+
+    .myuploadevent-event-wrapper {
+        /* 태블릿에서 2개씩 표시 - 고정 너비 */
+        flex: 0 0 calc(50% - 9px); /* flex-grow를 0으로 설정 */
+        width: calc(50% - 9px); /* 명시적 너비 설정 */
+        min-width: 200px;
+        max-width: calc(50% - 9px); /* 최대 너비도 동일하게 */
+        min-height: 350px; /* 최소 높이만 설정 */
     }
 
     .myuploadevent-action-buttons {
@@ -358,7 +403,6 @@
 
     .myuploadevent-empty {
         padding: 60px 18px;
-        grid-column: 1 / -1;
     }
 
     .myuploadevent-loading-more {
@@ -374,9 +418,7 @@
 @media (max-width: 767px) {
     /* 헤더 최적화 */
     .myuploadevent-header {
-        padding-bottom: 15px;
-        padding-left: 12px;
-        padding-right: 12px;
+        padding: 15px 12px;
     }
 
     .myuploadevent-title {
@@ -406,13 +448,18 @@
         font-size: 13px;
     }
 
-    /* 모바일에서도 280px 고정 크기 유지 */
-    .myuploadevent-events-grid {
-        grid-template-columns: 280px; /* 모바일에서 280px 고정 */
+    .myuploadevent-events-container {
         gap: 16px;
-        padding: 16px;
-        justify-content: center; /* 280px 카드를 중앙 정렬 */
-        grid-auto-rows: 1fr; /* 동일한 높이 유지 */
+        padding: 16px 12px;
+    }
+
+    .myuploadevent-event-wrapper {
+        /* 모바일에서 1개씩 표시 - 고정 너비 */
+        flex: 0 0 100%; /* flex-grow를 0으로 설정 */
+        width: 100%; /* 명시적 너비 설정 */
+        min-width: auto;
+        max-width: 100%; /* 최대 너비도 100% */
+        min-height: 320px; /* 최소 높이만 설정 */
     }
 
     .myuploadevent-action-buttons {
@@ -444,10 +491,10 @@
         display: -webkit-box;
         -webkit-line-clamp: 2; /* 모바일에서는 2줄까지만 */
         -webkit-box-orient: vertical;
-        max-height: calc(1.4em * 2); /* 2줄 높이로 제한 */
+        max-height: calc(1.4em * 2);
         margin-bottom: 8px !important;
-        white-space: pre-line; /* 줄바꿈 문자를 실제 줄바꿈으로 표시 */
-        word-break: break-word; /* 긴 단어 줄바꿈 */
+        white-space: pre-line;
+        word-break: break-word;
     }
 
     /* 해시태그도 말줄임표 처리 */
@@ -461,7 +508,6 @@
     /* 빈 상태 최적화 */
     .myuploadevent-empty {
         padding: 50px 16px;
-        grid-column: 1 / -1;
     }
 
     .myuploadevent-empty-icon {
@@ -501,17 +547,52 @@
     }
 }
 
+/* ==================== 큰 데스크탑 (1400px 이상) ==================== */
+@media (min-width: 1400px) {
+    .myuploadevent-events-container {
+        max-width: 1400px;
+        margin: 0 auto;
+    }
+
+    .myuploadevent-event-wrapper {
+        /* 큰 화면에서는 5개씩 표시 */
+        width: calc(20% - 16px);
+    }
+}
+
+/* ==================== 작은 태블릿 (900px 이하) ==================== */
+@media (max-width: 900px) and (min-width: 768px) {
+    .myuploadevent-event-wrapper {
+        /* 작은 태블릿에서는 min-width를 줄여서 카드가 더 작아지도록 */
+        min-width: 200px;
+    }
+    
+    /* 작은 태블릿에서 이미지와 컨텐츠 크기 조정 */
+    .myuploadevent-event-wrapper .event-card .event-image,
+    .myuploadevent-event-wrapper .event-card img {
+        height: 140px !important; /* 이미지 더 작게 */
+    }
+    
+    .myuploadevent-event-wrapper .event-card .event-image-container {
+        height: 140px;
+    }
+    
+    .myuploadevent-event-wrapper .event-card .event-content {
+        padding: 10px !important; /* 패딩 더 줄임 */
+    }
+}
+
 /* ==================== 애니메이션 ==================== */
-.myuploadevent-events-grid > * {
+.myuploadevent-events-container > * {
     animation: fadeInUp 0.4s ease-out forwards;
 }
 
-.myuploadevent-events-grid > *:nth-child(1) { animation-delay: 0.05s; }
-.myuploadevent-events-grid > *:nth-child(2) { animation-delay: 0.1s; }
-.myuploadevent-events-grid > *:nth-child(3) { animation-delay: 0.15s; }
-.myuploadevent-events-grid > *:nth-child(4) { animation-delay: 0.2s; }
-.myuploadevent-events-grid > *:nth-child(5) { animation-delay: 0.25s; }
-.myuploadevent-events-grid > *:nth-child(6) { animation-delay: 0.3s; }
+.myuploadevent-events-container > *:nth-child(1) { animation-delay: 0.05s; }
+.myuploadevent-events-container > *:nth-child(2) { animation-delay: 0.1s; }
+.myuploadevent-events-container > *:nth-child(3) { animation-delay: 0.15s; }
+.myuploadevent-events-container > *:nth-child(4) { animation-delay: 0.2s; }
+.myuploadevent-events-container > *:nth-child(5) { animation-delay: 0.25s; }
+.myuploadevent-events-container > *:nth-child(6) { animation-delay: 0.3s; }
 
 @keyframes fadeInUp {
     from {
@@ -541,623 +622,6 @@
     }
     
     .myuploadevent-loading-spinner {
-        animation: none;
-        border-top-color: #5E936C;
-    }
-}
-/* ==================== 접근성 ==================== */
-.myuploadevent-add-btn:focus,
-.myuploadevent-empty-button:focus,
-.myuploadevent-action-btn:focus,
-.myuploadevent-refresh-btn:focus {
-    outline: 2px solid #5E936C;
-    outline-offset: 2px;
-}
-
-@media (prefers-reduced-motion: reduce) {
-    * {
-        animation-duration: 0.01ms !important;
-        animation-iteration-count: 1 !important;
-        transition-duration: 0.01ms !important;
-    }
-    
-    .myuploadevent-loading-spinner {
-        animation: none;
-        border-top-color: #5E936C;
-    }
-}
-
-/* ==================== 리뷰 모달 스타일 ==================== */
-/* 리뷰 모달 오버레이 */
-.review-modal-overlay {
-    position: fixed;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background: rgba(0, 0, 0, 0.5);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    z-index: 1000;
-    padding: 20px;
-    backdrop-filter: blur(2px);
-    animation: review-modal-fade-in 0.3s ease-out;
-}
-
-/* 모달 콘텐츠 */
-.review-modal-content {
-    background: white;
-    border-radius: 16px;
-    width: 100%;
-    max-width: 600px;
-    max-height: 80vh;
-    display: flex;
-    flex-direction: column;
-    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.15);
-    overflow: hidden;
-    animation: review-modal-slide-up 0.3s ease-out;
-}
-
-/* 모달 헤더 */
-.review-modal-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: flex-start;
-    padding: 24px 24px 16px 24px;
-    border-bottom: 1px solid #f0f3f4;
-    background: #fafbfc;
-}
-
-.review-modal-title-section {
-    flex: 1;
-}
-
-.review-modal-main-title {
-    margin: 0 0 4px 0;
-    font-size: 1.5rem;
-    font-weight: 700;
-    color: #1a1d21;
-}
-
-.review-modal-event-name {
-    margin: 0;
-    font-size: 0.9rem;
-    color: #6b7684;
-    font-weight: 500;
-}
-
-.review-modal-close-button {
-    background: none;
-    border: none;
-    font-size: 1.5rem;
-    color: #9ca3af;
-    cursor: pointer;
-    padding: 4px;
-    border-radius: 4px;
-    transition: all 0.2s ease;
-    line-height: 1;
-    flex-shrink: 0;
-}
-
-.review-modal-close-button:hover {
-    background: #f3f4f6;
-    color: #6b7280;
-    transform: scale(1.1);
-    box-shadow: 0 2px 8px rgba(156, 163, 175, 0.3);
-}
-
-.review-modal-close-button:active {
-    transform: scale(0.95);
-}
-
-/* 리뷰 통계 */
-.review-modal-statistics {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 20px 24px;
-    background: linear-gradient(135deg, #f8fffe 0%, #f0f9f7 100%);
-    border-bottom: 1px solid #e5f3f0;
-    position: relative;
-}
-
-.review-modal-statistics::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    height: 2px;
-    background: linear-gradient(90deg, transparent 0%, #5E936C 50%, transparent 100%);
-}
-
-.review-stats-rating-section {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-}
-
-.review-average-rating-number {
-    font-size: 1.8rem;
-    font-weight: 700;
-    color: #5E936C;
-    text-shadow: 0 1px 2px rgba(94, 147, 108, 0.1);
-}
-
-.review-stars-container {
-    display: flex;
-    gap: 2px;
-}
-
-.review-star {
-    font-size: 1.2rem;
-    line-height: 1;
-    transition: all 0.2s ease;
-}
-
-.review-star-filled {
-    color: #fbbf24;
-    text-shadow: 0 1px 2px rgba(251, 191, 36, 0.3);
-}
-
-.review-star-half {
-    color: #fbbf24;
-    opacity: 0.6;
-    text-shadow: 0 1px 2px rgba(251, 191, 36, 0.2);
-}
-
-.review-star-empty {
-    color: #e5e7eb;
-}
-
-.review-stats-count-section {
-    font-size: 0.9rem;
-    color: #6b7684;
-}
-
-.review-count-number {
-    color: #5E936C;
-    font-weight: 600;
-}
-
-/* 모달 바디 */
-.review-modal-body {
-    flex: 1;
-    overflow-y: auto;
-    padding: 0;
-}
-
-/* 로딩 상태 */
-.review-modal-loading-state {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    padding: 60px 24px;
-    gap: 16px;
-}
-
-.review-loading-spinner {
-    width: 32px;
-    height: 32px;
-    border: 3px solid #f0f3f4;
-    border-top: 3px solid #5E936C;
-    border-radius: 50%;
-    animation: review-spin 1s linear infinite;
-}
-
-@keyframes review-spin {
-    0% { transform: rotate(0deg); }
-    100% { transform: rotate(360deg); }
-}
-
-.review-loading-text {
-    margin: 0;
-    color: #6b7684;
-    font-size: 14px;
-    font-weight: 500;
-}
-
-/* 에러 상태 */
-.review-modal-error-state {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    padding: 60px 24px;
-    gap: 16px;
-    text-align: center;
-}
-
-.review-error-icon {
-    font-size: 2.5rem;
-    margin-bottom: 8px;
-    filter: drop-shadow(0 2px 4px rgba(220, 38, 38, 0.1));
-}
-
-.review-error-message {
-    margin: 0;
-    color: #dc2626;
-    font-size: 14px;
-    font-weight: 500;
-    line-height: 1.5;
-}
-
-.review-error-retry-button {
-    background: #5E936C;
-    color: white;
-    border: none;
-    border-radius: 8px;
-    padding: 10px 20px;
-    font-size: 14px;
-    font-weight: 600;
-    cursor: pointer;
-    transition: all 0.2s ease;
-    box-shadow: 0 2px 4px rgba(94, 147, 108, 0.2);
-}
-
-.review-error-retry-button:hover {
-    background: #4a7857;
-    transform: translateY(-1px);
-    box-shadow: 0 4px 12px rgba(94, 147, 108, 0.25);
-}
-
-.review-error-retry-button:active {
-    transform: translateY(0);
-}
-
-/* 빈 상태 */
-.review-modal-empty-state {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    padding: 60px 24px;
-    text-align: center;
-}
-
-.review-empty-icon {
-    font-size: 3rem;
-    margin-bottom: 16px;
-    opacity: 0.7;
-    filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.05));
-}
-
-.review-empty-title {
-    margin: 0 0 8px 0;
-    font-size: 1.2rem;
-    font-weight: 600;
-    color: #1a1d21;
-}
-
-.review-empty-description {
-    margin: 0;
-    color: #6b7684;
-    font-size: 14px;
-    line-height: 1.5;
-}
-
-/* 리뷰 리스트 */
-.review-modal-list-container {
-    padding: 0;
-    max-height: 400px;
-    overflow-y: auto;
-}
-
-.review-modal-list-container::-webkit-scrollbar {
-    width: 6px;
-}
-
-.review-modal-list-container::-webkit-scrollbar-track {
-    background: #f1f3f4;
-    border-radius: 3px;
-}
-
-.review-modal-list-container::-webkit-scrollbar-thumb {
-    background: #c1c7cd;
-    border-radius: 3px;
-}
-
-.review-modal-list-container::-webkit-scrollbar-thumb:hover {
-    background: #a1a7ad;
-}
-
-.review-list-item {
-    padding: 20px 24px;
-    border-bottom: 1px solid #f0f3f4;
-    transition: all 0.2s ease;
-    position: relative;
-    animation: review-item-fade-in 0.3s ease-out;
-}
-
-.review-list-item:hover {
-    background: #fafbfc;
-    box-shadow: 
-        inset 0 0 0 1px #f0f3f4,
-        0 2px 4px rgba(0, 0, 0, 0.02);
-    transform: translateX(2px);
-}
-
-.review-list-item:last-child {
-    border-bottom: none;
-}
-
-.review-list-item:nth-child(1) { animation-delay: 0.05s; }
-.review-list-item:nth-child(2) { animation-delay: 0.1s; }
-.review-list-item:nth-child(3) { animation-delay: 0.15s; }
-.review-list-item:nth-child(4) { animation-delay: 0.2s; }
-.review-list-item:nth-child(5) { animation-delay: 0.25s; }
-
-.review-item-header-section {
-    display: flex;
-    justify-content: space-between;
-    align-items: flex-start;
-    margin-bottom: 12px;
-    gap: 16px;
-}
-
-.review-user-information {
-    display: flex;
-    flex-direction: column;
-    gap: 4px;
-    flex: 1;
-}
-
-.review-user-id-text {
-    font-weight: 600;
-    color: #1a1d21;
-    font-size: 14px;
-}
-
-.review-created-date {
-    color: #9ca3af;
-    font-size: 12px;
-    font-weight: 400;
-}
-
-.review-rating-section {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    flex-shrink: 0;
-}
-
-.review-rating-stars {
-    display: flex;
-    gap: 1px;
-}
-
-.review-rating-stars .review-star:hover {
-    transform: scale(1.1);
-}
-
-.review-rating-number-text {
-    font-size: 12px;
-    color: #6b7684;
-    font-weight: 500;
-}
-
-.review-content-section {
-    margin-top: 12px;
-    padding-top: 8px;
-    border-top: 1px solid #f8f9fa;
-}
-
-.review-content-text {
-    margin: 0;
-    line-height: 1.6;
-    color: #374151;
-    font-size: 14px;
-    white-space: pre-wrap;
-    word-break: break-word;
-}
-
-/* 모달 푸터 */
-.review-modal-footer {
-    padding: 20px 24px;
-    border-top: 1px solid #f0f3f4;
-    background: #fafbfc;
-    display: flex;
-    justify-content: center;
-}
-
-.review-modal-close-footer-button {
-    background: #6b7684;
-    color: white;
-    border: none;
-    border-radius: 8px;
-    padding: 12px 32px;
-    font-size: 14px;
-    font-weight: 600;
-    cursor: pointer;
-    transition: all 0.2s ease;
-    box-shadow: 0 2px 4px rgba(107, 118, 132, 0.2);
-}
-
-.review-modal-close-footer-button:hover {
-    background: #5a6370;
-    transform: translateY(-1px);
-    box-shadow: 0 4px 12px rgba(107, 118, 132, 0.25);
-}
-
-.review-modal-close-footer-button:active {
-    transform: translateY(0);
-}
-
-/* 리뷰 모달 애니메이션 */
-@keyframes review-modal-fade-in {
-    from {
-        opacity: 0;
-    }
-    to {
-        opacity: 1;
-    }
-}
-
-@keyframes review-modal-slide-up {
-    from {
-        transform: translateY(30px);
-        opacity: 0;
-    }
-    to {
-        transform: translateY(0);
-        opacity: 1;
-    }
-}
-
-@keyframes review-item-fade-in {
-    from {
-        opacity: 0;
-        transform: translateY(10px);
-    }
-    to {
-        opacity: 1;
-        transform: translateY(0);
-    }
-}
-
-/* 리뷰 모달 접근성 */
-.review-modal-close-button:focus,
-.review-error-retry-button:focus,
-.review-modal-close-footer-button:focus {
-    outline: 2px solid #5E936C;
-    outline-offset: 2px;
-}
-
-/* 리뷰 모달 태블릿 */
-@media (min-width: 768px) and (max-width: 1024px) {
-    .review-modal-overlay {
-        padding: 16px;
-    }
-
-    .review-modal-content {
-        max-height: 85vh;
-    }
-
-    .review-modal-header {
-        padding: 20px;
-    }
-
-    .review-modal-statistics {
-        padding: 16px 20px;
-    }
-
-    .review-list-item {
-        padding: 16px 20px;
-    }
-
-    .review-modal-footer {
-        padding: 16px 20px;
-    }
-}
-
-/* 리뷰 모달 모바일 */
-@media (max-width: 767px) {
-    .review-modal-overlay {
-        padding: 12px;
-        align-items: flex-end;
-    }
-
-    .review-modal-content {
-        max-height: 90vh;
-        border-radius: 16px 16px 0 0;
-        margin-bottom: 0;
-    }
-
-    .review-modal-header {
-        padding: 16px;
-        flex-direction: column;
-        align-items: flex-start;
-        gap: 8px;
-        position: relative;
-    }
-
-    .review-modal-close-button {
-        position: absolute;
-        top: 16px;
-        right: 16px;
-    }
-
-    .review-modal-main-title {
-        font-size: 1.3rem;
-    }
-
-    .review-modal-statistics {
-        padding: 16px;
-        flex-direction: column;
-        align-items: flex-start;
-        gap: 12px;
-    }
-
-    .review-stats-rating-section {
-        gap: 8px;
-    }
-
-    .review-average-rating-number {
-        font-size: 1.5rem;
-    }
-
-    .review-star {
-        font-size: 1rem;
-    }
-
-    .review-list-item {
-        padding: 16px;
-    }
-
-    .review-item-header-section {
-        flex-direction: column;
-        align-items: flex-start;
-        gap: 8px;
-    }
-
-    .review-rating-section {
-        align-self: flex-end;
-    }
-
-    .review-modal-footer {
-        padding: 16px;
-    }
-
-    .review-modal-close-footer-button {
-        width: 100%;
-        padding: 14px 32px;
-    }
-
-    /* 작은 모바일 화면 */
-    @media (max-width: 480px) {
-        .review-modal-overlay {
-            padding: 0;
-            align-items: stretch;
-        }
-
-        .review-modal-content {
-            height: 100vh;
-            max-height: 100vh;
-            border-radius: 0;
-            margin: 0;
-        }
-
-        .review-modal-empty-state,
-        .review-modal-error-state,
-        .review-modal-loading-state {
-            padding: 40px 16px;
-        }
-
-        .review-empty-icon,
-        .review-error-icon {
-            font-size: 2rem;
-        }
-    }
-}
-
-/* 리뷰 모달 애니메이션 비활성화 */
-@media (prefers-reduced-motion: reduce) {
-    .review-modal-overlay,
-    .review-modal-content,
-    .review-list-item {
-        animation: none;
-    }
-    
-    .review-loading-spinner {
         animation: none;
         border-top-color: #5E936C;
     }

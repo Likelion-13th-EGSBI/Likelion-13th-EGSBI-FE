@@ -685,7 +685,7 @@ const MyUploadEvent = () => {
                     </div>
                 ) : (
                     <>
-                        <div className="myuploadevent-events-grid">
+                        <div className="myuploadevent-events-container">
                             {events.map((event, index) => {
                                 const eventEnded = isEventEnded(event.endTime);
                                 // 고유한 key 생성: ID가 있으면 ID 사용, 없으면 index와 다른 속성 조합
