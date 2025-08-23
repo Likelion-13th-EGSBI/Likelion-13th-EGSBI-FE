@@ -5,7 +5,7 @@ on:
     paths:
       - 'front/**'
       - '.github/workflows/deploy.yml'
-    branches: ['develop']
+    branches: ['main']
   workflow_dispatch:
 
 jobs:
