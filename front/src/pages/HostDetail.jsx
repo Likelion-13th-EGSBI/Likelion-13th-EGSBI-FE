@@ -1,169 +1,472 @@
 // src/pages/HostDetail.jsx
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import axios from 'axios';
 import Layout from '../components/Layout';
 import EventCard from '../components/EventCard';
+import axios from 'axios';
 import '../css/hostdetail.css';
 
-const DEV_MOCK = true;
-const baseURL = process.env.REACT_APP_API_URL ?? '';
+const BASE_URL = 'https://gateway.gamja.cloud';
 
-const MOCK_HOST = {
-  id: 1,
-  name: '라이언 스튜디오',
-  profileImage: null,
-  rating: 4.4,
-  reviewsCount: 128,
-  aiSummary:
-    '디자인/IT 분야의 전문 커뮤니티로, 실무 중심 워크숍과 네트워킹이 강점입니다. 친절한 진행과 알찬 자료가 호평을 받습니다. 재참여 의사가 높고, 운영팀 소통이 빠르다는 의견이 많습니다.',
+/* ---------- 공통 유틸 ---------- */
+async function safeJson(res) {
+  const text = await res.text?.().catch?.(() => '') ?? '';
+  if (!text) return null;
+  try { return JSON.parse(text); } catch { return null; }
+}
+const toProfileUrl = (id) => {
+  const n = Number(id);
+  return Number.isFinite(n) && n > 0 ? `${BASE_URL}/api/image/${n}` : '';
+};
+const imgUrl = (id) => (id ? `${BASE_URL}/api/image/${id}` : null);
+const toExcerpt = (s, n = 120) => {
+  const t = String(s || '').replace(/\s+/g, ' ').trim();
+  return t.length > n ? `${t.slice(0, n).trim()}…` : t;
 };
 
-const MOCK_EVENTS = [
-  { id: 1, title: '행사 1', image: null, date: '2025-10-01', time: '10:00', location: '서울', fee: '무료', hashtags: ['디자인', 'IT', '커뮤니티'] },
-  { id: 2, title: '행사 2', image: null, date: '2025-11-01', time: '15:00', location: '부산', fee: '10,000원' },
-  { id: 3, title: '행사 3', image: null, date: '2025-12-10', time: '09:00', location: '대구', fee: '무료' },
-  { id: 4, title: '행사 4', image: null, date: '2026-01-15', time: '13:00', location: '광주', fee: '5,000원' },
-  { id: 5, title: '행사 5', image: null, date: '2026-02-20', time: '14:00', location: '인천', fee: '무료' },
-  { id: 6, title: '행사 6', image: null, date: '2026-03-05', time: '11:00', location: '제주', fee: '무료' },
-];
+/* ---------- 인증 공통 ---------- */
+function getAuth() {
+  try {
+    const obj = JSON.parse(localStorage.getItem('auth') || '{}');
+    const idRaw = obj?.id ?? localStorage.getItem('userId') ?? localStorage.getItem('userid') ?? '';
+    const idParsed = parseInt(String(idRaw).replace(/[^\d]/g, ''), 10);
+    const accessToken =
+      obj?.accessToken ||
+      localStorage.getItem('accessToken') ||
+      localStorage.getItem('Token') ||
+      localStorage.getItem('token') ||
+      '';
+    return { id: Number.isFinite(idParsed) && idParsed > 0 ? idParsed : null, accessToken: accessToken || '' };
+  } catch {
+    const idRaw = localStorage.getItem('userId') ?? localStorage.getItem('userid') ?? '';
+    const idParsed = parseInt(String(idRaw).replace(/[^\d]/g, ''), 10);
+    const accessToken =
+      localStorage.getItem('accessToken') ||
+      localStorage.getItem('Token') ||
+      localStorage.getItem('token') ||
+      '';
+    return { id: Number.isFinite(idParsed) && idParsed > 0 ? idParsed : null, accessToken: accessToken || '' };
+  }
+}
+function saveAuth(patch) {
+  const prev = getAuth();
+  const next = { ...prev, ...patch };
+  localStorage.setItem('auth', JSON.stringify(next));
+  if (Number.isFinite(next.id)) localStorage.setItem('userId', String(next.id));
+  if (next.accessToken) localStorage.setItem('accessToken', next.accessToken);
+  return next;
+}
+function isLoggedIn() {
+  const { id } = getAuth();
+  return Number.isFinite(Number(id));
+}
+
+/* ---------- axios 인스턴스(토큰/401재발급) ---------- */
+function makeAxios() {
+  const inst = axios.create({ baseURL: BASE_URL, withCredentials: false });
+
+  inst.interceptors.request.use((config) => {
+    const { id, accessToken } = getAuth();
+    config.headers = config.headers || {};
+    if (id != null) config.headers['X-User-Id'] = String(id);
+    if (accessToken) config.headers['Authorization'] = `Bearer ${accessToken}`;
+    config.headers['Accept'] = 'application/json';
+    return config;
+  });
+
+  let renewing = null;
+  inst.interceptors.response.use(
+    (res) => res,
+    async (error) => {
+      const status = error?.response?.status;
+      const www = error?.response?.headers?.['www-authenticate'];
+      const original = error.config || {};
+      if ((status === 401 || www) && !original.__retried) {
+        if (!renewing) {
+          const { id } = getAuth();
+          if (id == null) throw error;
+          renewing = axios
+            .post(`${BASE_URL}/api/user/renew`, null, {
+              headers: { 'X-User-Id': String(id) },
+              withCredentials: false,
+            })
+            .then((r) => {
+              const tok = r?.data?.accessToken;
+              if (tok) saveAuth({ accessToken: tok });
+            })
+            .finally(() => (renewing = null));
+        }
+        await renewing;
+        const fresh = getAuth();
+        original.headers = { ...(original.headers || {}), 'X-User-Id': String(fresh.id) };
+        if (fresh.accessToken) original.headers['Authorization'] = `Bearer ${fresh.accessToken}`;
+        original.__retried = true;
+        original.withCredentials = false;
+        return inst.request(original);
+      }
+      throw error;
+    }
+  );
+
+  return inst;
+}
+const api = makeAxios();
+
+function pickOrganizerProfile(src, organizerId) {
+  if (!src) return null;
+  const name =
+    src.organizerName ??
+    src.organizerNickname ??
+    src.name ??
+    `Organizer #${organizerId}`;
+
+  const nickname = src.organizerNickname ?? src.nickname ?? null;
+
+  const profileImageId =
+    src.organizerProfileImageId ??
+    src.profileImageId ??
+    src.imageId ??
+    null;
+
+  const profileImageUri =
+    src.organizerProfileImageUri ??
+    src.profileImageUri ??
+    src.imageUri ??
+    null;
+
+  return {
+    id: organizerId,
+    name,
+    nickname,
+    profileImageId: Number.isFinite(profileImageId) ? profileImageId : null,
+    profileImageUri: profileImageUri || null,
+    avatarUrl: profileImageUri || toProfileUrl(profileImageId),
+  };
+}
+
+async function bmList() {
+  const r = await api.get('/api/activity/bookmark/list', { validateStatus: (s) => s >= 200 && s < 300 });
+  const arr = Array.isArray(r.data) ? r.data : [];
+  const map = {};
+  for (const b of arr) if (b?.eventId != null) map[Number(b.eventId)] = true;
+  return map;
+}
+async function bmToggle(eventId) {
+  await api.post('/api/activity/bookmark/toggle', { eventId });
+}
+async function bmCount(eventId) {
+  const r = await api.get('/api/activity/bookmark/count', { params: { eventId } });
+  const n = Number(r?.data);
+  return Number.isFinite(n) ? n : 0;
+}
+
+async function subGetAll() {
+  const r = await api.get('/api/user/subscription/getAll', { validateStatus: (s) => (s >= 200 && s < 300) || s === 204 });
+  return Array.isArray(r.data) ? r.data : [];
+}
+async function subCreate(userId, organizerId) {
+  await api.post('/api/user/subscription/create', { userId, organizerId });
+}
+async function subDelete(userId, organizerId) {
+  await api.delete('/api/user/subscription/delete', { data: { userId, organizerId } });
+}
+
+async function fetchAiReviewSummary(organizerId) {
+  try {
+    const r = await api.get('/api/ai/review/summary', {
+      headers: { 'X-User-Id': String(organizerId) },
+      validateStatus: (s) => s === 200 || s === 404,
+    });
+    if (r.status === 200) {
+      return typeof r.data === 'string' ? r.data : String(r.data ?? '');
+    }
+    return null; 
+  } catch {
+    return null; 
+  }
+}
 
 export default function HostDetail() {
   const { id } = useParams();
+  const organizerId = Number(id);
   const navigate = useNavigate();
 
-  const [host, setHost] = useState(null);
-  const [isSubscribed, setIsSubscribed] = useState(true);
+  const [host, setHost] = useState(null); 
+  const [events, setEvents] = useState([]);
+  const [isSubscribed, setIsSubscribed] = useState(false);
   const [subscribing, setSubscribing] = useState(false);
-  const [bookmarks, setBookmarks] = useState({});
 
-  const toggleBookmark = (eventId) => {
-    setBookmarks((prev) => ({ ...prev, [eventId]: !prev[eventId] }));
-  };
+  const [bmMapState, setBmMapState] = useState({});
+  const [bmCounts, setBmCounts] = useState({});
 
-  const Stars = ({ value = 0 }) => {
-    const full = Math.floor(value);
-    const half = value - full >= 0.5;
-    const total = 5;
-    return (
-      <div className="stars" aria-label={`평점 ${value} / 5`}>
-        {Array.from({ length: total }).map((_, i) => {
-          if (i < full) return <span key={i}>★</span>;
-          if (i === full && half) return <span key={i}>☆</span>;
-          return <span key={i}>☆</span>;
-        })}
-      </div>
-    );
-  };
+  const [avgRating] = useState(null);
+  const [reviewCount] = useState(0);
+  const [reviewSummary, setReviewSummary] = useState('');
 
-  const shortSummary = useMemo(() => {
-    const raw =
-      host?.aiSummary ??
-      '아직 리뷰 요약이 준비되지 않았습니다. 행사 참가 후 첫 리뷰의 주인공이 되어보세요!';
-    return raw.length <= 140 ? raw : raw.slice(0, 140).trim() + '…';
-  }, [host?.aiSummary]);
+  const [loading, setLoading] = useState(true);
+  const [errMsg, setErrMsg] = useState('');
 
-  const fetchHost = useCallback(async () => {
-    if (DEV_MOCK) return;
-    const res = await axios.get(`${baseURL}/api/hosts/${id}`);
-    const data = res.data?.data ?? res.data ?? null;
-    setHost(data);
-    setIsSubscribed(!!data?.isSubscribed);
-  }, [id]);
+  const myUserId = useMemo(() => getAuth().id ?? null, []);
+  const isSelf = myUserId != null && myUserId === organizerId;
 
-  useEffect(() => {
-    if (DEV_MOCK) {
-      setHost(MOCK_HOST);
-      setIsSubscribed(true);
-    } else {
-      fetchHost();
+  const fetchUserProfile = useCallback(async (targetUserId) => {
+    try {
+      const r = await api.get('/api/user/info', { params: { userId: targetUserId } });
+      const data = r?.data ?? null;
+
+      const nickname = data?.nickname ?? '';
+      const profileId = data?.profileId ?? null;
+      const displayName = nickname || `Organizer #${targetUserId}`;
+
+      return {
+        id: targetUserId,
+        name: displayName,
+        nickname: nickname || null,
+        profileImageId: profileId,
+        profileImageUri: null, 
+        avatarUrl: toProfileUrl(profileId),
+      };
+    } catch (e) {
+      return null;
     }
-  }, [fetchHost]);
+  }, []);
 
-  const toggleSubscribe = async () => {
-    if (!host?.id) return;
-    if (DEV_MOCK || !baseURL) {
-      setIsSubscribed((s) => !s);
+  const hydrateHostFromSources = useCallback(async (organizerId) => {
+    let profile = await fetchUserProfile(organizerId);
+
+    if (!profile && isLoggedIn()) {
+      try {
+        const subs = await subGetAll();
+        const found = subs.find((x) => Number(x?.organizerId) === organizerId);
+        if (found) profile = pickOrganizerProfile(found, organizerId);
+      } catch {}
+    }
+
+    if (!profile) {
+      try {
+        const qs = new URLSearchParams({ page: '0', size: '12', sort: 'createTime,DESC' }).toString();
+        const r = await api.get(`/api/event/${organizerId}?${qs}`);
+        const list = Array.isArray(r.data) ? r.data : [];
+        setEvents(list);
+        if (list[0]) profile = pickOrganizerProfile(list[0], organizerId);
+      } catch {}
+    }
+
+    if (!profile) {
+      profile = {
+        id: organizerId,
+        name: `Organizer #${organizerId}`,
+        nickname: null,
+        profileImageId: null,
+        profileImageUri: null,
+        avatarUrl: '',
+      };
+    }
+    setHost(profile);
+  }, [fetchUserProfile]);
+
+  const loadEventsIfNeeded = useCallback(async () => {
+    if (Array.isArray(events) && events.length > 0) return;
+    try {
+      const qs = new URLSearchParams({ page: '0', size: '12', sort: 'createTime,DESC' }).toString();
+      const r = await api.get(`/api/event/${organizerId}?${qs}`);
+      const list = Array.isArray(r.data) ? r.data : [];
+      setEvents(list);
+    } catch {}
+  }, [events, organizerId]);
+
+  const refreshSubscribed = useCallback(async () => {
+    if (isSelf) { setIsSubscribed(false); return; }       
+    if (!isLoggedIn()) { setIsSubscribed(false); return; }
+    try {
+      const subs = await subGetAll();
+      setIsSubscribed(subs.some((x) => Number(x?.organizerId) === organizerId));
+    } catch {
+      setIsSubscribed(false);
+    }
+  }, [organizerId, isSelf]);
+
+  const refreshBookmarks = useCallback(async (list) => {
+    if (!Array.isArray(list) || list.length === 0) {
+      setBmMapState({});
+      setBmCounts({});
       return;
     }
+    const ids = list.map((e) => e.id).filter((v) => Number.isFinite(v));
     try {
-      setSubscribing(true);
+      const [mine, countsArr] = await Promise.all([
+        isLoggedIn() ? bmList() : Promise.resolve({}),
+        Promise.all(ids.map(async (eid) => [eid, await bmCount(eid)])),
+      ]);
+      setBmMapState(mine);
+      setBmCounts(Object.fromEntries(countsArr));
+    } catch {
+      setBmMapState({});
+      setBmCounts({});
+    }
+  }, []);
+
+  const refreshAiSummary = useCallback(async () => {
+    const ai = await fetchAiReviewSummary(organizerId);
+    setReviewSummary(ai || '');
+  }, [organizerId]);
+
+  useEffect(() => {
+    let alive = true;
+    (async () => {
+      setLoading(true);
+      setErrMsg('');
+      try {
+        await hydrateHostFromSources(organizerId);
+        await loadEventsIfNeeded();
+        await refreshSubscribed();
+        await refreshAiSummary(); 
+      } catch {
+        if (alive) setErrMsg('네트워크 오류가 발생했어요.');
+      } finally {
+        if (alive) setLoading(false);
+      }
+    })();
+    return () => { alive = false; };
+  }, [organizerId, isSelf]);
+
+  useEffect(() => {
+    if (!events || events.length === 0) return;
+    refreshBookmarks(events);
+  }, [events, refreshBookmarks]);
+
+  const onToggleSubscribe = async () => {
+    if (isSelf) return;                                    
+    if (!isLoggedIn()) { alert('로그인이 필요합니다.'); return; }
+    if (!host?.id || subscribing) return;
+    setSubscribing(true);
+    try {
+      const { id: userId } = getAuth();
       if (isSubscribed) {
-        await axios.delete(`${baseURL}/api/subscribe/${host.id}`);
+        await subDelete(userId, host.id);
         setIsSubscribed(false);
       } else {
-        await axios.post(`${baseURL}/api/subscribe/${host.id}`);
+        await subCreate(userId, host.id);
         setIsSubscribed(true);
       }
+    } catch {
+      alert('구독 처리 중 오류가 발생했어요.');
     } finally {
       setSubscribing(false);
     }
   };
 
+  const onToggleBookmark = async (eventId) => {
+    if (!isLoggedIn()) { alert('로그인이 필요합니다.'); return; }
+    const prevOn = !!bmMapState[eventId];
+    setBmMapState((m) => ({ ...m, [eventId]: !prevOn }));
+    setBmCounts((c) => ({ ...c, [eventId]: Math.max(0, (c[eventId] || 0) + (prevOn ? -1 : 1)) }));
+    try {
+      await bmToggle(eventId);
+      bmList().then(setBmMapState).catch(() => {});
+      bmCount(eventId).then((cnt) => setBmCounts((c) => ({ ...c, [eventId]: cnt }))).catch(() => {});
+    } catch {
+      setBmMapState((m) => ({ ...m, [eventId]: prevOn }));
+      setBmCounts((c) => ({ ...c, [eventId]: Math.max(0, (c[eventId] || 0) + (prevOn ? 1 : -1)) }));
+      alert('북마크 처리 중 오류가 발생했어요.');
+    }
+  };
+
+  const titleName = host?.name || host?.nickname || `Organizer #${organizerId}`;
+  const profileImg = host?.avatarUrl || host?.profileImageUri || imgUrl(host?.profileImageId);
+
   return (
     <Layout pageTitle="주최자">
       <div className="host-detail">
         <div className="hd-inner">
-          {/* 상단 프로필 카드 */}
           <section className="hero-card card-overlap">
             <div className="avatar-xxl" aria-hidden="true">
-              {host?.profileImage ? (
-                <img src={host.profileImage} alt={`${host?.name ?? '주최자'} 프로필`} />
+              {profileImg ? (
+                <img src={profileImg} alt={`${titleName} 프로필`} />
               ) : (
-                host?.name?.[0] ?? '호'
+                (titleName || '호')[0]
               )}
             </div>
-
             <div className="hero-content">
-              <h1 className="host-title" title={host?.name}>
-                {host?.name ?? '주최자'}
-              </h1>
-              <div className="host-stars-row">
-                <Stars value={host?.rating ?? 0} />
+              <h1 className="host-title">{titleName}</h1>
+              <div className="host-sub">
+                {host?.nickname ? <span className="host-nick">@{host.nickname}</span> : null}
+                {avgRating != null ? (
+                  <span className="host-rating">· 평균 ★{avgRating.toFixed(1)} ({reviewCount}개)</span>
+                ) : (
+                  <span className="host-rating">· 리뷰 없음</span>
+                )}
               </div>
             </div>
 
-            <button
-              className={`pill-subscribe ${isSubscribed ? 'on' : ''}`}
-              onClick={toggleSubscribe}
-              disabled={subscribing}
-              aria-live="polite"
-            >
-              {isSubscribed ? (
-                <>
-                  <span className="ps-label-default">구독 중</span>
-                  <span className="ps-label-hover">구독 해제</span>
-                </>
-              ) : (
-                '구독하기'
-              )}
-            </button>
+            {!isSelf && (
+              <button
+                className={`pill-subscribe ${isSubscribed ? 'on' : ''}`}
+                onClick={onToggleSubscribe}
+                disabled={subscribing}
+                aria-live="polite"
+                title={isSubscribed ? '구독 해제' : '구독하기'}
+              >
+                {isSubscribed ? (
+                  <>
+                    <span className="ps-label-default">구독 중</span>
+                    <span className="ps-label-hover">구독 해제</span>
+                  </>
+                ) : (
+                  '구독하기'
+                )}
+              </button>
+            )}
           </section>
 
-          {/* AI 요약 카드 */}
           <section className="ai-summary-card">
             <div className="ai-badge">
-              <strong>{host?.name ?? '주최자'}</strong>님의 행사를 다녀간 사람들의 리뷰를 AI가 요약했어요
+              <strong>{titleName}</strong> 주최자의 리뷰 요약
             </div>
-            <p className="ai-summary-txt">{shortSummary}</p>
+            <p className="ai-summary-txt">
+              {reviewSummary || '아직 리뷰가 없어요. 첫 리뷰의 주인공이 되어보세요!'}
+            </p>
           </section>
 
-          {/* 주최자 행사 목록 */}
-          <section className="host-events-section">
-            <h2 className="section-title">주최한 행사</h2>
-            <div className="event-grid">
-              {MOCK_EVENTS.map((event) => (
-                <EventCard
-                  key={event.id}
-                  id={event.id}
-                  {...event}
-                  bookmarked={bookmarks[event.id]}
-                  onBookmarkToggle={() => toggleBookmark(event.id)}
-                  onClick={() => navigate(`/events/${event.id}`)}
-                />
-              ))}
-            </div>
-          </section>
+          {errMsg && <div className="state state--error">{errMsg}</div>}
+          {loading && <div className="state state--loading">불러오는 중…</div>}
+
+          {!loading && !errMsg && (
+            <section className="host-events-section">
+              <h2 className="section-title">주최한 행사</h2>
+              <div className="event-grid">
+                {(Array.isArray(events) ? events : []).map((ev) => {
+                  const fee =
+                    typeof ev.entryFee === 'number'
+                      ? ev.entryFee === 0
+                        ? '무료'
+                        : `${ev.entryFee.toLocaleString()}원`
+                      : ev.entryFee ?? '';
+                  return (
+                    <EventCard
+                      key={ev.id}
+                      id={ev.id}
+                      title={ev.name}
+                      image={imgUrl(ev.posterId)}
+                      date={ev.startTime ? new Date(ev.startTime).toLocaleDateString('ko-KR', { year: 'numeric', month: '2-digit', day: '2-digit' }) : '-'}
+                      time={ev.startTime ? new Date(ev.startTime).toLocaleTimeString('ko-KR', { hour: '2-digit', minute: '2-digit', hour12: false }) : '-'}
+                      location={ev.address}
+                      fee={fee}
+                      hashtags={ev.hashtags}
+                      summary={toExcerpt(ev.description)}
+                      bookmarked={!!bmMapState[ev.id]}
+                      bookmarkCount={bmCounts[ev.id] || 0}
+                      onBookmarkToggle={() => onToggleBookmark(ev.id)}
+                      onClick={() => navigate(`/events/${ev.id}`)}
+                    />
+                  );
+                })}
+              </div>
+              {(!events || events.length === 0) && (
+                <div className="state state--empty">등록된 행사가 아직 없어요.</div>
+              )}
+            </section>
+          )}
         </div>
       </div>
     </Layout>

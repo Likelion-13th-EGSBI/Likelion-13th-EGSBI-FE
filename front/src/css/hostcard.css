@@ -1,4 +1,3 @@
-
 .org-card {
   background: #fff;
   border: 1px solid #E9ECEF;
@@ -18,24 +17,21 @@
 }
 .org-card.is-mock { cursor: default; }
 
-/* 헤더: 아바타+이름 / 버튼 */
 .org-card__header {
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 12px;
-  /* 이름은 넓게, 버튼은 줄어들지 않게 */
 }
 .org-card__info {
   display: flex;
   align-items: center;
   gap: 12px;
-  min-width: 0;     /* ← ellipsis 작동용 */
-  flex: 1 1 auto;   /* ← 남는 공간 다 쓰기 */
+  min-width: 0;    
+  flex: 1 1 auto;  
 }
-.unsubscribe-btn { flex: 0 0 auto; } /* ← 버튼은 줄어들지 않게 */
+.unsubscribe-btn { flex: 0 0 auto; }
 
-/* 아바타 */
 .org-card__avatar {
   width: 44px;
   height: 44px;
@@ -43,21 +39,23 @@
   border-radius: 50%;
   background: #40180F;
   color: #fff;
-  display: grid;
-  place-items: center;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   font-weight: 700;
+  font-size: 0.95rem;
   overflow: hidden;
 }
 .org-card__avatar img {
   width: 100%;
   height: 100%;
-  object-fit: cover;
+  object-fit: cover;  
+  display: block;
 }
 
-/* 이름 */
 .org-card__name {
   font-weight: 700;
-  font-size: 1rem;      /* ≈16px */
+  font-size: 1rem;    
   line-height: 1.2;
   white-space: nowrap;
   overflow: hidden;
@@ -65,7 +63,6 @@
   max-width: 100%;
 }
 
-/* 구독 상태 버튼 */
 .unsubscribe-btn {
   position: relative;
   display: inline-flex;
@@ -94,7 +91,6 @@
 .unsubscribe-btn:hover .label-hover,
 .unsubscribe-btn:focus-visible .label-hover   { display: inline; }
 
-/* 모바일(hover: none) — 항상 기본 라벨만 */
 @media (hover: none) {
   .unsubscribe-btn .label-default { display: inline !important; }
   .unsubscribe-btn .label-hover   { display: none !important; }
@@ -108,7 +104,7 @@
     width: 40px; height: 40px; flex-basis: 40px;
     font-size: 0.9rem;
   }
-  .org-card__name { font-size: 0.95rem; }          /* ≈15px */
+  .org-card__name { font-size: 0.95rem; }
 
   .unsubscribe-btn {
     padding: 6px 10px;
@@ -124,6 +120,6 @@
     width: 36px; height: 36px; flex-basis: 36px;
     font-size: 0.85rem;
   }
-  .org-card__name { font-size: 0.9rem; }           /* ≈14px */
+  .org-card__name { font-size: 0.9rem; }
   .unsubscribe-btn { padding: 5px 9px; font-size: 11.5px; }
 }
