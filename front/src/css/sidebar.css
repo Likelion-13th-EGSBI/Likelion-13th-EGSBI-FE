@@ -1,0 +1,348 @@
+:root{
+  --sidebar-width: 336px;
+  --sidebar-border: #e9ecef;
+  --brand: #5E936C;
+  --active: #939E91;
+  --text-strong: #1b1f23;
+  --text-muted: #6c757d;
+  --hover-bg: #eef2ee;
+  --disabled-bg: #f8f9fa;
+  --disabled-color: #adb5bd;
+  --warning-color: #ffc107;
+  --login-bg: #f0f9ff;
+  --login-border: #bae6fd;
+}
+
+.sidebar-container{
+  width: var(--sidebar-width); 
+  min-width: var(--sidebar-width);
+  height: 100vh;
+  background: linear-gradient(180deg, #ffffff 0%, #f5faf6 100%);
+  border-right: 1px solid var(--sidebar-border);
+  position: fixed; 
+  left: 0; 
+  top: 0; 
+  z-index: 900;
+  display: grid; 
+  grid-template-rows: auto 1fr auto;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  overflow-y: auto; 
+  padding: 16px 14px;
+}
+
+/* 상단 블록 */
+.sidebar-top{
+  display: grid; 
+  gap: 12px; 
+  margin-bottom: 6px;
+}
+
+/* 로고만 중앙 정렬 + 더 크게 */
+.sidebar-brand{
+  display: flex; 
+  align-items: center; 
+  justify-content: center;
+  padding: 10px 0 8px;
+  cursor: pointer; 
+  border-radius: 12px;
+}
+.sidebar-brand:focus-visible{
+  outline: 2px solid var(--brand); 
+  outline-offset: 2px;
+}
+.sidebar-logo{
+  width: 100px; 
+  height: 100px; 
+  display: block;
+}
+.sidebar-logo--lg{
+  width: 92px; 
+  height: 92px;
+}
+
+/* 프로필 카드 */
+.sidebar-user-card.rich{
+  display: flex; 
+  align-items: center; 
+  gap: 12px;
+  padding: 14px 16px; 
+  border-radius: 16px;
+  background: linear-gradient(135deg, rgba(94,147,108,0.14), rgba(94,147,108,0.06)), #ffffff;
+  border: 1px solid rgba(94,147,108,0.25);
+  box-shadow: 0 10px 24px rgba(94,147,108,0.18);
+}
+
+.sidebar-user-avatar{
+  width: 48px; 
+  height: 48px; 
+  border-radius: 50%;
+  background: var(--brand); 
+  color: #fff;
+  display: flex; 
+  align-items: center; 
+  justify-content: center; 
+  font-weight: 800;
+  flex-shrink: 0;
+}
+.sidebar-user-avatar.xl{
+  width: 60px; 
+  height: 60px; 
+  font-size: 20px;
+}
+
+.sidebar-user-details{
+  display: flex; 
+  flex-direction: column; 
+  gap: 3px; 
+  min-width: 0;
+}
+.sidebar-user-name{
+  font-size: 15px; 
+  font-weight: 800; 
+  color: var(--text-strong); 
+  white-space: nowrap; 
+  overflow: hidden; 
+  text-overflow: ellipsis;
+}
+.sidebar-user-name.xl{
+  font-size: 16px;
+}
+.sidebar-meta-text{
+  font-size: 12px; 
+  color: var(--text-muted);
+}
+.sidebar-meta-text.strong{
+  color: #2f3a31; 
+  font-weight: 600;
+}
+
+/* 로딩 상태 */
+.sidebar-loading {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+}
+.sidebar-loading .sidebar-user-avatar {
+  background: var(--disabled-bg);
+  color: var(--disabled-color);
+  animation: pulse 1.5s ease-in-out infinite alternate;
+}
+.sidebar-loading .sidebar-user-name {
+  color: var(--disabled-color);
+}
+
+@keyframes pulse {
+  0% { opacity: 0.6; }
+  100% { opacity: 1; }
+}
+
+/* 로그인된 상태 */
+.sidebar-user-logged-in {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+}
+
+/* 비로그인 상태 - 클릭 가능한 로그인 영역 */
+.sidebar-user-login {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  cursor: pointer;
+  transition: all 0.18s ease;
+}
+.sidebar-user-login:hover {
+  background: rgba(240, 249, 255, 0.5);
+  border-color: #bae6fd;
+  transform: translateY(-1px);
+}
+.sidebar-user-login .sidebar-user-avatar {
+  background: linear-gradient(135deg, #3b82f6, #1d4ed8);
+  color: white;
+}
+.sidebar-user-login .sidebar-user-name {
+  color: var(--brand);
+  font-weight: 700;
+}
+
+/* 메뉴 */
+.sidebar-nav{
+  padding: 10px 6px; 
+  display: flex; 
+  flex-direction: column; 
+  gap: 8px;
+}
+.sidebar-section.compact{
+  padding: 8px 8px 12px;
+}
+.sidebar-section-title{
+  font-size: 12px; 
+  font-weight: 800; 
+  color: #98a1a1;
+  text-transform: uppercase; 
+  letter-spacing: .6px; 
+  margin: 10px 6px 10px;
+}
+
+.sidebar-nav-item{
+  width: 100%; 
+  background: transparent; 
+  border: none; 
+  text-align: left; 
+  color: var(--text-muted);
+  display: flex; 
+  align-items: center; 
+  gap: 12px;
+  padding: 12px 14px; 
+  border-radius: 14px; 
+  cursor: pointer;
+  transition: background .18s ease, color .18s ease, box-shadow .18s ease;
+  font-size: 15px;
+}
+.sidebar-nav-item:hover{
+  background: var(--hover-bg); 
+  color: #3b403b;
+}
+
+/* 활성 스타일 */
+.sidebar-nav-item.active, 
+.sidebar-nav-item[aria-current="page"]{
+  background: var(--active); 
+  color: #fff;
+  box-shadow: 0 6px 16px rgba(147,158,145,.35);
+}
+.sidebar-nav-item.active svg, 
+.sidebar-nav-item[aria-current="page"] svg{
+  stroke: #fff;
+}
+
+/* 비활성화된 메뉴 아이템 */
+.sidebar-nav-item.disabled {
+  background: transparent;
+  color: var(--disabled-color);
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+.sidebar-nav-item.disabled:hover {
+  background: transparent;
+  color: var(--disabled-color);
+}
+.sidebar-nav-item.disabled svg {
+  stroke: var(--disabled-color);
+}
+
+/* 로그인 필요 표시 */
+.sidebar-login-required {
+  font-size: 14px;
+  color: var(--warning-color);
+  margin-left: auto;
+}
+
+.sidebar-nav-label{
+  flex: 1; 
+  min-width: 0; 
+  white-space: nowrap; 
+  overflow: hidden; 
+  text-overflow: ellipsis;
+}
+
+/* 하단 */
+.sidebar-bottom{
+  padding: 12px 8px 8px; 
+  display: grid; 
+  gap: 10px;
+}
+
+.sidebar-logout-btn{
+  width: 100%; 
+  padding: 12px 14px; 
+  background: transparent; 
+  border: 1px solid transparent;
+  color: var(--text-muted); 
+  font-size: 15px; 
+  cursor: pointer; 
+  display: flex; 
+  align-items: center; 
+  gap: 10px;
+  border-radius: 12px; 
+  transition: all .18s ease;
+}
+.sidebar-logout-btn:hover{
+  background: var(--hover-bg); 
+  color: var(--brand); 
+  border-color: var(--brand);
+}
+
+/* 로그인 버튼 */
+.sidebar-login-btn {
+  width: 100%;
+  padding: 12px 14px;
+  background: linear-gradient(135deg, var(--brand), #4a7c59);
+  border: 1px solid var(--brand);
+  color: white;
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  border-radius: 12px;
+  transition: all .18s ease;
+  box-shadow: 0 4px 12px rgba(94,147,108,0.3);
+}
+.sidebar-login-btn:hover {
+  background: linear-gradient(135deg, #4a7c59, var(--brand));
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(94,147,108,0.4);
+}
+
+/* 모바일 숨김 */
+@media (max-width: 768px){
+  .sidebar-container{
+    display: none;
+  }
+}
+.sidebar-nav-item.active,
+.sidebar-nav-item[aria-current="page"] {
+  background: var(--active);
+  color: #fff;
+  box-shadow: 0 6px 16px rgba(147,158,145,.35);
+}
+
+.sidebar-nav-item.active:hover,
+.sidebar-nav-item[aria-current="page"]:hover {
+  /* active 스타일 그대로 유지, hover에서 추가적인 색상 변화 금지 */
+  background: var(--active);
+  color: #fff;
+}
+
+.sidebar-nav-item.active svg,
+.sidebar-nav-item[aria-current="page"] svg,
+.sidebar-nav-item.active:hover svg,
+.sidebar-nav-item[aria-current="page"]:hover svg {
+  stroke: #fff;
+}
+
+.sidebar-profile-image {
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 2px solid rgba(255, 255, 255, 0.8);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+/* 프로필 이미지가 있을 때 아바타 배경 조정 */
+.sidebar-user-avatar:has(.sidebar-profile-image) {
+  background: transparent;
+  padding: 0;
+}
+
+/* 프로필 이미지 로딩 상태 */
+.sidebar-profile-image:not([src]) {
+  background: var(--disabled-bg);
+  animation: pulse 1.5s ease-in-out infinite alternate;
+}

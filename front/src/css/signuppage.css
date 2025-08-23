@@ -1,0 +1,256 @@
+.signup-container {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+  background-color: #fdfdfd;
+}
+
+.signup-header {
+  display: none;
+}
+
+.signup-header-img {
+  width: 240px;
+  height: auto;
+  padding-left: 100px;
+}
+
+@media (min-width: 768px) {
+  .signup-header {
+    display: flex;
+    align-items: center;
+    height: 102px;
+    padding: 0 24px;
+    background-color: #fff;
+    border-bottom: 1px solid #e5e7eb;
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    z-index: 10;
+  }
+  
+  .signup-container {
+    padding-top: 102px;
+  }
+}
+
+.signup-inner {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 100%;
+  max-width: 420px;
+  margin: 0 auto;
+  padding: 32px 24px;
+  flex: 1;
+  justify-content: center;
+}
+
+.signup-title {
+  font-size: 24px;
+  font-weight: bold;
+  color: #333;
+  margin-bottom: 32px;
+  text-align: center;
+}
+
+.signup-form {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+}
+
+.signup-profile-section {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+  margin-bottom: 24px;
+  padding: 20px;
+  border-radius: 12px;
+  background: #f9fafb;
+  border: 1px solid #e5e7eb;
+}
+
+.signup-profile-icon {
+  width: 100px;
+  height: 100px;
+  color: #9ca3af;
+  border-radius: 50%;
+}
+
+.signup-profile-image {
+  width: 100px;
+  height: 100px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 3px solid #5E936C;
+  box-shadow: 0 4px 12px rgba(94, 147, 108, 0.2);
+}
+
+.signup-upload-wrapper {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.signup-upload-input {
+  display: none;
+}
+
+.signup-upload-label {
+  padding: 10px 20px;
+  color: #5E936C;
+  background: white;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: 600;
+  font-size: 14px;
+  border: 1.5px solid #5E936C;
+  transition: all 0.3s ease;
+  user-select: none;
+  text-align: center;
+  white-space: nowrap;
+}
+
+.signup-upload-label:hover {
+  background-color: #5E936C;
+  color: #ffffff;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(94, 147, 108, 0.3);
+}
+
+.signup-input-field {
+  box-sizing: border-box;
+  width: 100%;
+  height: 48px;
+  background: #ffffff;
+  border: 2px solid #e0e0e0;
+  border-radius: 12px;
+  padding: 0 16px;
+  font-size: 15px;
+  transition: all 0.2s ease;
+  outline: none;
+  font-family: inherit;
+}
+
+.signup-input-field:focus {
+  border-color: #5E936C;
+  box-shadow: 0 0 0 3px rgba(94, 147, 108, 0.1);
+}
+
+.signup-input-field:disabled {
+  background-color: #f3f4f6;
+  cursor: not-allowed;
+  opacity: 0.7;
+}
+
+.signup-submit-btn {
+  cursor: pointer;
+  width: 100%;
+  height: 52px;
+  background: #5E936C;
+  border-radius: 12px;
+  border: none;
+  font-size: 16px;
+  font-weight: 600;
+  color: #ffffff;
+  margin-top: 16px;
+  transition: all 0.3s ease;
+  letter-spacing: 0.5px;
+  font-family: inherit;
+}
+
+.signup-submit-btn:hover:not(:disabled) {
+  background: #4a7857;
+  box-shadow: 0 4px 16px rgba(94, 147, 108, 0.3);
+  transform: translateY(-1px);
+}
+
+.signup-submit-btn:disabled {
+  background: #9ca3af;
+  cursor: not-allowed;
+  transform: none;
+  box-shadow: none;
+}
+
+.signup-login-link {
+  margin-top: 24px;
+  text-align: center;
+}
+
+.signup-login-link-text {
+  color: #6b7280;
+  font-size: 14px;
+  margin: 0;
+}
+
+.signup-login-btn {
+  color: #5E936C;
+  font-weight: 600;
+  text-decoration: underline;
+  cursor: pointer;
+  font-size: 14px;
+  transition: color 0.2s ease;
+}
+
+.signup-login-btn:hover {
+  color: #4a7857;
+}
+
+/* 반응형 */
+@media (max-width: 768px) {
+  .signup-inner {
+    padding: 24px 16px;
+    justify-content: flex-start;
+    padding-top: 40px;
+  }
+  
+  .signup-title {
+    font-size: 22px;
+    margin-bottom: 24px;
+  }
+}
+
+@media (max-width: 480px) {
+  .signup-inner {
+    padding: 20px 12px;
+  }
+
+  .signup-title {
+    font-size: 20px;
+  }
+
+  .signup-profile-section {
+    padding: 16px;
+    margin-bottom: 20px;
+  }
+
+  .signup-profile-icon,
+  .signup-profile-image {
+    width: 80px;
+    height: 80px;
+  }
+
+  .signup-upload-label {
+    padding: 8px 16px;
+    font-size: 13px;
+    width: 100%;
+  }
+
+  .signup-input-field {
+    font-size: 16px; /* iOS 줌 방지 */
+    height: 44px;
+  }
+
+  .signup-submit-btn {
+    height: 48px;
+    font-size: 15px;
+  }
+
+  .signup-form {
+    gap: 12px;
+  }
+}

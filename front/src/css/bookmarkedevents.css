@@ -1,0 +1,245 @@
+/* =========================================================
+   북마크 전용 스타일 (iPad/Tablet/데스크탑 대응, Page-scoped)
+   ========================================================= */
+
+:root { --map-offset: 0px; }
+
+html, body { height: 100%; }
+body { margin: 0; }
+
+/* 지도 모드에서 스크롤 잠금 */
+html.lock-scroll, body.lock-scroll { overflow: hidden; }
+
+/* 페이지 기본 */
+.events-page--bookmarked {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  background: var(--bg, #fff);
+  color: var(--fg, #222);
+  font-family: 'Pretendard', system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
+  box-sizing: border-box;
+  overflow-x: hidden;
+}
+
+/* 상단 토글 */
+.events-page--bookmarked .events-toggle {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  align-items: center;
+  justify-content: space-between;
+  position: sticky;
+  top: calc(var(--topbar-height, 64px) - 80px);
+  z-index: 5;
+  background: var(--bg, #fff);
+  padding: 10px 14px;
+  margin: 8px 0 12px;
+  border-radius: 14px;
+  box-shadow: var(--shadow-0, 0 1px 2px rgba(0,0,0,.06));
+  border: 1px solid rgba(0,0,0,.06);
+}
+
+.events-page--bookmarked .toggle-options { display: flex; gap: 10px; align-items: center; }
+
+/* 버튼 & 셀렉트 */
+.events-page--bookmarked .pill-btn,
+.events-page--bookmarked .pill-select {
+  height: 38px;
+  padding: 0 14px;
+  border-radius: 9999px;
+  border: 1px solid #E5E7EB;
+  background-color: #fff;
+  color: #444;
+  cursor: pointer;
+  font-weight: 600;
+  font-size: 14px;
+  transition: box-shadow .15s, transform .05s, background-color .15s, color .15s, border-color .15s;
+  box-shadow: 0 1px 2px rgba(0,0,0,.04);
+}
+.events-page--bookmarked .pill-btn:hover, .events-page--bookmarked .pill-select:hover { background-color: #F9FAFB; color: #222; }
+.events-page--bookmarked .pill-btn:active { transform: translateY(1px); }
+.events-page--bookmarked .pill-btn.active {
+  background-color: var(--primary, #5E936C);
+  color: #fff; border-color: var(--primary, #5E936C);
+  box-shadow: 0 4px 10px rgba(94,147,108,.25);
+}
+.events-page--bookmarked .pill-select {
+  appearance: none;
+  background-image: linear-gradient(45deg, transparent 50%, #888 50%), linear-gradient(135deg, #888 50%, transparent 50%);
+  background-position: right 12px 55%, right 6px 55%;
+  background-size: 6px 6px, 6px 6px;
+  background-repeat: no-repeat;
+  padding-right: 28px;
+}
+
+/* 스크린리더 전용 */
+.events-page--bookmarked .sr-only {
+  position: absolute !important; width: 1px; height: 1px;
+  padding: 0; margin: -1px; overflow: hidden; clip: rect(0,0,0,0); border: 0;
+}
+
+/* 빈 상태 */
+.events-page--bookmarked .events-empty { text-align: center; padding: 60px 20px; color: #888; }
+.events-page--bookmarked .events-empty .emoji { font-size: 48px; margin-bottom: 8px; }
+.events-page--bookmarked .events-empty .title { font-size: 18px; font-weight: 700; margin-bottom: 4px; }
+.events-page--bookmarked .events-empty .desc { font-size: 14px; color: #aaa; }
+
+/* ===== 이벤트 그리드 ===== */
+.events-page--bookmarked .events-grid {
+  display: grid;
+  width: 100%;
+  margin: 0 auto;
+  gap: 24px;
+  padding: 0 16px;
+  box-sizing: border-box;
+  grid-template-columns: repeat(4, minmax(0, 1fr)); /* 기본: 넓은 데스크탑 */
+}
+.events-page--bookmarked .events-grid,
+.events-page--bookmarked .events-grid > * { min-width: 0; }
+.events-page--bookmarked .event-card { width: 100%; min-width: 0; }
+.events-page--bookmarked .event-card * { max-width: 100%; box-sizing: border-box; }
+
+/* 카드 이미지 */
+.events-page--bookmarked .event-image {
+  position: relative; width: 100%; padding-top: 62.5%;
+  background-color: #eee; background-size: cover; background-position: center;
+  border-radius: 12px; overflow: hidden;
+}
+.events-page--bookmarked .event-image img {
+  position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover;
+}
+
+/* ===== 지도 모드 ===== */
+.events-page--bookmarked .map-box {
+  width: 100%;
+  height: calc(100vh - var(--topbar-height, 64px) - var(--map-offset, 0px));
+  background: #f5f5f5;
+  touch-action: pan-x pan-y;
+  z-index: 0; /* 하단바가 항상 위 */
+}
+.events-page--bookmarked.is-map .has-mobile-bottom-nav { padding-bottom: 0 !important; }
+
+/* 마커/인포윈도우 */
+.km-pin-wrap { position: relative; display: inline-block; }
+.km-pin { position: relative; width: 40px; height: 52px; pointer-events: auto; }
+.km-pin svg { display: block; }
+.custom-infowindow { pointer-events: none; z-index: 10000; }
+
+/* ===== 모바일 ===== */
+.events-page--bookmarked .has-mobile-bottom-nav { padding-bottom: 60px; }
+@media (max-width: 767.98px) {
+  .events-page--bookmarked.is-under-topbar { padding-left: 12px; padding-right: 12px; }
+  .events-page--bookmarked .events-toggle {
+    flex-wrap: nowrap; overflow-x: auto; -webkit-overflow-scrolling: touch; white-space: nowrap;
+    top: calc(var(--topbar-height, 64px) - 80px); margin: 8px 0; padding: 6px 8px; gap: 8px;
+  }
+  .events-page--bookmarked .events-toggle > div:first-child { flex: 0 0 auto; display: flex; gap: 6px; }
+  .events-page--bookmarked .toggle-options {
+    flex: 1 1 auto; display: flex; justify-content: flex-end; align-items: center;
+    gap: 8px; flex-wrap: nowrap; min-width: 0;
+  }
+  .events-page--bookmarked .pill-btn, .events-page--bookmarked .pill-select { height: 32px; padding: 0 10px; font-size: 12px; border-radius: 9999px; }
+  .events-page--bookmarked .pill-select {
+    background-position: right 10px center, right 5px center;
+    background-size: 6px 6px, 6px 6px; padding-right: 26px; max-width: 44vw;
+  }
+  .events-page--bookmarked label[for="toggleClosed"] { gap: 6px; }
+  .events-page--bookmarked #toggleClosed { width: 16px; height: 16px; }
+  .events-page--bookmarked label[for="toggleClosed"] span { font-size: 12px; }
+  .events-page--bookmarked .events-grid { padding: 0 8px; gap: 16px; grid-template-columns: repeat(1, 1fr); }
+}
+
+/* 데스크탑 반쪽보기(2열) */
+@media (min-width: 768px) and (max-width: 1366.98px) and (not (pointer: coarse)) {
+  .events-page--bookmarked .events-grid {
+    padding: 0 16px;
+    gap: 20px;
+    grid-template-columns: repeat(2, 1fr) !important;
+  }
+}
+
+/* iPad/Tablet 전용 */
+@supports (padding: max(0px)) {
+  :root { --safe-bottom: env(safe-area-inset-bottom); }
+}
+@media (min-width: 744px) and (max-width: 1366.98px) and (pointer: coarse) {
+  .layout-container.mobile .layout-main-content.with-layout { margin-left: 0 !important; max-width: none !important; width: 100% !important; }
+  .layout-container.mobile .layout-inner { padding-left: 0 !important; margin-left: 0 !important; max-width: none !important; width: 100% !important; }
+
+  :is(.topbar,.TopBar,.top-bar,.header,.Header) :is(.inner,.wrap,.container,[class*="container"]) {
+    margin-left: 0 !important; padding-left: 12px !important; max-width: none !important; width: 100% !important;
+  }
+
+  :is(.bottom-bar, .bottombar, .BottomBar) {
+    position: fixed !important; bottom: 0 !important; left: 0 !important; right: 0 !important;
+    width: 100% !important; margin: 0 !important; transform: none !important;
+    display: flex !important; justify-content: space-around !important; align-items: center !important;
+    padding-inline: 12px !important; padding-bottom: max(12px, var(--safe-bottom, 0px)) !important;
+    z-index: 10005 !important; box-sizing: border-box !important;
+  }
+  .events-page--bookmarked .has-mobile-bottom-nav { padding-bottom: 72px !important; }
+
+  @media (orientation: portrait){
+    .events-page--bookmarked .events-grid{
+      grid-template-columns:repeat(2,minmax(0,1fr)) !important;
+      padding:0 16px !important; gap:20px !important;
+    }
+  }
+  @media (orientation: landscape){
+    .events-page--bookmarked .events-grid{
+      grid-template-columns:repeat(4,minmax(0,1fr)) !important;
+      padding:0 24px !important; gap:24px !important;
+    }
+  }
+}
+
+/* 넓은 데스크탑 */
+@media (min-width: 1367px) {
+  .events-page--bookmarked.is-under-topbar { padding-left: 16px; padding-right: 16px; }
+  .events-page--bookmarked .events-grid { padding: 0 24px; gap: 32px; grid-template-columns: repeat(4, 1fr); }
+}
+
+/* ===== Kakao Map InfoWindow ===== */
+.custom-infowindow { pointer-events: none; z-index: 10000; }
+
+.custom-infowindow .inner{
+  position: relative;
+  background: #fff;
+  border-radius: 12px;
+  box-shadow: 0 8px 24px rgba(0,0,0,.18);
+  padding: 12px 14px;
+  max-width: 260px;
+  border: 1px solid rgba(0,0,0,.06);
+}
+
+.custom-infowindow .meta { display: flex; flex-direction: column; gap: 6px; }
+.custom-infowindow .title { font-weight: 800; font-size: 15px; line-height: 1.3; color:#222; }
+.custom-infowindow .desc { font-size: 13px; color: #6b7280; }
+.custom-infowindow .sub  { font-size: 12px; color: #9ca3af; }
+
+.custom-infowindow .outline-btn {
+  border: 1px solid var(--primary, #5E936C);
+  background: transparent;
+  padding: 6px 10px;
+  border-radius: 8px;
+  font-size: 12px;
+  color: var(--primary, #5E936C);
+  cursor: pointer;
+  pointer-events: auto;
+  font-weight: 600;
+}
+.custom-infowindow .outline-btn:active { transform: translateY(1px); }
+
+.custom-infowindow .arrow{
+  position: absolute;
+  left: 50%;
+  bottom: -8px;
+  width: 0; height: 0;
+  transform: translateX(-50%);
+  border-left: 8px solid transparent;
+  border-right: 8px solid transparent;
+  border-top: 8px solid #fff;
+  filter: drop-shadow(0 -1px 1px rgba(0,0,0,.08));
+}
+

@@ -1,0 +1,200 @@
+/* =========================================================
+   JoinedEvents 전용 보정 + 리뷰 모달 / 버튼 스타일 (전체 코드)
+   ========================================================= */
+
+/* 이 페이지에서는 북마크 버튼 숨김 */
+.joined-page .event-card .bookmark-btn {
+  display: none !important;
+}
+
+/* -------------------- 외곽 카드 -------------------- */
+.joined-card {
+  display: flex;
+  flex-direction: column;
+  background: #fff;
+  border: 1px solid #e9ecef;
+  border-radius: 16px;
+  overflow: hidden; /* 카드+액션을 한 덩어리처럼 */
+  box-shadow: var(--shadow-1, 0 6px 18px rgba(0,0,0,.06), 0 2px 6px rgba(0,0,0,.04));
+}
+
+/* 내부 EventCard는 외곽 카드와 이음매 없이 */
+.joined-page .joined-card .event-card {
+  border: 0 !important;
+  box-shadow: none !important;
+  border-radius: 0 !important;
+  margin: 0 !important;
+}
+
+/* 하단 액션 바: 리뷰 버튼만 1열(꽉 채움) */
+.joined-card-actions {
+  display: flex;
+  padding: 16px 16px 18px;
+  border-top: 1px solid #f0f0f0;
+  background: #fff;
+}
+
+.joined-card-action-btn {
+  flex: 1;
+  height: 48px;
+  width: 100%;
+  border-radius: 12px;
+  font-size: 16px;
+  font-weight: 600;
+}
+
+/* ================= 공통 버튼 스타일 ================= */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 10px 14px;
+  border-radius: 12px;
+  font-weight: 600;
+  border: 1px solid transparent;
+  background: #eee;
+  color: #222;
+  cursor: pointer;
+  transition: transform .06s ease, box-shadow .12s ease, background .12s ease;
+}
+.btn:hover { transform: translateY(-1px); box-shadow: 0 6px 16px rgba(0,0,0,.06); }
+.btn:active { transform: translateY(0); box-shadow: none; }
+.btn:disabled,
+[aria-disabled="true"] {
+  opacity: .55;
+  cursor: not-allowed;
+  box-shadow: none !important;
+  transform: none !important;
+}
+.btn.outline { background: #fff; border-color: #ddd; }
+.btn.primary { background: var(--primary, #5E936C); color: #fff; }
+.btn.primary:disabled { background: #c9d8ce; color: #fff; }
+
+/* =========================================================
+   리뷰 모달
+   ========================================================= */
+.review-modal {
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: 'Pretendard', system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
+}
+.review-modal__backdrop {
+  position: absolute;
+  inset: 0;
+  background: rgba(0,0,0,.35);
+}
+.review-modal__panel {
+  position: relative;
+  width: min(720px, 92vw);
+  background: #fff;
+  border-radius: 16px;
+  box-shadow: 0 10px 40px rgba(0,0,0,.18);
+  display: flex;
+  flex-direction: column;
+  max-height: 86vh;
+  overflow: hidden;
+}
+
+/* 헤더 */
+.review-modal__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px 18px;
+  border-bottom: 1px solid #eee;
+}
+.review-modal__header .title {
+  font-size: 18px;
+  font-weight: 700;
+}
+.icon-btn {
+  border: 0;
+  background: transparent;
+  font-size: 18px;
+  cursor: pointer;
+  line-height: 1;
+  padding: 4px 6px;
+  border-radius: 8px;
+}
+.icon-btn:hover { background: rgba(0,0,0,.06); }
+
+/* 바디 */
+.review-modal__body {
+  padding: 16px 18px;
+  overflow: auto;
+}
+.review-modal__body .event-title {
+  font-weight: 700;
+  margin-bottom: 10px;
+  line-height: 1.25;
+}
+
+.field-label {
+  display: block;
+  margin: 12px 0 8px;
+  font-weight: 600;
+  font-size: 14px;
+  color: #444;
+}
+
+/* 별점 */
+.stars {
+  display: flex;
+  gap: 6px;
+  user-select: none;
+}
+.star {
+  width: 28px;
+  height: 28px;
+  border: 0;
+  background: transparent;
+  cursor: pointer;
+  font-size: 22px;
+  line-height: 1;
+  color: #ddd;             /* 비활성 별 */
+  transition: transform .08s ease, color .08s ease;
+}
+.star.on {
+  color: #FFC107;          /* 활성 별: 노란색 */
+}
+.star:active {
+  transform: scale(.92);
+}
+
+/* 텍스트 영역 */
+.review-textarea {
+  width: 100%;
+  border: 1px solid #ddd;
+  border-radius: 12px;
+  padding: 12px 14px;
+  resize: vertical;
+  font-size: 14px;
+  line-height: 1.5;
+}
+.review-textarea:focus {
+  outline: none;
+  border-color: #c8d6cc;
+  box-shadow: var(--ring, 0 0 0 3px rgba(94,147,108,.22));
+}
+
+/* 푸터 */
+.review-modal__footer {
+  display: flex;
+  gap: 10px;
+  justify-content: flex-end;
+  padding: 14px 18px;
+  border-top: 1px solid #eee;
+  background: #fff;
+}
+
+/* =========================================================
+   반응형
+   ========================================================= */
+@media (max-width: 480px) {
+  .review-modal__panel { width: 94vw; }
+  .btn { padding: 10px 12px; }
+}
