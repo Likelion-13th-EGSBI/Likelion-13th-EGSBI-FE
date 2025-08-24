@@ -1,4 +1,3 @@
-// src/pages/MyPage.jsx
 import React, { useMemo, useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import Layout from "../components/Layout";
@@ -27,34 +26,36 @@ async function safeJson(res) {
   try { return JSON.parse(text); } catch { return null; }
 }
 
-// ✅ 새 규칙: 0.5 단위로 고정 (소수 있으면 무조건 반쪽)
-//  - 4.0 -> ★★★★
-//  - 4.1~4.9 -> ★★★★☆
-function computeStars(r) {
-  // 안전 클램프
-  const rating = Math.max(0, Math.min(5, Number.isFinite(r) ? r : 0));
-
-  // 5.0은 예외적으로 5개 꽉찬 별
-  if (rating >= 5) return { rating, full: 5, hasHalf: false, empty: 0 };
-
-  const full = Math.floor(rating);
-  const hasHalf = rating > full;          // 소수점이 있으면 무조건 반쪽
-  const empty = 5 - full - (hasHalf ? 1 : 0);
-
-  return { rating, full, hasHalf, empty };
+/* ===== 별점 유틸 ===== */
+function coerceNumber(val) {
+  if (typeof val === "number") return val;
+  if (val == null) return NaN;
+  const n = parseFloat(String(val).trim().replace(",", ".").replace(/[^\d.+-]/g, ""));
+  return n;
 }
-
+function computeStars(r) {
+  const n = coerceNumber(r);
+  const rating = Math.max(0, Math.min(5, Number.isFinite(n) ? n : 0));
+  if (rating >= 5) return { rating, full: 5, hasHalf: false };
+  const full = Math.floor(rating);
+  const hasHalf = rating > full; // 소수부 있으면 반쪽
+  return { rating, full, hasHalf };
+}
+function formatRatingLabel(r) {
+  const n = coerceNumber(r);
+  const rating = Math.max(0, Math.min(5, Number.isFinite(n) ? n : 0));
+  return rating.toFixed(1);
+}
 
 const MyPage = ({ onPageChange }) => {
   const navigate = useNavigate();
   const [user, setUser] = useState(null);
 
-  /** 1) 로컬 로그인 체크 (이미지 URL은 저장/사용하지 않음) */
+  // 1) 로컬 로그인 체크
   useEffect(() => {
     const userEmail = localStorage.getItem("userEmail");
     const userId = localStorage.getItem("userId");
     const nicknameLS = localStorage.getItem("nickname") || "";
-
     if (userEmail && userId) {
       setUser({
         id: userId,
@@ -70,7 +71,7 @@ const MyPage = ({ onPageChange }) => {
     }
   }, [navigate]);
 
-  /** 2) EditProfile 저장 직후 실시간 반영 */
+  // 2) EditProfile 저장 직후 반영
   useEffect(() => {
     const handler = (e) => {
       const { nickname, profileId, profileImageUrl } = e.detail || {};
@@ -90,7 +91,7 @@ const MyPage = ({ onPageChange }) => {
     return () => window.removeEventListener("user:profileUpdated", handler);
   }, []);
 
-  /** 3) 서버에서 최신 프로필 조회 */
+  // 3) 서버에서 최신 프로필 조회
   useEffect(() => {
     if (!user?.id) return;
     let alive = true;
@@ -109,12 +110,10 @@ const MyPage = ({ onPageChange }) => {
         );
         const data = await safeJson(res);
         if (!res.ok) throw new Error(data?.message || `사용자 정보 조회 실패 (${res.status})`);
-
         if (!alive) return;
 
         const nextNick = data?.nickname ?? "";
         const nextProfileId = data?.profileId ?? null;
-
         setUser((prev) => {
           if (!prev) return prev;
           const nextName = nextNick || prev.nickname || prev.name;
@@ -126,8 +125,6 @@ const MyPage = ({ onPageChange }) => {
             avatarUrl: toProfileUrl(nextProfileId),
           };
         });
-
-        // 닉네임만 캐시
         localStorage.setItem("nickname", nextNick || "");
       } catch (err) {
         console.error("[user/info] API 오류:", err);
@@ -136,7 +133,7 @@ const MyPage = ({ onPageChange }) => {
     return () => { alive = false; };
   }, [user?.id]);
 
-  /** 4) 평균 평점 */
+  // 4) 평균 평점
   useEffect(() => {
     const fetchRating = async () => {
       if (!user?.id) return;
@@ -150,7 +147,6 @@ const MyPage = ({ onPageChange }) => {
           },
         });
         if (!res.ok) throw new Error(`평균 평점 조회 실패 (${res.status})`);
-
         const data = await safeJson(res);
 
         let avg = 0;
@@ -159,10 +155,7 @@ const MyPage = ({ onPageChange }) => {
           avg = ratings.length ? ratings.reduce((a, b) => a + b, 0) / ratings.length : 0;
         } else if (typeof data === "number" && Number.isFinite(data)) {
           avg = data;
-        } else {
-          avg = 0;
         }
-
         setUser((prev) => (prev ? { ...prev, rating: avg } : prev));
       } catch (err) {
         console.error("[rating] API 오류:", err);
@@ -171,7 +164,7 @@ const MyPage = ({ onPageChange }) => {
     fetchRating();
   }, [user?.id]);
 
-  /** 표시 파생값 */
+  // 표시 파생값
   const email = user?.email || "email@example.com";
   const nickname = user?.nickname || localStorage.getItem("nickname") || "";
   const rawName = user?.name || "";
@@ -181,9 +174,12 @@ const MyPage = ({ onPageChange }) => {
   const avatarUrl = user?.avatarUrl || "";
   const initial = useMemo(() => (titleName ? titleName[0] : "U"), [titleName]);
 
-  // ⭐ 반쪽별/올림 규칙 적용된 값들
-  const { rating, full, hasHalf, empty } = computeStars(
-    typeof user?.rating === "number" ? user.rating : 0
+  // ⭐ 별점 계산 (표시 폭은 0.5 단위 스냅)
+  const star = computeStars(user?.rating);
+  const ratingLabel = formatRatingLabel(user?.rating);
+  const fillValue = useMemo(
+    () => star.full + (star.hasHalf ? 0.5 : 0),
+    [star.full, star.hasHalf]
   );
 
   const handleLogout = () => {
@@ -247,24 +243,15 @@ const MyPage = ({ onPageChange }) => {
                   {showNicknameLine && <span className="profile-nickname">{nickname}</span>}
                   <p className="profile-email">{email}</p>
 
-                  {rating > 0 ? (
-                    <div className="profile-rating compact" aria-label={`평점 ${rating.toFixed(1)}점`}>
-                      <div className="rating-stars" aria-hidden="true">
-                        {Array.from({ length: full }).map((_, i) => (
-                          <span key={`f${i}`} className="star full">★</span>
-                        ))}
-                        {hasHalf && <span className="star half">★</span>}
-                        {Array.from({ length: empty }).map((_, i) => (
-                          <span key={`e${i}`} className="star empty">★</span>
-                        ))}
-                      </div>
-                      <span className="rating-value">{rating.toFixed(1)}</span>
-                    </div>
-                  ) : (
-                    <div className="profile-rating compact" aria-label="평점 정보 없음">
-                      <span className="rating-empty">평점 없음</span>
-                    </div>
-                  )}
+                  {/* ⭐ 오버레이 별점: 항상 한 줄, 0.5 단위 */}
+                  <div className="profile-rating compact" aria-label={`평점 ${ratingLabel}점`}>
+                    <div
+                      className="rating-stars overlay"
+                      aria-hidden="true"
+                      style={{ "--fill": fillValue }}
+                    />
+                    <span className="rating-value">{ratingLabel}</span>
+                  </div>
                 </div>
               </div>
 
