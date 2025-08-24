@@ -182,7 +182,7 @@ export default function EventAll() {
   const [bookmarks, setBookmarks] = useState({});
   const [userPos, setUserPos] = useState({ lat: 37.5663, lng: 126.9779 });
   const [page, setPage] = useState(1);
-  const PER_PAGE = 40;
+  const PER_PAGE =20;
   const [allEvents, setAllEvents] = useState([]);
   const [hasNext, setHasNext] = useState(false);
   const [loading, setLoading] = useState(true);
