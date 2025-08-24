@@ -1,849 +1,3 @@
-.eventupload-container {
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-  margin: 0;
-  padding: 0;
-  width: 100%;
-  box-sizing: border-box;
-}
-
-.eventupload-container *,
-.eventupload-container *::before,
-.eventupload-container *::after {
-  box-sizing: inherit;
-}
-
-/* PC 버전 스타일 */
-@media (min-width: 769px) {
-  .eventupload-container {    
-    width: 100%;           
-    min-width: 340px;
-    margin: 0 auto;
-    padding-top: 20px;
-    overflow: hidden;
-  }
-
-  /* PC 헤더 */
-  .eventupload-header {
-    position: sticky;
-    top: 0;
-    background: white;
-    padding: 24px 32px;
-    border-bottom: 1px solid #f0f0f0;
-    display: flex;
-    align-items: center;
-    gap: 20px;
-    z-index: 100;
-  }
-
-  /* PC 스텝 콘텐츠 */
-  .eventupload-step-content {
-    padding: 40px 32px 120px;
-    opacity: 0;
-    transform: translateY(20px);
-    transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-    min-height: 500px;
-    display: flex;
-    flex-direction: column;
-  }
-
-  .eventupload-step-content.show {
-    opacity: 1;
-    transform: translateY(0);
-  }
-
-  /* 제목 크기 고정 */
-  .eventupload-title {
-    font-size: 28px; 
-    font-weight: 700;
-    line-height: 1.3;
-    color: #191f28;
-    margin-bottom: 40px;
-    word-break: keep-all;
-  }
-
-  /* PC 모드 선택 */
-  .eventupload-mode-selection {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 20px;
-  }
-
-  .eventupload-mode-card {
-    padding: 32px 24px;
-    border: 2px solid #e9ecef;
-    border-radius: 20px;
-    cursor: pointer;
-    transition: all 0.3s ease;
-    background: white;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    text-align: center;
-    gap: 16px;
-    min-height: 200px;
-  }
-
-  .eventupload-mode-card:hover {
-    border-color: #5E936C;
-    background: #f8fbf9;
-    transform: translateY(-2px);
-    box-shadow: 0 8px 24px rgba(94, 147, 108, 0.15);
-  }
-
-  .eventupload-mode-card.selected {
-    border-color: #5E936C;
-    background: #f8fbf9;
-    box-shadow: 0 0 0 1px #5E936C, 0 8px 24px rgba(94, 147, 108, 0.2);
-    transform: translateY(-2px);
-  }
-
-  /* PC 입력 필드 */
-  .eventupload-input {
-    width: 100%;
-    padding: 24px;
-    font-size: 20px;
-    border: 2px solid #e9ecef;
-    border-radius: 16px;
-    background: white;
-    transition: all 0.2s ease;
-    outline: none;
-  }
-
-  .eventupload-input:focus {
-    border-color: #5E936C;
-    box-shadow: 0 0 0 3px rgba(94, 147, 108, 0.1);
-  }
-
-  .eventupload-textarea {
-    width: 100%;
-    padding: 24px;
-    font-size: 20px;
-    border: 2px solid #e9ecef;
-    border-radius: 16px;
-    background: white;
-    transition: all 0.2s ease;
-    outline: none;
-    resize: vertical;
-    min-height: 140px;
-    font-family: inherit;
-  }
-
-  .eventupload-textarea:focus {
-    border-color: #5E936C;
-    box-shadow: 0 0 0 3px rgba(94, 147, 108, 0.1);
-  }
-
-  /* PC 하단 버튼 */
-  .eventupload-bottom {
-    position: absolute;
-    bottom: 0;
-    left: 0;
-    width: 100%;
-    padding: 24px 32px;
-    background: white;
-    border-top: 1px solid #f0f0f0;
-    border-radius: 0 0 16px 16px;
-  }
-
-  /* PC 버튼 그룹 - 1:4 비율 */
-  .eventupload-button-group {
-    display: flex;
-    gap: 12px;
-  }
-  
-  .eventupload-button-group > button {
-    flex: 1; /* 각 버튼이 동일 비율로 */
-    min-width: 0; /* flex 너비 제한 방지 */
-  }
-  
-  .eventupload-back-button {
-    height: 60px;
-    border: 2px solid #e9ecef;
-    background: white;
-    color: #495057;
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    border-radius: 16px;
-    font-size: 16px;
-    font-weight: 600;
-    transition: all 0.2s ease;
-  }
-  
-  .eventupload-back-button:hover {
-    border-color: #5E936C;
-    color: #5E936C;
-    transform: translateY(-1px);
-  }
-  
-  .eventupload-next-button {
-    height: 60px;
-    font-size: 18px;
-    font-weight: 600;
-    border: none;
-    border-radius: 16px;
-    background: #e9ecef;
-    color: #adb5bd;
-    cursor: not-allowed;
-    transition: all 0.3s ease;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 8px;
-  }
-  
-
-  /* 버튼 그룹이 없을 때(첫 번째 스텝)는 100% 너비 */
-  .eventupload-bottom > .eventupload-next-button:only-child {
-    width: 100%;
-  }
-
-  .eventupload-next-button.active {
-    background: #5E936C;
-    color: white;
-    cursor: pointer;
-    box-shadow: 0 4px 16px rgba(94, 147, 108, 0.3);
-  }
-
-  .eventupload-next-button.active:hover {
-    background: #4a7a57;
-    transform: translateY(-2px);
-    box-shadow: 0 8px 24px rgba(94, 147, 108, 0.4);
-  }
-}
-
-/* 모바일 버전 스타일 */
-@media (max-width: 768px) {
-  .eventupload-container {
-    width: 100%;
-    background: white;
-    border-radius: 0;
-  }
-
-  /* 모바일 헤더 */
-  .eventupload-header {
-    position: sticky;
-    top: 0;
-    background: white;
-    padding: 16px 20px;
-    border-bottom: 1px solid #f0f0f0;
-    display: flex;
-    align-items: center;
-    gap: 16px;
-    z-index: 100;
-  }
-
-  /* 모바일 스텝 콘텐츠 */
-  .eventupload-step-content {
-    padding: 32px 20px 120px;
-    opacity: 0;
-    transform: translateY(20px);
-    transition: all 0.4s ease;
-    max-height: fit-content;
-    display: flex;
-    flex-direction: column;
-  }
-
-  .eventupload-step-content.show {
-    opacity: 1;
-    transform: translateY(0);
-  }
-
-  /* 제목 크기 고정 */
-  .eventupload-title {
-    font-size: 22px;
-    font-weight: 700;
-    line-height: 1.4;
-    color: #191f28;
-    margin-bottom: 32px;
-    word-break: keep-all;
-  }
-
-  /* 모바일 모드 선택 */
-  .eventupload-mode-selection {
-    display: flex;
-    flex-direction: column;
-    gap: 12px;
-  }
-
-  .eventupload-mode-card {
-    padding: 20px;
-    border: 2px solid #e9ecef;
-    border-radius: 16px;
-    cursor: pointer;
-    transition: all 0.2s ease;
-    background: white;
-    display: flex;
-    align-items: center;
-    gap: 16px;
-    font-size: 10px;
-  }
-
-  .eventupload-mode-card:active {
-    transform: scale(0.98);
-  }
-
-  .eventupload-mode-card:hover {
-    border-color: #5E936C;
-    background: #f8fbf9;
-  }
-
-  .eventupload-mode-card.selected {
-    border-color: #5E936C;
-    background: #f8fbf9;
-    box-shadow: 0 0 0 1px #5E936C;
-  }
-
-  /* 모바일 입력 필드 */
-  .eventupload-input {
-    width: 100%;
-    padding: 18px;
-    font-size: 16px;
-    border: 2px solid #e9ecef;
-    border-radius: 12px;
-    background: white;
-    transition: border-color 0.2s ease;
-    outline: none;
-    -webkit-appearance: none;
-  }
-
-  .eventupload-input:focus {
-    border-color: #5E936C;
-  }
-
-  .eventupload-textarea {
-    width: 100%;
-    padding: 18px;
-    font-size: 16px;
-    border: 2px solid #e9ecef;
-    border-radius: 12px;
-    background: white;
-    transition: border-color 0.2s ease;
-    outline: none;
-    resize: vertical;
-    min-height: 120px;
-    font-family: inherit;
-    -webkit-appearance: none;
-  }
-
-  .eventupload-textarea:focus {
-    border-color: #5E936C;
-  }
-
-  /* 모바일 하단 버튼 */
-  .eventupload-bottom {
-    position: fixed;
-    bottom: 0;
-    left: 0;
-    width: 100%;
-    padding: 16px 20px;
-    background: white;
-    border-top: 1px solid #f0f0f0;
-    z-index: 100;
-  }
-
-  /* 모바일 버튼 그룹 - 1:3 비율 */
-  .eventupload-button-group {
-    display: flex;
-    gap: 12px;
-  }
-
-  .eventupload-back-button {
-    width: 25%;
-    min-width: 70px;
-    height: 48px;
-    border: 2px solid #e9ecef;
-    background: white;
-    color: #495057;
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    border-radius: 12px;
-    font-size: 14px;
-    font-weight: 600;
-    transition: all 0.2s ease;
-  }
-
-  .eventupload-back-button:hover {
-    background-color: #f8f9fa;
-  }
-
-  .eventupload-back-button:active {
-    background-color: #e9ecef;
-    transform: scale(0.95);
-  }
-
-  .eventupload-next-button {
-    height: 48px;
-    font-size: 16px;
-    font-weight: 600;
-    border: none;
-    border-radius: 12px;
-    background: #e9ecef;
-    color: #adb5bd;
-    cursor: not-allowed;
-    transition: all 0.2s ease;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 8px;
-  }
-
-  /* 버튼 그룹이 있을 때는 75% 너비 */
-  .eventupload-button-group .eventupload-next-button {
-    width: 75%;
-  }
-
-  /* 버튼 그룹이 없을 때(첫 번째 스텝)는 100% 너비 */
-  .eventupload-bottom > .eventupload-next-button:only-child {
-    width: 100%;
-  }
-
-  .eventupload-next-button.active {
-    background: #5E936C;
-    color: white;
-    cursor: pointer;
-  }
-
-  .eventupload-next-button:active {
-    transform: scale(0.98);
-  }
-}
-
-/* 공통 스타일 */
-.eventupload-progress-bar {
-  flex: 1;
-  height: 4px;
-  background: #e9ecef;
-  border-radius: 2px;
-  overflow: hidden;
-}
-
-.eventupload-progress-fill {
-  height: 100%;
-  background: #5E936C;
-  border-radius: 2px;
-  transition: width 0.3s ease;
-}
-
-.eventupload-question {
-  flex: 1;
-}
-
-.eventupload-input-group {
-  margin-top: 8px;
-}
-
-.eventupload-input::placeholder,
-.eventupload-textarea::placeholder {
-  color: #adb5bd;
-}
-
-.eventupload-mode-icon {
-  color: #5E936C;
-  flex-shrink: 0;
-}
-
-.eventupload-ai-icon {
-  font-size: 32px;
-}
-
-.eventupload-mode-title {
-  font-size: 15px;
-  font-weight: 600;
-  color: #191f28;
-  margin-bottom: 4px;
-}
-
-.eventupload-mode-desc {
-  font-size: 14px;
-  color: #8b95a1;
-  line-height: 1.4;
-}
-
-.eventupload-mode-content {
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-}
-
-/* 해시태그 스타일 */
-.eventupload-hashtag-container {
-  display: flex;
-  flex-direction: column;
-  gap: 16px;
-}
-
-.eventupload-hashtag-input-wrapper {
-  border: 2px solid #e9ecef;
-  border-radius: 12px;
-  padding: 16px;
-  background: white;
-  transition: border-color 0.2s ease;
-}
-
-.eventupload-hashtag-input-wrapper:focus-within {
-  border-color: #5E936C;
-}
-
-.eventupload-hashtag-list {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
-  align-items: center;
-}
-
-.eventupload-hashtag-tag {
-  display: flex;
-  align-items: center;
-  gap: 4px;
-  background: #5E936C;
-  color: white;
-  padding: 6px 10px;
-  border-radius: 20px;
-  font-size: 14px;
-  font-weight: 500;
-}
-
-.eventupload-hashtag-remove {
-  background: none;
-  border: none;
-  color: white;
-  cursor: pointer;
-  padding: 0;
-  width: 16px;
-  height: 16px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  border-radius: 50%;
-  transition: background-color 0.2s ease;
-}
-
-.eventupload-hashtag-remove:hover {
-  background: rgba(255, 255, 255, 0.2);
-}
-
-.eventupload-hashtag-input {
-  border: none;
-  outline: none;
-  background: transparent;
-  font-size: 16px;
-  min-width: 120px;
-  flex: 1;
-}
-
-.eventupload-hashtag-info {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  font-size: 14px;
-}
-
-.eventupload-hashtag-tip {
-  color: #666;
-  margin: 0;
-}
-
-.eventupload-hashtag-count {
-  color: #5E936C;
-  font-weight: 600;
-  margin: 0;
-}
-
-.eventupload-hashtag-preview {
-  padding: 16px;
-  background: #f8fbf9;
-  border-radius: 12px;
-  border: 1px solid #e3f2e6;
-}
-
-.eventupload-hashtag-preview-title {
-  font-size: 14px;
-  color: #666;
-  margin: 0 0 8px 0;
-  font-weight: 500;
-}
-
-.eventupload-hashtag-preview-list {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 6px;
-}
-
-.eventupload-hashtag-preview-item {
-  background: white;
-  color: #5E936C;
-  padding: 4px 8px;
-  border-radius: 12px;
-  font-size: 13px;
-  border: 1px solid #e3f2e6;
-}
-
-/* 이미지 업로드 스타일 */
-.eventupload-image-upload {
-  width: 100%;
-}
-
-.eventupload-file-input {
-  display: none;
-}
-
-.eventupload-upload-area {
-  border: 2px dashed #e9ecef;
-  border-radius: 16px;
-  padding: 48px 24px;
-  text-align: center;
-  cursor: pointer;
-  transition: all 0.2s ease;
-  background: #fafbfc;
-}
-
-.eventupload-upload-area:hover {
-  border-color: #5E936C;
-  background: #f8fbf9;
-}
-
-.eventupload-upload-icon {
-  color: #adb5bd;
-  margin-bottom: 16px;
-  display: flex;
-  justify-content: center;
-}
-
-.eventupload-upload-text {
-  font-size: 18px;
-  font-weight: 600;
-  color: #495057;
-  margin: 0 0 8px 0;
-}
-
-.eventupload-upload-desc {
-  font-size: 14px;
-  color: #6c757d;
-  margin: 0;
-}
-
-.eventupload-image-preview {
-  position: relative;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 16px;
-}
-
-.eventupload-preview-image {
-  width: 100%;
-  max-width: 400px;
-  max-height: 300px;
-  object-fit: cover;
-  border-radius: 16px;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-}
-
-.eventupload-remove-image {
-  position: absolute;
-  top: 8px;
-  right: 8px;
-  background: rgba(0, 0, 0, 0.6);
-  color: white;
-  border: none;
-  border-radius: 50%;
-  width: 32px;
-  height: 32px;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  transition: background-color 0.2s ease;
-}
-
-.eventupload-remove-image:hover {
-  background: rgba(0, 0, 0, 0.8);
-}
-
-.eventupload-change-image {
-  background: white;
-  border: 2px solid #5E936C;
-  color: #5E936C;
-  padding: 12px 24px;
-  border-radius: 12px;
-  cursor: pointer;
-  font-size: 14px;
-  font-weight: 600;
-  transition: all 0.2s ease;
-}
-
-.eventupload-change-image:hover {
-  background: #5E936C;
-  color: white;
-}
-
-.eventupload-change-text {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-}
-
-/* 주소 검색 스타일 */
-.eventupload-address-container {
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-}
-
-.eventupload-selected-address {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  padding: 12px 16px;
-  background: #f8fbf9;
-  border: 1px solid #e3f2e6;
-  border-radius: 12px;
-  color: #5E936C;
-}
-
-.eventupload-address-text {
-  flex: 1;
-  font-size: 14px;
-  font-weight: 500;
-}
-
-.eventupload-clear-address {
-  background: none;
-  border: none;
-  color: #666;
-  cursor: pointer;
-  padding: 4px;
-  border-radius: 4px;
-  transition: color 0.2s ease;
-}
-
-.eventupload-clear-address:hover {
-  color: #dc3545;
-}
-
-.eventupload-api-status {
-  padding: 12px 16px;
-  background: #fff3cd;
-  border: 1px solid #ffeaa7;
-  border-radius: 8px;
-  margin-top: 8px;
-}
-
-.eventupload-warning-text {
-  font-size: 14px;
-  color: #856404;
-}
-
-.eventupload-postcode-overlay {
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background: rgba(0, 0, 0, 0.5);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  z-index: 1000;
-  padding: 20px;
-}
-
-.eventupload-postcode-container {
-  background: white;
-  border-radius: 16px;
-  width: 100%;
-  max-width: 500px;
-  max-height: 80vh;
-  overflow: hidden;
-  display: flex;
-  flex-direction: column;
-}
-
-.eventupload-postcode-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 20px;
-  border-bottom: 1px solid #e9ecef;
-}
-
-.eventupload-postcode-title {
-  font-size: 18px;
-  font-weight: 600;
-  color: #191f28;
-  margin: 0;
-}
-
-.eventupload-postcode-close {
-  background: none;
-  border: none;
-  cursor: pointer;
-  padding: 8px;
-  border-radius: 8px;
-  color: #666;
-  transition: background-color 0.2s ease;
-}
-
-.eventupload-postcode-close:hover {
-  background: #f8f9fa;
-}
-
-.eventupload-address-search-content {
-  padding: 20px;
-  flex: 1;
-  overflow: hidden;
-  display: flex;
-  flex-direction: column;
-}
-
-.eventupload-address-search-input {
-  width: 100%;
-  padding: 16px;
-  font-size: 16px;
-  border: 2px solid #e9ecef;
-  border-radius: 12px;
-  outline: none;
-  transition: border-color 0.2s ease;
-  margin-bottom: 16px;
-}
-
-.eventupload-address-search-input:focus {
-  border-color: #5E936C;
-}
-
-.eventupload-search-loading {
-  text-align: center;
-  padding: 20px;
-  color: #666;
-  font-size: 14px;
-}
-
-.eventupload-address-results {
-  flex: 1;
-  overflow-y: auto;
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-}
-
-.eventupload-address-result-item {
-  padding: 16px;
-  border: 1px solid #e9ecef;
-  border-radius: 12px;
-  cursor: pointer;
-  transition: all 0.2s ease;
-  background: white;
-}
-
-.eventupload-address-result-item:hover {
-  border-color: #5E936C;
-  background: #f8fbf9;
-}
-
 .eventupload-address-result-main {
   margin-bottom: 8px;
 }
@@ -1977,6 +1131,7 @@
   }
 }
 
+/* ==================== 오류 및 정보 메시지 스타일 ==================== */
 .eventupload-input.error {
   border-color: #ef4444;
   box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.1);
@@ -2023,4 +1178,1290 @@
 
 .eventupload-location-text {
   font-weight: 500;
+}.eventupload-container {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  margin: 0;
+  padding: 0;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.eventupload-container *,
+.eventupload-container *::before,
+.eventupload-container *::after {
+  box-sizing: inherit;
+}
+
+/* ==================== 날짜/시간 그룹 스타일 ==================== */
+.eventupload-datetime-group {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  padding: 24px;
+
+  border: 2px solid #e3f2e6;
+  border-radius: 16px;
+  transition: border-color 0.2s ease;
+}
+
+
+
+.eventupload-datetime-section {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.eventupload-datetime-label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 16px;
+  font-weight: 600;
+  color: #333;
+  margin-bottom: 8px;
+}
+
+.eventupload-datetime-inputs {
+  display: flex;
+  gap: 12px;
+}
+
+.eventupload-datetime-input {
+  flex: 1;
+  padding: 16px;
+  font-size: 16px;
+  border: 2px solid #e9ecef;
+  border-radius: 12px;
+  background: white;
+  transition: all 0.2s ease;
+  outline: none;
+  height: 54px; /* 시간 선택기와 동일한 높이 */
+}
+
+.eventupload-datetime-input:focus {
+  border-color: #5E936C;
+  box-shadow: 0 0 0 2px rgba(94, 147, 108, 0.1);
+}
+
+/* 날짜 입력 스타일 */
+.eventupload-date-input {
+  /* 브라우저 기본 캘린더 아이콘 유지 */
+  position: relative;
+}
+
+/* ==================== 커스텀 시간 선택기 스타일 ==================== */
+.custom-time-picker {
+  position: relative;
+  flex: 1;
+}
+
+.time-picker-trigger {
+  width: 100%;
+  height: 54px; /* 날짜 입력과 동일한 높이 */
+  padding: 16px;
+  border: 2px solid #e9ecef;
+  border-radius: 12px;
+  background: white;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-size: 16px;
+  outline: none;
+}
+
+.time-picker-trigger:hover {
+  border-color: #5E936C;
+}
+
+.time-picker-trigger.open {
+  border-color: #5E936C;
+  box-shadow: 0 0 0 2px rgba(94, 147, 108, 0.1);
+}
+
+.time-picker-icon {
+  color: #5E936C;
+  flex-shrink: 0;
+}
+
+.time-picker-value {
+  flex: 1;
+  text-align: left;
+  color: #333;
+  font-weight: 500;
+}
+
+.time-picker-value:empty::before {
+  content: attr(placeholder);
+  color: #adb5bd;
+}
+
+.time-picker-arrow {
+  color: #666;
+  transition: transform 0.2s ease;
+  flex-shrink: 0;
+}
+
+.time-picker-arrow.rotate {
+  transform: rotate(180deg);
+}
+
+.time-picker-dropdown {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+  z-index: 1000;
+  background: white;
+  border: 2px solid #e9ecef;
+  border-radius: 16px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.12);
+  margin-top: 8px;
+  animation: timePickerSlideDown 0.2s ease-out;
+}
+
+@keyframes timePickerSlideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.time-picker-content {
+  display: flex;
+  max-height: 280px;
+  overflow: hidden;
+}
+
+.time-picker-section {
+  flex: 1;
+  padding: 20px 16px 16px;
+}
+
+.time-picker-header {
+  font-size: 14px;
+  font-weight: 600;
+  color: #5E936C;
+  margin-bottom: 12px;
+  text-align: center;
+}
+
+.time-picker-options {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  max-height: 200px;
+  overflow-y: auto;
+}
+
+.time-picker-options::-webkit-scrollbar {
+  width: 4px;
+}
+
+.time-picker-options::-webkit-scrollbar-track {
+  background: #f1f3f4;
+  border-radius: 2px;
+}
+
+.time-picker-options::-webkit-scrollbar-thumb {
+  background: #5E936C;
+  border-radius: 2px;
+}
+
+.time-option {
+  padding: 10px 12px;
+  border: none;
+  background: transparent;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  font-size: 14px;
+  color: #333;
+  text-align: center;
+  font-weight: 500;
+}
+
+.time-option:hover {
+  background: rgba(94, 147, 108, 0.1);
+  color: #5E936C;
+}
+
+.time-option.selected {
+  background: #5E936C;
+  color: white;
+  font-weight: 600;
+}
+
+.time-picker-divider {
+  width: 1px;
+  background: #e9ecef;
+  margin: 16px 0;
+  flex-shrink: 0;
+}
+
+.time-picker-footer {
+  padding: 16px 20px;
+  border-top: 1px solid #f0f0f0;
+  background: #f8fbf9;
+  border-radius: 0 0 14px 14px;
+}
+
+.time-picker-confirm {
+  width: 100%;
+  padding: 12px;
+  background: #5E936C;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+}
+
+.time-picker-confirm:hover {
+  background: #4a7a57;
+}
+
+/* 날짜/시간 미리보기 */
+.eventupload-datetime-preview {
+  margin-top: 20px;
+  padding: 20px;
+  background: white;
+  border: 1px solid #e3f2e6;
+  border-radius: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.eventupload-preview-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 8px 0;
+  border-bottom: 1px solid #f0f0f0;
+}
+
+.eventupload-preview-item:last-child {
+  border-bottom: none;
+}
+
+.eventupload-preview-label {
+  font-size: 14px;
+  color: #666;
+  font-weight: 500;
+  min-width: 60px;
+}
+
+.eventupload-preview-value {
+  font-size: 15px;
+  color: #333;
+  font-weight: 600;
+  text-align: right;
+  flex: 1;
+}
+
+/* PC 버전 스타일 */
+@media (min-width: 769px) {
+  .eventupload-container {    
+    width: 100%;           
+    min-width: 340px;
+    margin: 0 auto;
+    padding-top: 20px;
+    overflow: hidden;
+  }
+
+  /* PC 헤더 */
+  .eventupload-header {
+    position: sticky;
+    top: 0;
+    background: white;
+    padding: 24px 32px;
+    border-bottom: 1px solid #f0f0f0;
+    display: flex;
+    align-items: center;
+    gap: 20px;
+    z-index: 100;
+  }
+
+  /* PC 스텝 콘텐츠 */
+  .eventupload-step-content {
+    padding: 40px 32px 120px;
+    opacity: 0;
+    transform: translateY(20px);
+    transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    min-height: 500px;
+    display: flex;
+    flex-direction: column;
+  }
+
+  .eventupload-step-content.show {
+    opacity: 1;
+    transform: translateY(0);
+  }
+
+  /* 제목 크기 고정 */
+  .eventupload-title {
+    font-size: 28px; 
+    font-weight: 700;
+    line-height: 1.3;
+    color: #191f28;
+    margin-bottom: 40px;
+    word-break: keep-all;
+  }
+
+  /* PC 날짜/시간 그룹 */
+  .eventupload-datetime-group {
+    padding: 32px;
+  }
+
+  .eventupload-datetime-section {
+    gap: 16px;
+  }
+
+  .eventupload-datetime-label {
+    font-size: 18px;
+    margin-bottom: 12px;
+  }
+
+  .eventupload-datetime-inputs {
+    gap: 16px;
+  }
+
+  .eventupload-datetime-input {
+    padding: 20px;
+    font-size: 18px;
+    border-radius: 14px;
+  }
+
+  .eventupload-datetime-preview {
+    margin-top: 24px;
+    padding: 24px;
+  }
+
+  .eventupload-preview-item {
+    padding: 12px 0;
+  }
+
+  .eventupload-preview-label {
+    font-size: 16px;
+    min-width: 80px;
+  }
+
+  .eventupload-preview-value {
+    font-size: 16px;
+  }
+
+  /* PC 모드 선택 */
+  .eventupload-mode-selection {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 20px;
+  }
+
+  .eventupload-mode-card {
+    padding: 32px 24px;
+    border: 2px solid #e9ecef;
+    border-radius: 20px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    background: white;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    gap: 16px;
+    min-height: 200px;
+  }
+
+  .eventupload-mode-card:hover {
+    border-color: #5E936C;
+    background: #f8fbf9;
+    transform: translateY(-2px);
+    box-shadow: 0 8px 24px rgba(94, 147, 108, 0.15);
+  }
+
+  .eventupload-mode-card.selected {
+    border-color: #5E936C;
+    background: #f8fbf9;
+    box-shadow: 0 0 0 1px #5E936C, 0 8px 24px rgba(94, 147, 108, 0.2);
+    transform: translateY(-2px);
+  }
+
+  /* PC 입력 필드 */
+  .eventupload-input {
+    width: 100%;
+    padding: 24px;
+    font-size: 20px;
+    border: 2px solid #e9ecef;
+    border-radius: 16px;
+    background: white;
+    transition: all 0.2s ease;
+    outline: none;
+  }
+
+  .eventupload-input:focus {
+    border-color: #5E936C;
+    box-shadow: 0 0 0 3px rgba(94, 147, 108, 0.1);
+  }
+
+  .eventupload-textarea {
+    width: 100%;
+    padding: 24px;
+    font-size: 20px;
+    border: 2px solid #e9ecef;
+    border-radius: 16px;
+    background: white;
+    transition: all 0.2s ease;
+    outline: none;
+    resize: vertical;
+    min-height: 140px;
+    font-family: inherit;
+  }
+
+  .eventupload-textarea:focus {
+    border-color: #5E936C;
+    box-shadow: 0 0 0 3px rgba(94, 147, 108, 0.1);
+  }
+
+  /* PC 하단 버튼 */
+  .eventupload-bottom {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    padding: 24px 32px;
+    background: white;
+    border-top: 1px solid #f0f0f0;
+    border-radius: 0 0 16px 16px;
+  }
+
+  /* PC 버튼 그룹 - 1:4 비율 */
+  .eventupload-button-group {
+    display: flex;
+    gap: 12px;
+  }
+  
+  .eventupload-button-group > button {
+    flex: 1; /* 각 버튼이 동일 비율로 */
+    min-width: 0; /* flex 너비 제한 방지 */
+  }
+  
+  .eventupload-back-button {
+    height: 60px;
+    border: 2px solid #e9ecef;
+    background: white;
+    color: #495057;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 16px;
+    font-size: 16px;
+    font-weight: 600;
+    transition: all 0.2s ease;
+  }
+  
+  .eventupload-back-button:hover {
+    border-color: #5E936C;
+    color: #5E936C;
+    transform: translateY(-1px);
+  }
+  
+  .eventupload-next-button {
+    height: 60px;
+    font-size: 18px;
+    font-weight: 600;
+    border: none;
+    border-radius: 16px;
+    background: #e9ecef;
+    color: #adb5bd;
+    cursor: not-allowed;
+    transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+  }
+  
+
+  /* 버튼 그룹이 없을 때(첫 번째 스텝)는 100% 너비 */
+  .eventupload-bottom > .eventupload-next-button:only-child {
+    width: 100%;
+  }
+
+  .eventupload-next-button.active {
+    background: #5E936C;
+    color: white;
+    cursor: pointer;
+    box-shadow: 0 4px 16px rgba(94, 147, 108, 0.3);
+  }
+
+  .eventupload-next-button.active:hover {
+    background: #4a7a57;
+    transform: translateY(-2px);
+    box-shadow: 0 8px 24px rgba(94, 147, 108, 0.4);
+  }
+}
+
+/* 모바일 버전 스타일 */
+@media (max-width: 768px) {
+  .eventupload-container {
+    width: 100%;
+    background: white;
+    border-radius: 0;
+  }
+
+  /* 모바일 날짜/시간 그룹 */
+  .eventupload-datetime-group {
+    padding: 20px;
+    gap: 20px;
+  }
+
+  .eventupload-datetime-section {
+    gap: 10px;
+  }
+
+  .eventupload-datetime-label {
+    font-size: 15px;
+    margin-bottom: 8px;
+  }
+
+  .eventupload-datetime-inputs {
+    gap: 10px;
+  }
+
+  .eventupload-datetime-input {
+    padding: 16px;
+    font-size: 16px;
+    border-radius: 12px;
+    height: 52px; /* 모바일에서 통일된 높이 */
+  }
+
+  /* 모바일 커스텀 시간 선택기 */
+  .time-picker-trigger {
+    padding: 16px;
+    font-size: 16px;
+    height: 52px; /* 날짜 입력과 동일한 높이 */
+  }
+
+  .time-picker-dropdown {
+    border-radius: 12px;
+    margin-top: 6px;
+  }
+
+  .time-picker-content {
+    max-height: 240px;
+  }
+
+  .time-picker-section {
+    padding: 16px 12px 12px;
+  }
+
+  .time-picker-header {
+    font-size: 13px;
+    margin-bottom: 10px;
+  }
+
+  .time-picker-options {
+    max-height: 160px;
+  }
+
+  .time-option {
+    padding: 8px 10px;
+    font-size: 13px;
+  }
+
+  .time-picker-footer {
+    padding: 12px 16px;
+  }
+
+  .time-picker-confirm {
+    padding: 10px;
+    font-size: 14px;
+  }
+
+  .eventupload-datetime-preview {
+    margin-top: 16px;
+    padding: 16px;
+  }
+
+  .eventupload-preview-item {
+    padding: 10px 0;
+  }
+
+  .eventupload-preview-label {
+    font-size: 13px;
+    min-width: 50px;
+  }
+
+  .eventupload-preview-value {
+    font-size: 14px;
+  }
+
+  /* 모바일 헤더 */
+  .eventupload-header {
+    position: sticky;
+    top: 0;
+    background: white;
+    padding: 16px 20px;
+    border-bottom: 1px solid #f0f0f0;
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    z-index: 100;
+  }
+
+  /* 모바일 스텝 콘텐츠 */
+  .eventupload-step-content {
+    padding: 32px 20px 120px;
+    opacity: 0;
+    transform: translateY(20px);
+    transition: all 0.4s ease;
+    max-height: fit-content;
+    display: flex;
+    flex-direction: column;
+  }
+
+  .eventupload-step-content.show {
+    opacity: 1;
+    transform: translateY(0);
+  }
+
+  /* 제목 크기 고정 */
+  .eventupload-title {
+    font-size: 22px;
+    font-weight: 700;
+    line-height: 1.4;
+    color: #191f28;
+    margin-bottom: 32px;
+    word-break: keep-all;
+  }
+
+  /* 모바일 모드 선택 */
+  .eventupload-mode-selection {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  .eventupload-mode-card {
+    padding: 20px;
+    border: 2px solid #e9ecef;
+    border-radius: 16px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    background: white;
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    font-size: 10px;
+  }
+
+  .eventupload-mode-card:active {
+    transform: scale(0.98);
+  }
+
+  .eventupload-mode-card:hover {
+    border-color: #5E936C;
+    background: #f8fbf9;
+  }
+
+  .eventupload-mode-card.selected {
+    border-color: #5E936C;
+    background: #f8fbf9;
+    box-shadow: 0 0 0 1px #5E936C;
+  }
+
+  /* 모바일 입력 필드 */
+  .eventupload-input {
+    width: 100%;
+    padding: 18px;
+    font-size: 16px;
+    border: 2px solid #e9ecef;
+    border-radius: 12px;
+    background: white;
+    transition: border-color 0.2s ease;
+    outline: none;
+    -webkit-appearance: none;
+  }
+
+  .eventupload-input:focus {
+    border-color: #5E936C;
+  }
+
+  .eventupload-textarea {
+    width: 100%;
+    padding: 18px;
+    font-size: 16px;
+    border: 2px solid #e9ecef;
+    border-radius: 12px;
+    background: white;
+    transition: border-color 0.2s ease;
+    outline: none;
+    resize: vertical;
+    min-height: 120px;
+    font-family: inherit;
+    -webkit-appearance: none;
+  }
+
+  .eventupload-textarea:focus {
+    border-color: #5E936C;
+  }
+
+  /* 모바일 하단 버튼 */
+  .eventupload-bottom {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    padding: 16px 20px;
+    background: white;
+    border-top: 1px solid #f0f0f0;
+    z-index: 100;
+  }
+
+  /* 모바일 버튼 그룹 - 1:3 비율 */
+  .eventupload-button-group {
+    display: flex;
+    gap: 12px;
+  }
+
+  .eventupload-back-button {
+    width: 25%;
+    min-width: 70px;
+    height: 48px;
+    border: 2px solid #e9ecef;
+    background: white;
+    color: #495057;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 12px;
+    font-size: 14px;
+    font-weight: 600;
+    transition: all 0.2s ease;
+  }
+
+  .eventupload-back-button:hover {
+    background-color: #f8f9fa;
+  }
+
+  .eventupload-back-button:active {
+    background-color: #e9ecef;
+    transform: scale(0.95);
+  }
+
+  .eventupload-next-button {
+    height: 48px;
+    font-size: 16px;
+    font-weight: 600;
+    border: none;
+    border-radius: 12px;
+    background: #e9ecef;
+    color: #adb5bd;
+    cursor: not-allowed;
+    transition: all 0.2s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+  }
+
+  /* 버튼 그룹이 있을 때는 75% 너비 */
+  .eventupload-button-group .eventupload-next-button {
+    width: 75%;
+  }
+
+  /* 버튼 그룹이 없을 때(첫 번째 스텝)는 100% 너비 */
+  .eventupload-bottom > .eventupload-next-button:only-child {
+    width: 100%;
+  }
+
+  .eventupload-next-button.active {
+    background: #5E936C;
+    color: white;
+    cursor: pointer;
+  }
+
+  .eventupload-next-button:active {
+    transform: scale(0.98);
+  }
+}
+
+/* 모바일에서 날짜/시간 입력을 세로로 배치 */
+@media (max-width: 480px) {
+  .eventupload-datetime-inputs {
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  .eventupload-datetime-input,
+  .eventupload-date-input-wrapper,
+  .custom-time-picker {
+    width: 100%;
+  }
+
+  .time-picker-trigger {
+    padding: 18px 16px;
+    height: 54px;
+    font-size: 16px;
+  }
+
+  .time-picker-dropdown {
+    left: -10px;
+    right: -10px;
+  }
+
+  .time-picker-content {
+    max-height: 220px;
+  }
+
+  .time-picker-options {
+    max-height: 140px;
+  }
+}
+
+/* 공통 스타일 */
+.eventupload-progress-bar {
+  flex: 1;
+  height: 4px;
+  background: #e9ecef;
+  border-radius: 2px;
+  overflow: hidden;
+}
+
+.eventupload-progress-fill {
+  height: 100%;
+  background: #5E936C;
+  border-radius: 2px;
+  transition: width 0.3s ease;
+}
+
+.eventupload-question {
+  flex: 1;
+}
+
+.eventupload-input-group {
+  margin-top: 8px;
+}
+
+.eventupload-input::placeholder,
+.eventupload-textarea::placeholder {
+  color: #adb5bd;
+}
+
+.eventupload-mode-icon {
+  color: #5E936C;
+  flex-shrink: 0;
+}
+
+.eventupload-ai-icon {
+  font-size: 32px;
+}
+
+.eventupload-mode-title {
+  font-size: 15px;
+  font-weight: 600;
+  color: #191f28;
+  margin-bottom: 4px;
+}
+
+.eventupload-mode-desc {
+  font-size: 14px;
+  color: #8b95a1;
+  line-height: 1.4;
+}
+
+.eventupload-mode-content {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+/* 해시태그 스타일 */
+.eventupload-hashtag-container {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.eventupload-hashtag-input-wrapper {
+  border: 2px solid #e9ecef;
+  border-radius: 12px;
+  padding: 16px;
+  background: white;
+  transition: border-color 0.2s ease;
+}
+
+.eventupload-hashtag-input-wrapper:focus-within {
+  border-color: #5E936C;
+}
+
+.eventupload-hashtag-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+}
+
+.eventupload-hashtag-tag {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  background: #5E936C;
+  color: white;
+  padding: 6px 10px;
+  border-radius: 20px;
+  font-size: 14px;
+  font-weight: 500;
+}
+
+.eventupload-hashtag-remove {
+  background: none;
+  border: none;
+  color: white;
+  cursor: pointer;
+  padding: 0;
+  width: 16px;
+  height: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  transition: background-color 0.2s ease;
+}
+
+.eventupload-hashtag-remove:hover {
+  background: rgba(255, 255, 255, 0.2);
+}
+
+.eventupload-hashtag-input {
+  border: none;
+  outline: none;
+  background: transparent;
+  font-size: 16px;
+  min-width: 120px;
+  flex: 1;
+}
+
+.eventupload-hashtag-info {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 14px;
+}
+
+.eventupload-hashtag-tip {
+  color: #666;
+  margin: 0;
+}
+
+.eventupload-hashtag-count {
+  color: #5E936C;
+  font-weight: 600;
+  margin: 0;
+}
+
+.eventupload-hashtag-preview {
+  padding: 16px;
+  background: #f8fbf9;
+  border-radius: 12px;
+  border: 1px solid #e3f2e6;
+}
+
+.eventupload-hashtag-preview-title {
+  font-size: 14px;
+  color: #666;
+  margin: 0 0 8px 0;
+  font-weight: 500;
+}
+
+.eventupload-hashtag-preview-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.eventupload-hashtag-preview-item {
+  background: white;
+  color: #5E936C;
+  padding: 4px 8px;
+  border-radius: 12px;
+  font-size: 13px;
+  border: 1px solid #e3f2e6;
+}
+
+/* 이미지 업로드 스타일 */
+.eventupload-image-upload {
+  width: 100%;
+}
+
+.eventupload-file-input {
+  display: none;
+}
+
+.eventupload-upload-area {
+  border: 2px dashed #e9ecef;
+  border-radius: 16px;
+  padding: 48px 24px;
+  text-align: center;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  background: #fafbfc;
+}
+
+.eventupload-upload-area:hover {
+  border-color: #5E936C;
+  background: #f8fbf9;
+}
+
+.eventupload-upload-icon {
+  color: #adb5bd;
+  margin-bottom: 16px;
+  display: flex;
+  justify-content: center;
+}
+
+.eventupload-upload-text {
+  font-size: 18px;
+  font-weight: 600;
+  color: #495057;
+  margin: 0 0 8px 0;
+}
+
+.eventupload-upload-desc {
+  font-size: 14px;
+  color: #6c757d;
+  margin: 0;
+}
+
+.eventupload-image-preview {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+}
+
+.eventupload-preview-image {
+  width: 100%;
+  max-width: 400px;
+  max-height: 300px;
+  object-fit: cover;
+  border-radius: 16px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.eventupload-remove-image {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  background: rgba(0, 0, 0, 0.6);
+  color: white;
+  border: none;
+  border-radius: 50%;
+  width: 32px;
+  height: 32px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background-color 0.2s ease;
+}
+
+.eventupload-remove-image:hover {
+  background: rgba(0, 0, 0, 0.8);
+}
+
+.eventupload-change-image {
+  background: white;
+  border: 2px solid #5E936C;
+  color: #5E936C;
+  padding: 12px 24px;
+  border-radius: 12px;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 600;
+  transition: all 0.2s ease;
+}
+
+.eventupload-change-image:hover {
+  background: #5E936C;
+  color: white;
+}
+
+.eventupload-change-text {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+/* 주소 검색 스타일 */
+.eventupload-address-container {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.eventupload-selected-address {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 16px;
+  background: #f8fbf9;
+  border: 1px solid #e3f2e6;
+  border-radius: 12px;
+  color: #5E936C;
+}
+
+.eventupload-address-text {
+  flex: 1;
+  font-size: 14px;
+  font-weight: 500;
+}
+
+.eventupload-clear-address {
+  background: none;
+  border: none;
+  color: #666;
+  cursor: pointer;
+  padding: 4px;
+  border-radius: 4px;
+  transition: color 0.2s ease;
+}
+
+.eventupload-clear-address:hover {
+  color: #dc3545;
+}
+
+.eventupload-api-status {
+  padding: 12px 16px;
+  background: #fff3cd;
+  border: 1px solid #ffeaa7;
+  border-radius: 8px;
+  margin-top: 8px;
+}
+
+.eventupload-warning-text {
+  font-size: 14px;
+  color: #856404;
+}
+
+.eventupload-postcode-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  padding: 20px;
+}
+
+.eventupload-postcode-container {
+  background: white;
+  border-radius: 16px;
+  width: 100%;
+  max-width: 500px;
+  max-height: 80vh;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+.eventupload-postcode-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 20px;
+  border-bottom: 1px solid #e9ecef;
+}
+
+.eventupload-postcode-title {
+  font-size: 18px;
+  font-weight: 600;
+  color: #191f28;
+  margin: 0;
+}
+
+.eventupload-postcode-close {
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 8px;
+  border-radius: 8px;
+  color: #666;
+  transition: background-color 0.2s ease;
+}
+
+.eventupload-postcode-close:hover {
+  background: #f8f9fa;
+}
+
+.eventupload-address-search-content {
+  padding: 20px;
+  flex: 1;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+.eventupload-address-search-input {
+  width: 100%;
+  padding: 16px;
+  font-size: 16px;
+  border: 2px solid #e9ecef;
+  border-radius: 12px;
+  outline: none;
+  transition: border-color 0.2s ease;
+  margin-bottom: 16px;
+}
+
+.eventupload-address-search-input:focus {
+  border-color: #5E936C;
+}
+
+.eventupload-search-loading {
+  text-align: center;
+  padding: 20px;
+  color: #666;
+  font-size: 14px;
+}
+
+.eventupload-address-results {
+  flex: 1;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.eventupload-address-result-item {
+  padding: 16px;
+  border: 1px solid #e9ecef;
+  border-radius: 12px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  background: white;
+}
+
+.eventupload-address-result-item:hover {
+  border-color: #5E936C;
+  background: #f8fbf9;
+}
+
+.eventupload-address-result-main {
+  margin-bottom: 8px;
 }
