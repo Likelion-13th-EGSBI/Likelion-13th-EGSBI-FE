@@ -203,7 +203,7 @@
   .profile-edit-button{ transition:none !important; }
 }
 
-/* === ⭐ 별점: 가로 정렬 타이트 & 반쪽별 정확 표시 === */
+/* === ⭐ 기존 span 방식(다른 페이지 호환용) === */
 .profile-rating.compact{
   display:flex; align-items:center; gap:0px;
   margin-top:6px; line-height:1; white-space:nowrap;
@@ -216,8 +216,6 @@
   display:inline-block; font-size:16px; line-height:1;
 }
 .profile-rating.compact .star + .star{ margin-left:-3px; }
-
-/* 반쪽별(오버레이) – 전역 half 규칙을 무력화하고 정확히 절반만 채움 */
 .profile-rating.compact .star.half{
   position:relative; color:rgba(0,0,0,.28); z-index:1;
   background:none; -webkit-background-clip:initial; background-clip:initial;
@@ -227,8 +225,6 @@
   display:inline-block; width:0.5em; overflow:hidden;
   color:var(--orange); line-height:1; pointer-events:none;
 }
-
-/* 색상 재확인 */
 .profile-rating.compact .star.full  { color:var(--orange); }
 .profile-rating.compact .star.empty { color:rgba(0,0,0,.28); }
 
@@ -242,3 +238,30 @@
 .rating-empty{ font-size:13px; color:rgba(0,0,0,.55); }
 
 .profile-nickname{ font-size:14px; color:rgba(0,0,0,.70); margin-top:2px; }
+
+/* === ✅ 오버레이 별점(마이페이지 전용) : 항상 한 줄, 0.5 단위 스냅 === */
+/* overlay 클래스를 쓰면 span 방식 규칙보다 이 규칙이 우선 적용됨 */
+.profile-summary-card .rating-stars.overlay{
+  position:relative;
+  display:inline-block !important;
+  font-size:16px;
+  line-height:1; height:1em;
+  letter-spacing:4px;     /* 별 간격 */
+  vertical-align:middle;
+}
+/* 회색 바닥 5개 */
+.profile-summary-card .rating-stars.overlay::before{
+  content:"★★★★★";
+  color:rgba(0,0,0,.28);
+}
+/* 오렌지 채움 – --fill(0~5, 0.5단위)을 폭으로 반영 */
+.profile-summary-card .rating-stars.overlay::after{
+  content:"★★★★★";
+  position:absolute; left:0; top:0;
+  white-space:nowrap; overflow:hidden;
+  width: calc(var(--fill) / 5 * 100%);
+  color:var(--orange);
+  letter-spacing:4px;
+  line-height:1; height:1em;
+  pointer-events:none;
+}
