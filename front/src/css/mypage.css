@@ -72,7 +72,7 @@
 .more-btn:hover{background:#fafafa;border-color:rgba(0,0,0,.22);}
 .section-head + .stack-wrap,.section-head + .card-grid{margin-top:14px;}
 
-/* 이벤트 카드 */
+/* === 카드 기본(그대로 유지) === */
 .yt-card{position:relative;z-index:1;width:100%;text-align:left;cursor:pointer;background:#fff;border:1px solid rgba(0,0,0,.12);border-radius:12px;box-shadow:var(--shadow-0);transition:transform .18s,box-shadow .18s,border-color .18s,background-color .15s;overflow:hidden;}
 .yt-card:hover{transform:translateY(-2px);border-color:rgba(0,0,0,.18);box-shadow:0 10px 28px rgba(0,0,0,.10);}
 
@@ -86,19 +86,31 @@
 .badge-done{background:var(--primary);} .badge-closed{background:#cc4b4b;}
 .badge-dday{background:#111;} .badge-live{background:#f97316;}
 
-/* 카드 내용 */
+/* 카드 제목 */
 .ec-title-row{display:flex;align-items:center;gap:8px;padding:10px 12px 6px;}
 .ec-title-avatar{width:24px;height:24px;border-radius:50%;background:#eaeaea;background-size:cover;background-position:center;border:1px solid rgba(0,0,0,.08);}
 .ec-title-avatar.ec-fallback{display:grid;place-items:center;background:#F4F4F4;color:#666;font-weight:900;font-size:12px;}
 .ec-title-text{flex:1;font-size:16px;font-weight:800;line-height:1.2;color:#111;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
-.ec-divider{height:1px;background:rgba(0,0,0,.08);margin:4px 12px;}
-.ec-chips{display:flex;flex-wrap:wrap;gap:6px;padding:0 12px 12px;}
-.ec-chip{display:inline-flex;align-items:center;gap:4px;padding:4px 6px;border-radius:8px;border:1px solid rgba(0,0,0,.10);background:#fff;color:#333;font-size:12.5px;white-space:nowrap;}
 
-/* 스켈레톤 */
+/* === 새: 라인형 메타 (칩/박스 제거) === */
+.ec-meta{padding:4px 12px 12px;}
+.ec-kv{
+  display:grid; grid-template-columns: 48px 1fr;
+  align-items: baseline; padding:2.5px 0;
+}
+.ec-k{font-size:12px;color:#000000;font-weight:800; text-align: center;}
+.ec-v{font-size:13px;color:#4b4b4b;font-weight:600;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+
+/* 스켈레톤 라인 공용 */
+.skeleton-line{
+  height:12px; border-radius:6px;
+  background:linear-gradient(90deg,#eee,#f5f5f5,#eee);
+  animation:s 1.2s infinite linear;
+}
+.skeleton-line.sm{height:10px;}
 .yt-card.skeleton{pointer-events:none;}
 .yt-card.skeleton .thumb{background:linear-gradient(90deg,#eee,#f5f5f5,#eee);animation:s 1.2s infinite linear;}
-.yt-card.skeleton .ec-title-text,.yt-card.skeleton .ec-chips{background:linear-gradient(90deg,#eee,#f5f5f5,#eee);animation:s 1.2s infinite linear;border-radius:8px;height:12px;}
+.yt-card.skeleton .ec-title-text{background:linear-gradient(90deg,#eee,#f5f5f5,#eee);animation:s 1.2s infinite linear;border-radius:8px;height:12px;}
 @keyframes s{0%{background-position:-200px 0}100%{background-position:200px 0}}
 
 /* 데스크탑 우측 레일 카드 */
@@ -125,12 +137,7 @@
    ==================================================== */
 .stack-wrap{
   position:relative;
-  /* 🔧 조절 포인트 */
-  --stack-gap: 12px;     /* 위로 띄우는 간격 */
-  --stack-inset: 10px;   /* 좌우 여백(뒤 레이어 폭) */
-  --stack-visible: 46%;  /* 뒤 레이어 보이는 높이 */
-  --stack-radius: 12px;  /* 뒤 레이어 둥근 정도 */
-  --stack-tilt: 0deg;    /* 기울기(0.6deg 정도로 살짝) */
+  --stack-gap: 12px; --stack-inset: 10px; --stack-visible: 46%; --stack-radius: 12px; --stack-tilt: 0deg;
   padding-top: calc(var(--stack-gap) + 2px);
   padding-bottom: 0;
 }
@@ -141,29 +148,18 @@
   background:#fff; border:1px solid rgba(0,0,0,.08); border-radius:var(--stack-radius);
   box-shadow: var(--shadow-0); pointer-events:none; z-index:0;
 }
-.stack-wrap.has-more::before{
-  transform: translateY(calc(var(--stack-gap) * -1)) rotate(var(--stack-tilt));
-  opacity:.96;
-}
-.stack-wrap.has-more::after{
-  transform: translateY(calc(var(--stack-gap) * -2.2)) rotate(calc(var(--stack-tilt) * -1));
-  opacity:.9;
-}
+.stack-wrap.has-more::before{ transform: translateY(calc(var(--stack-gap) * -1)) rotate(var(--stack-tilt)); opacity:.96; }
+.stack-wrap.has-more::after{ transform: translateY(calc(var(--stack-gap) * -2.2)) rotate(calc(var(--stack-tilt) * -1)); opacity:.9; }
 
 /* ====================================================
    최종 오버라이드: 3단 브레이크포인트
    ==================================================== */
-
-/* 기본: 프로필 카드 숨김(데스크탑/반쪽 공통), 모바일에서만 다시 켬 */
 .profile-summary-card { display: none !important; }
 
-/* --- 1) 데스크탑: ≥1281px --- */
+/* 데스크탑 */
 @media (min-width:1281px){
-  /* 우측 레일 보이기 */
   .yt-layout{ grid-template-columns: 1fr 320px !important; }
   .yt-rail{ display:block !important; }
-
-  /* 카드 2열 고정 */
   .mypage-page .card-grid,
   .mypage-page .cards-grid,
   .mypage-page .event-grid,
@@ -174,22 +170,15 @@
     grid-template-columns: repeat(2, minmax(0,1fr)) !important;
     gap:18px !important; align-items:start;
   }
-
-  /* 스택형 숨김 */
   .stack-wrap{ display:none !important; }
-
-  /* 표시 제어 클래스 */
   .mobile-only{ display:none !important; }
   .desktop-only{ display:block !important; }
 }
 
-/* --- 2) 반쪽 화면: 768~1280px --- */
+/* 반틈 */
 @media (min-width:768px) and (max-width:1280px){
-  /* 레일/요약/지표 숨김 */
   .yt-layout{ grid-template-columns: 1fr !important; }
   .yt-rail, .rail-card{ display:none !important; }
-
-  /* 카드 그리드 숨기고 스택만 */
   .mypage-page .card-grid,
   .mypage-page .cards-grid,
   .mypage-page .event-grid,
@@ -197,21 +186,15 @@
   .mypage-page .event-card-row,
   .mypage-page .mp-card-row{ display:none !important; }
   .stack-wrap{ display:block !important; }
-
-  /* 프로필 카드도 숨김(모바일에서만 보여줄거라) */
   .profile-summary-card{ display:none !important; }
-
   .mobile-only{ display:none !important; }
   .desktop-only{ display:block !important; }
 }
 
-/* --- 3) 모바일: ≤767px --- */
+/* 모바일 */
 @media (max-width:767px){
-  /* 레일 숨김 */
   .yt-layout{ grid-template-columns: 1fr !important; }
   .yt-rail, .rail-card{ display:none !important; }
-
-  /* 카드 그리드 숨기고 스택만 */
   .mypage-page .card-grid,
   .mypage-page .cards-grid,
   .mypage-page .event-grid,
@@ -219,121 +202,79 @@
   .mypage-page .event-card-row,
   .mypage-page .mp-card-row{ display:none !important; }
   .stack-wrap{ display:block !important; }
-
-  /* 모바일에서만 프로필 카드 노출 */
   .profile-summary-card{ display:flex !important; }
-
   .mobile-only{ display:block !important; }
   .desktop-only{ display:none !important; }
 }
 
-/* =========================
-   최종 덮어쓰기 (맨 아래에 붙이기)
-   ========================= */
-
-/* 기본: 프로필카드 숨김 (데스크탑/반틈 공통), 모바일에서만 보이게 */
-.profile-summary-card { display: none !important; }
-
-/* 1) 데스크탑(≥1281px): 2열 그리드 + 레일 보임 + 스택 숨김 */
-@media (min-width:1281px){
-  .yt-layout{ grid-template-columns: 1fr 320px !important; }
-  .yt-rail{ display:block !important; }
-
-  /* 그리드 보이기 */
-  .mypage-page .card-grid,
-  .mypage-page .cards-grid,
-  .mypage-page .event-grid,
-  .mypage-page .section-grid,
-  .mypage-page .event-card-row,
-  .mypage-page .mp-card-row{
-    display:grid !important;
-    grid-template-columns: repeat(2, minmax(0,1fr)) !important;
-    gap:18px !important; align-items:start;
-  }
-
-  /* 스택 숨김 */
-  .stack-wrap{ display:none !important; }
-}
-
-/* 2) 반틈(768–1280px): 모바일처럼 스택만 보임 + 레일/지표 숨김 + 프로필카드 숨김 */
-@media (min-width:768px) and (max-width:1280px){
-  .yt-layout{ grid-template-columns:1fr !important; }
-  .yt-rail, .rail-card{ display:none !important; }
-
-  /* 그리드 전부 숨김 */
-  .mypage-page .card-grid,
-  .mypage-page .cards-grid,
-  .mypage-page .event-grid,
-  .mypage-page .section-grid,
-  .mypage-page .event-card-row,
-  .mypage-page .mp-card-row{ display:none !important; }
-
-  /* 스택만 보이기 */
-  .stack-wrap{ display:block !important; }
-
-  /* 반틈에서는 프로필카드도 숨김 */
-  .profile-summary-card{ display:none !important; }
-}
-
-/* 3) 모바일(≤767px): 스택 보임 + 프로필카드 보임 + 레일 숨김 */
-@media (max-width:767px){
-  .yt-layout{ grid-template-columns:1fr !important; }
-  .yt-rail, .rail-card{ display:none !important; }
-
-  /* 그리드 전부 숨김 */
-  .mypage-page .card-grid,
-  .mypage-page .cards-grid,
-  .mypage-page .event-grid,
-  .mypage-page .section-grid,
-  .mypage-page .event-card-row,
-  .mypage-page .mp-card-row{ display:none !important; }
-
-  /* 스택 보이기 */
-  .stack-wrap{ display:block !important; }
-
-  /* 모바일에서만 프로필카드 노출 */
-  .profile-summary-card{ display:flex !important; }
-}
-
-/* (선택) 스택 힌트(겹쳐보이는 효과) – 반틈/모바일 공통 */
+/* 스택 힌트/반틈-모바일 커스텀 */
 @media (max-width:1280px){
   .stack-wrap{
-    position:relative;
-    --stack-gap: 12px; --stack-inset: 10px; --stack-visible: 46%; --stack-radius: 12px;
-    padding-top: calc(var(--stack-gap) + 2px);
-  }
-  .stack-wrap.has-more::before{
-    content:""; position:absolute; left:var(--stack-inset); right:var(--stack-inset); top:0;
-    height: var(--stack-visible);
-    background:#fff; border:1px solid rgba(0,0,0,.08); border-radius:var(--stack-radius);
-    box-shadow: var(--shadow-0); pointer-events:none; z-index:0;
-    transform: translateY(calc(var(--stack-gap) * -1));
-    opacity:.96;
-  }
-}
-
-/* 반틈/모바일에서 스택 길이 짧게 */
-@media (max-width:1280px){
-  .stack-wrap{
-    --stack-visible: 20%;  /* 기존 46% → 36% 로 낮춤 */
-    --stack-gap: 2px;     /* 기존 12px → 10px 로 살짝 줄임 */
-  }
-}
-
-/* 반틈/모바일에서 스택 색 커스터마이즈 */
-@media (max-width:1280px){
-  .stack-wrap{
-    --stack-bg: #e8e8e8;               /* ← 원하는 색으로 변경 */
+    --stack-visible: 20%;
+    --stack-gap: 2px;
+    --stack-bg: #e8e8e8;
     --stack-border: rgba(0,0,0,.10);
   }
   .stack-wrap.has-more::before{
     background: var(--stack-bg) !important;
     border: 1px solid var(--stack-border) !important;
   }
-  /* (만약 ::after도 쓰고 있다면 같이 적용) */
   .stack-wrap.has-more::after{
     background: var(--stack-bg) !important;
     border: 1px solid var(--stack-border) !important;
-    opacity:.9; /* 살짝 더 흐리게 */
+    opacity:.9;
   }
+}
+
+/* === KPI: 사이드바 톤&매너 === */
+.kpi-card .kpi-list { display: grid; gap: 8px; }
+.kpi-card .kpi-row{
+  display: grid; grid-template-columns: auto 1fr auto;
+  align-items: center; gap: 12px; padding: 10px 12px;
+  border-radius: 12px; border: 1px solid rgba(0,0,0,.12); background: #fff;
+  transition: background-color .15s, border-color .18s, transform .18s, box-shadow .18s;
+}
+.kpi-card .kpi-row:hover{ background: rgba(94,147,108,.04); border-color: rgba(0,0,0,.18); transform: translateY(-1px); box-shadow: var(--shadow-1); }
+.kpi-lucide{ width: 28px; height: 28px; border-radius: 999px; display: grid; place-items: center; background: rgba(94,147,108,.12); color: var(--primary); border: 1px solid rgba(94,147,108,.18); }
+.kpi-row.bookmarks .kpi-lucide{ background: rgba(242,155,80,.12); border-color: rgba(242,155,80,.25); color: var(--orange); }
+.kpi-row.subscribes .kpi-lucide{ background: rgba(147,169,140,.16); border-color: rgba(147,169,140,.28); color: var(--accent); }
+.kpi-row.joined .kpi-lucide{ background: rgba(34,197,94,.12); border-color: rgba(34,197,94,.24); color: #22c55e; }
+.kpi-row.uploads .kpi-lucide{ background: rgba(94,147,108,.12); border-color: rgba(94,147,108,.24); color: var(--primary); }
+.kpi-label{ font-size: 13px; font-weight: 800; color: #111; }
+.kpi-count{ font-size: 12.5px; font-weight: 900; color: #374151; font-variant-numeric: tabular-nums; background: #F2F3F5; padding: 4px 10px; border-radius: 999px; }
+
+/* === Rail: 내 별점 카드 === */
+.rail-rating-card .rating-head{ display:flex; align-items:center; gap:10px; margin-bottom:8px; }
+.rail-rating-card .rating-stars.overlay{ --size:18px; --gap:-3px; }
+.rail-rating-card .rating-value{
+  font-size:13px; font-weight:800; color:#6b7280;
+  background: rgba(242,155,80,.12); padding:4px 8px; border-radius:8px;
+}
+.rail-rating-card .mr-meter.small{
+  height:6px; border-radius:999px; background:#eef2f7; overflow:hidden;
+  box-shadow: inset 0 0 0 1px rgba(0,0,0,.04);
+}
+.rail-rating-card .mr-fill{ height:100%; background: linear-gradient(90deg, #fde68a, var(--orange)); width: var(--pct, 0%); transition: width .25s ease; }
+
+/* === Tablet (768–1280px): 사이드바 보이면서 카드 1열, 스택 숨김 === */
+@media (min-width:768px) and (max-width:1280px){
+  /* 메인만 한 칸(우측 레일은 공간 아끼려고 숨김 유지) */
+  .yt-layout{ grid-template-columns: 1fr !important; }
+  .yt-rail, .rail-card{ display:none !important; }
+
+  /* 카드 그리드 다시 보이게 + 1열로 */
+  .mypage-page .card-grid,
+  .mypage-page .cards-grid,
+  .mypage-page .event-grid,
+  .mypage-page .section-grid,
+  .mypage-page .event-card-row,
+  .mypage-page .mp-card-row{
+    display:grid !important;
+    grid-template-columns: 1fr !important;  /* ← 1열 */
+    gap:14px !important;
+    align-items:start;
+  }
+
+  /* 스택형은 숨김 (충돌 방지) */
+  .stack-wrap{ display:none !important; }
 }
