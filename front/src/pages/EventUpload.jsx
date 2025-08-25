@@ -2,13 +2,78 @@ import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { Calendar, Clock, MapPin, Users, DollarSign, FileText, ArrowLeft, Check, ChevronRight, Upload, X, Hash, Bold, Italic, List, Link2, Eye, Edit3, ChevronDown } from 'lucide-react';
 import Layout from '../components/Layout';
 import '../css/eventupload.css';
+import { useNavigate } from 'react-router-dom';
 
 // 커스텀 시간 선택기 컴포넌트
 const CustomTimePicker = ({ value, onChange, placeholder = "시간 선택" }) => {
   const [isOpen, setIsOpen] = useState(false);
   const [selectedHour, setSelectedHour] = useState('');
   const [selectedMinute, setSelectedMinute] = useState('');
+  const [dropdownPosition, setDropdownPosition] = useState('down');
   const dropdownRef = useRef(null);
+  const triggerRef = useRef(null);
+
+  // 드롭다운 위치 계산 함수
+  const calculateDropdownPosition = useCallback(() => {
+    if (!triggerRef.current) return;
+    
+    const rect = triggerRef.current.getBoundingClientRect();
+    const viewportHeight = window.innerHeight;
+    const dropdownHeight = 500;
+    const spaceBelow = viewportHeight - rect.bottom - 10;
+    const spaceAbove = rect.top - 10;
+    
+    console.log('위치 계산:', {
+      spaceBelow,
+      spaceAbove,
+      dropdownHeight,
+      viewportHeight,
+      rectTop: rect.top,
+      rectBottom: rect.bottom
+    });
+    
+    // 아래쪽 공간이 부족하고 위쪽에 더 많은 공간이 있으면 위로 펼치기
+    if (spaceBelow < dropdownHeight && spaceAbove > spaceBelow) {
+      setDropdownPosition('up');
+      console.log('위쪽으로 설정');
+    } else {
+      setDropdownPosition('down');
+      console.log('아래쪽으로 설정');
+    }
+  }, []);
+
+  // 드롭다운 열기/닫기
+  const handleToggle = useCallback(() => {
+    if (!isOpen) {
+      calculateDropdownPosition();
+      setIsOpen(true);
+      // body 스크롤 방지
+      document.body.style.overflow = 'hidden';
+    } else {
+      setIsOpen(false);
+      document.body.style.overflow = '';
+    }
+  }, [isOpen, calculateDropdownPosition]);
+
+  // 창 크기 변경시 위치 재계산
+  useEffect(() => {
+    if (isOpen) {
+      const handleResize = () => {
+        calculateDropdownPosition();
+      };
+      const handleScroll = () => {
+        calculateDropdownPosition();
+      };
+      
+      window.addEventListener('resize', handleResize);
+      window.addEventListener('scroll', handleScroll, true);
+      
+      return () => {
+        window.removeEventListener('resize', handleResize);
+        window.removeEventListener('scroll', handleScroll, true);
+      };
+    }
+  }, [isOpen, calculateDropdownPosition]);
 
   // value가 변경될 때 시간과 분 업데이트
   useEffect(() => {
@@ -24,11 +89,24 @@ const CustomTimePicker = ({ value, onChange, placeholder = "시간 선택" }) =>
     const handleClickOutside = (event) => {
       if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
         setIsOpen(false);
+        document.body.style.overflow = '';
       }
     };
 
-    document.addEventListener('mousedown', handleClickOutside);
-    return () => document.removeEventListener('mousedown', handleClickOutside);
+    if (isOpen) {
+      document.addEventListener('mousedown', handleClickOutside);
+      return () => {
+        document.removeEventListener('mousedown', handleClickOutside);
+        document.body.style.overflow = '';
+      };
+    }
+  }, [isOpen]);
+
+  // 컴포넌트 언마운트시 body 스타일 복원
+  useEffect(() => {
+    return () => {
+      document.body.style.overflow = '';
+    };
   }, []);
 
   // 시간 옵션 생성 (0-23)
@@ -67,12 +145,18 @@ const CustomTimePicker = ({ value, onChange, placeholder = "시간 선택" }) =>
     return `${period} ${displayHour}:${minute}`;
   };
 
+  const handleConfirm = () => {
+    setIsOpen(false);
+    document.body.style.overflow = '';
+  };
+
   return (
     <div className="custom-time-picker" ref={dropdownRef}>
       <button
+        ref={triggerRef}
         type="button"
         className={`time-picker-trigger ${isOpen ? 'open' : ''}`}
-        onClick={() => setIsOpen(!isOpen)}
+        onClick={handleToggle}
       >
         <Clock size={18} className="time-picker-icon" />
         <span className="time-picker-value">{displayValue()}</span>
@@ -80,53 +164,58 @@ const CustomTimePicker = ({ value, onChange, placeholder = "시간 선택" }) =>
       </button>
 
       {isOpen && (
-        <div className="time-picker-dropdown">
-          <div className="time-picker-content">
-            <div className="time-picker-section">
-              <div className="time-picker-header">시간</div>
-              <div className="time-picker-options">
-                {hours.map((hour) => (
-                  <button
-                    key={hour.value}
-                    type="button"
-                    className={`time-option ${selectedHour === hour.value ? 'selected' : ''}`}
-                    onClick={() => handleHourSelect(hour.value)}
-                  >
-                    {hour.display}
-                  </button>
-                ))}
+        <>
+          {/* 오버레이 추가 */}
+          <div className="time-picker-overlay" onClick={handleConfirm} />
+          
+          <div className={`time-picker-dropdown ${dropdownPosition === 'up' ? 'dropup' : 'dropdown'}`}>
+            <div className="time-picker-content">
+              <div className="time-picker-section">
+                <div className="time-picker-header">시간</div>
+                <div className="time-picker-options">
+                  {hours.map((hour) => (
+                    <button
+                      key={hour.value}
+                      type="button"
+                      className={`time-option ${selectedHour === hour.value ? 'selected' : ''}`}
+                      onClick={() => handleHourSelect(hour.value)}
+                    >
+                      {hour.display}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              <div className="time-picker-divider"></div>
+
+              <div className="time-picker-section">
+                <div className="time-picker-header">분</div>
+                <div className="time-picker-options">
+                  {minutes.map((minute) => (
+                    <button
+                      key={minute.value}
+                      type="button"
+                      className={`time-option ${selectedMinute === minute.value ? 'selected' : ''}`}
+                      onClick={() => handleMinuteSelect(minute.value)}
+                    >
+                      {minute.display}
+                    </button>
+                  ))}
+                </div>
               </div>
             </div>
 
-            <div className="time-picker-divider"></div>
-
-            <div className="time-picker-section">
-              <div className="time-picker-header">분</div>
-              <div className="time-picker-options">
-                {minutes.map((minute) => (
-                  <button
-                    key={minute.value}
-                    type="button"
-                    className={`time-option ${selectedMinute === minute.value ? 'selected' : ''}`}
-                    onClick={() => handleMinuteSelect(minute.value)}
-                  >
-                    {minute.display}
-                  </button>
-                ))}
-              </div>
+            <div className="time-picker-footer">
+              <button
+                type="button"
+                className="time-picker-confirm"
+                onClick={handleConfirm}
+              >
+                확인
+              </button>
             </div>
           </div>
-
-          <div className="time-picker-footer">
-            <button
-              type="button"
-              className="time-picker-confirm"
-              onClick={() => setIsOpen(false)}
-            >
-              확인
-            </button>
-          </div>
-        </div>
+        </>
       )}
     </div>
   );
@@ -459,6 +548,7 @@ const [showPostcode, setShowPostcode] = useState(false);
 const [addressSearchQuery, setAddressSearchQuery] = useState('');
 const [addressResults, setAddressResults] = useState([]);
 const [isSearching, setIsSearching] = useState(false);
+const navigate = useNavigate();
 
 // 위치 검증 관련 상태 추가
 const [userLocation, setUserLocation] = useState(null); // 사용자의 현재 설정 위치
@@ -805,7 +895,7 @@ const handleHashtagKeyDown = useCallback((e) => {
   // IME 조합 중이면 Enter 키 무시
   if (isComposing) return;
   
-  if (e.key === 'Enter' || e.key === ',') {
+  if (e.key === 'Enter') { // 쉼표 처리 제거
     e.preventDefault();
     e.stopPropagation();
     
@@ -1169,6 +1259,9 @@ const submitEventToAPI = async (eventData, imageFile) => {
       console.warn('응답에서 이벤트 ID를 찾을 수 없음:', result);
       alert('행사가 등록되었지만 QR 코드 생성에 실패했습니다.');
     }
+    setTimeout(() => {
+      navigate('/my-upload-event');
+    }, 2000);
     
     return result;
   } catch (error) {
@@ -1766,7 +1859,7 @@ const content = (
               </div>
               <div className="eventupload-hashtag-info">
                 <p className="eventupload-hashtag-tip">
-                  엔터나 쉼표로 구분하여 입력하세요 (최대10개)
+                  엔터로 구분하여 입력하세요 (최대10개)
                 </p>
                 <p className="eventupload-hashtag-count">
                   {formData.hashtags.length}/10
