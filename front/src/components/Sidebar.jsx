@@ -16,7 +16,12 @@ const Sidebar = ({ activeMenuItem }) => {
   const userId = localStorage.getItem('userId');
   const profileId = localStorage.getItem('profileId');
   const isLoggedIn = !!(accessToken && userId);
-  const userName = localStorage.getItem('userName');
+
+  // ✅ 표시 이름: 닉네임 우선
+  const displayName =
+    localStorage.getItem('nickname') ||            // MyPage에서 저장하는 키
+    localStorage.getItem('userNickname') ||        // 이전(또는 다른) 키
+    localStorage.getItem('userName') || '';        // 최후 폴백
 
   // 프로필 이미지 불러오기 함수
   const loadProfileImage = async () => {
@@ -30,17 +35,13 @@ const Sidebar = ({ activeMenuItem }) => {
 
     try {
       const response = await fetch(`https://gateway.gamja.cloud/api/image/${profileId}`, {
-        headers: {
-          'Authorization': `Bearer ${accessToken}`
-        }
+        headers: { 'Authorization': `Bearer ${accessToken}` }
       });
       
       if (response.ok) {
         const blob = await response.blob();
         const imageUrl = URL.createObjectURL(blob);
-        
-        // 캐시에 저장
-        profileImageCache[profileId] = imageUrl;
+        profileImageCache[profileId] = imageUrl; // 캐시에 저장
         setProfileImageUrl(imageUrl);
       }
     } catch (error) {
@@ -89,8 +90,8 @@ const Sidebar = ({ activeMenuItem }) => {
   };
 
   const getUserInitial = () => {
-    if (!userName) return '?';
-    return userName.charAt(0).toUpperCase();
+    const name = displayName?.trim();
+    return name ? name.charAt(0).toUpperCase() : '?';
   };
 
   // activeMenuItem props만 신뢰
@@ -99,9 +100,7 @@ const Sidebar = ({ activeMenuItem }) => {
   // 로그아웃
   const handleLogout = () => {
     // 캐시 정리
-    Object.values(profileImageCache).forEach(url => {
-      URL.revokeObjectURL(url);
-    });
+    Object.values(profileImageCache).forEach(url => URL.revokeObjectURL(url));
     profileImageCache = {};
     
     localStorage.removeItem('accessToken');
@@ -109,6 +108,7 @@ const Sidebar = ({ activeMenuItem }) => {
     localStorage.removeItem('userEmail');
     localStorage.removeItem('userNickname');
     localStorage.removeItem('userName');
+    localStorage.removeItem('nickname');          // ✅ 닉네임 키도 정리
     localStorage.removeItem('profileId');
     localStorage.removeItem('tokenExpiration');
     setProfileImageUrl(null);
@@ -139,7 +139,8 @@ const Sidebar = ({ activeMenuItem }) => {
                 )}
               </div>
               <div className="sidebar-user-details">
-                <span className="sidebar-user-name xl">{userName || '사용자'}</span>
+                {/* ✅ 닉네임 표기 */}
+                <span className="sidebar-user-name xl">{displayName || '사용자'}</span>
               </div>
             </div>
           ) : (

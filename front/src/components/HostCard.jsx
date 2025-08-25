@@ -7,7 +7,7 @@ export default function HostCard({ host, onUnsubscribe }) {
 
   const navigate = useNavigate();
 
-  // host 유무와 상관없이 안전한 값 준비 (목업/빈값 대응)
+  // host 유무와 상관없이 안전한 값 준비
   const id = host?.id ?? null;
   const name = host?.name ?? '이름 없음';
   const image = host?.profileImage ?? host?.image ?? null;
