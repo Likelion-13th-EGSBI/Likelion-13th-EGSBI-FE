@@ -1,9 +1,136 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
-import { Calendar, Clock, MapPin, Users, DollarSign, FileText, ArrowLeft, Check, ChevronRight, Upload, X, Hash, Bold, Italic, List, Link2, Eye, Edit3 } from 'lucide-react';
+import { Calendar, Clock, MapPin, Users, DollarSign, FileText, ArrowLeft, Check, ChevronRight, Upload, X, Hash, Bold, Italic, List, Link2, Eye, Edit3, ChevronDown } from 'lucide-react';
 import Layout from '../components/Layout';
 import '../css/eventupload.css';
 
-// 카카오맵 SDK 설정
+// 커스텀 시간 선택기 컴포넌트
+const CustomTimePicker = ({ value, onChange, placeholder = "시간 선택" }) => {
+  const [isOpen, setIsOpen] = useState(false);
+  const [selectedHour, setSelectedHour] = useState('');
+  const [selectedMinute, setSelectedMinute] = useState('');
+  const dropdownRef = useRef(null);
+
+  // value가 변경될 때 시간과 분 업데이트
+  useEffect(() => {
+    if (value) {
+      const [hour, minute] = value.split(':');
+      setSelectedHour(hour);
+      setSelectedMinute(minute);
+    }
+  }, [value]);
+
+  // 외부 클릭 감지
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
+        setIsOpen(false);
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
+
+  // 시간 옵션 생성 (0-23)
+  const hours = Array.from({ length: 24 }, (_, i) => {
+    const hour = i.toString().padStart(2, '0');
+    return { value: hour, display: `${i}시` };
+  });
+
+  // 분 옵션 생성 (15분 간격)
+  const minutes = [
+    { value: '00', display: '00분' },
+    { value: '15', display: '15분' },
+    { value: '30', display: '30분' },
+    { value: '45', display: '45분' }
+  ];
+
+  const handleHourSelect = (hour) => {
+    setSelectedHour(hour);
+    const minute = selectedMinute || '00';
+    onChange(`${hour}:${minute}`);
+  };
+
+  const handleMinuteSelect = (minute) => {
+    setSelectedMinute(minute);
+    const hour = selectedHour || '00';
+    onChange(`${hour}:${minute}`);
+  };
+
+  const displayValue = () => {
+    if (!selectedHour && !selectedMinute) return placeholder;
+    const hour = selectedHour || '00';
+    const minute = selectedMinute || '00';
+    const hourNum = parseInt(hour);
+    const period = hourNum < 12 ? '오전' : '오후';
+    const displayHour = hourNum === 0 ? 12 : hourNum > 12 ? hourNum - 12 : hourNum;
+    return `${period} ${displayHour}:${minute}`;
+  };
+
+  return (
+    <div className="custom-time-picker" ref={dropdownRef}>
+      <button
+        type="button"
+        className={`time-picker-trigger ${isOpen ? 'open' : ''}`}
+        onClick={() => setIsOpen(!isOpen)}
+      >
+        <Clock size={18} className="time-picker-icon" />
+        <span className="time-picker-value">{displayValue()}</span>
+        <ChevronDown size={16} className={`time-picker-arrow ${isOpen ? 'rotate' : ''}`} />
+      </button>
+
+      {isOpen && (
+        <div className="time-picker-dropdown">
+          <div className="time-picker-content">
+            <div className="time-picker-section">
+              <div className="time-picker-header">시간</div>
+              <div className="time-picker-options">
+                {hours.map((hour) => (
+                  <button
+                    key={hour.value}
+                    type="button"
+                    className={`time-option ${selectedHour === hour.value ? 'selected' : ''}`}
+                    onClick={() => handleHourSelect(hour.value)}
+                  >
+                    {hour.display}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            <div className="time-picker-divider"></div>
+
+            <div className="time-picker-section">
+              <div className="time-picker-header">분</div>
+              <div className="time-picker-options">
+                {minutes.map((minute) => (
+                  <button
+                    key={minute.value}
+                    type="button"
+                    className={`time-option ${selectedMinute === minute.value ? 'selected' : ''}`}
+                    onClick={() => handleMinuteSelect(minute.value)}
+                  >
+                    {minute.display}
+                  </button>
+                ))}
+              </div>
+            </div>
+          </div>
+
+          <div className="time-picker-footer">
+            <button
+              type="button"
+              className="time-picker-confirm"
+              onClick={() => setIsOpen(false)}
+            >
+              확인
+            </button>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+};
 const KAKAO_MAP_SCRIPT_ID = 'kakao-map-script';
 const KAKAO_APP_KEY = '084b4a076cd976847f592a5fea5ea24d';
 
@@ -351,13 +478,11 @@ const isRegistered = useRef(false);
 const fileInputRef = useRef(null);
 const effectGuardRef = useRef(false); // StrictMode 2회 호출 방지 보조
 
+// 수정된 스텝 구성 - 날짜/시간을 그룹화
 const steps = [
   { id: 'mode', title: '어떻게 행사를 만드실건가요?', type: 'mode' },
   { id: 'eventName', title: '행사 이름을 알려주세요', type: 'text', placeholder: '예: 동네 플리마켓' },
-  { id: 'startDate', title: '언제 시작하나요?', type: 'date' },
-  { id: 'endDate', title: '언제 끝나나요?', type: 'date' },
-  { id: 'startTime', title: '시작 시간을 선택하세요', type: 'time' },
-  { id: 'endTime', title: '종료 시간을 선택하세요', type: 'time' },
+  { id: 'datetime', title: '언제 진행하나요?', type: 'datetime' }, // 날짜/시간 그룹
   { id: 'location', title: '어디서 진행하시나요?', type: 'address', placeholder: '주소를 검색하세요' },
   { id: 'fee', title: '참가비가 있나요?', type: 'text', placeholder: '무료인 경우 0 입력' },
   { id: 'hashtags', title: '행사를 표현하는 해시태그를 추가해주세요', type: 'hashtags', placeholder: '예: 음악, 축제, 무료' },
@@ -694,6 +819,36 @@ const handleHashtagKeyDown = useCallback((e) => {
   }
 }, [addHashtag, removeHashtag, formData.hashtags, isComposing]);
 
+// 사용자 위치 확인 및 네비게이션 함수 추가
+const checkUserLocationAndNavigate = async () => {
+  try {
+    const userId = localStorage.getItem('userId');
+    if (!userId || !accessToken) {
+      alert('로그인이 필요합니다.');
+      return false;
+    }
+
+    // 사용자 위치 정보 확인
+    const userData = await fetchUserLocation(userId, accessToken);
+    if (!userData || (!userData.latitude && !userData.longitude)) {
+      // 위치 정보가 없으면 위치 설정 페이지로 이동
+      if (window.confirm('위치 정보가 설정되어 있지 않습니다. 위치 설정 페이지로 이동하시겠습니까?')) {
+        window.location.href = '/location-upload'; // 또는 적절한 라우팅 방법 사용
+      }
+      return false;
+    }
+    
+    setUserLocation(userData);
+    return true;
+  } catch (error) {
+    console.error('사용자 위치 확인 오류:', error);
+    if (window.confirm('위치 정보를 확인할 수 없습니다. 위치 설정 페이지로 이동하시겠습니까?')) {
+      window.location.href = '/location-upload'; // 또는 적절한 라우팅 방법 사용
+    }
+    return false;
+  }
+};
+
 // 모바일 체크
 useEffect(() => {
   const checkMobile = () => setIsMobile(window.innerWidth <= 768);
@@ -731,15 +886,19 @@ useEffect(() => {
     try {
       const userId = localStorage.getItem('userId');
       if (userId && accessToken && kakaoReady) {
+        const hasLocation = await checkUserLocationAndNavigate();
+        if (!hasLocation) return;
+        
+        // 사용자 위치 정보를 다시 조회해서 사용
         const userData = await fetchUserLocation(userId, accessToken);
-        setUserLocation(userData);
+        if (!userData) return;
         
         // 좌표로 동 정보 가져오기
         const userDong = await getDongFromCoordinates(userData.latitude, userData.longitude);
         console.log('사용자 위치 로드 완료:', userData, '동:', userDong);
         
         // 사용자 위치 정보에 동 정보 추가
-        setUserLocation(prev => ({ ...prev, dong: userDong }));
+        setUserLocation({ ...userData, dong: userDong });
       }
     } catch (error) {
       console.error('사용자 위치 로드 실패:', error);
@@ -914,26 +1073,7 @@ const handleInputChange = (field, value) => {
     return;
   }
   
-  const newFormData = { ...formData, [field]: value };
-  
-  if (field === 'endTime' || field === 'startTime') {
-    if (newFormData.startDate && newFormData.endDate && 
-        newFormData.startTime && (field === 'endTime' ? value : newFormData.endTime)) {
-      
-      const validation = validateDateTime(
-        newFormData.startDate, 
-        newFormData.startTime, 
-        newFormData.endDate, 
-        field === 'endTime' ? value : newFormData.endTime
-      );
-      
-      if (!validation.isValid) {
-        alert(validation.message);
-        return;
-      }
-    }
-  }
-  
+  // 종료 시간 검증 제거 - 단순히 폼 데이터만 업데이트
   setFormData((prev) => ({ ...prev, [field]: value }));
 };
 
@@ -1259,14 +1399,9 @@ const canProceed = () => {
       return selectedMode !== null;
     case 'eventName':
       return formData.eventName.trim() !== '';
-    case 'startDate':
-      return formData.startDate !== '';
-    case 'endDate':
-      return formData.endDate !== '';
-    case 'startTime':
-      return formData.startTime !== '';
-    case 'endTime':
-      return formData.endTime !== '';
+    case 'datetime':
+      return formData.startDate !== '' && formData.endDate !== '' && 
+             formData.startTime !== '' && formData.endTime !== '';
     case 'location':
       return formData.location.trim() !== '' && formData.latitude && formData.longitude && !locationError;
     case 'fee':
@@ -1481,6 +1616,99 @@ const content = (
           </div>
         )}
 
+        {/* 날짜/시간 그룹 처리 */}
+        {currentStepData.type === 'datetime' && (
+          <div className="eventupload-input-group">
+            <div className="eventupload-datetime-group">
+              <div className="eventupload-datetime-section">
+                <label className="eventupload-datetime-label">
+                  <Calendar size={16} />
+                  시작일시
+                </label>
+                <div className="eventupload-datetime-inputs">
+                  <input
+                    className="eventupload-datetime-input eventupload-date-input"
+                    type="date"
+                    value={formData.startDate}
+                    min={new Date().toISOString().split('T')[0]}
+                    onChange={(e) => handleInputChange('startDate', e.target.value)}
+                    autoFocus
+                  />
+                  <CustomTimePicker
+                    value={formData.startTime}
+                    onChange={(value) => handleInputChange('startTime', value)}
+                    placeholder="시작 시간"
+                  />
+                </div>
+              </div>
+
+              <div className="eventupload-datetime-section">
+                <label className="eventupload-datetime-label">
+                  <Clock size={16} />
+                  종료일시
+                </label>
+                <div className="eventupload-datetime-inputs">
+                  <input
+                    className="eventupload-datetime-input eventupload-date-input"
+                    type="date"
+                    value={formData.endDate}
+                    min={formData.startDate || new Date().toISOString().split('T')[0]}
+                    onChange={(e) => handleInputChange('endDate', e.target.value)}
+                  />
+                  <CustomTimePicker
+                    value={formData.endTime}
+                    onChange={(value) => handleInputChange('endTime', value)}
+                    placeholder="종료 시간"
+                  />
+                </div>
+              </div>
+            </div>
+            
+            {/* 날짜/시간 미리보기 */}
+            {formData.startDate && formData.startTime && formData.endDate && formData.endTime && (
+              <div className="eventupload-datetime-preview">
+                <div className="eventupload-preview-item">
+                  <span className="eventupload-preview-label">시작:</span>
+                  <span className="eventupload-preview-value">
+                    {new Date(`${formData.startDate}T${formData.startTime}`).toLocaleDateString('ko-KR', {
+                      year: 'numeric',
+                      month: 'long',
+                      day: 'numeric',
+                      weekday: 'short'
+                    })} {formData.startTime}
+                  </span>
+                </div>
+                <div className="eventupload-preview-item">
+                  <span className="eventupload-preview-label">종료:</span>
+                  <span className="eventupload-preview-value">
+                    {new Date(`${formData.endDate}T${formData.endTime}`).toLocaleDateString('ko-KR', {
+                      year: 'numeric',
+                      month: 'long',
+                      day: 'numeric',
+                      weekday: 'short'
+                    })} {formData.endTime}
+                  </span>
+                </div>
+                {(() => {
+                  const start = new Date(`${formData.startDate}T${formData.startTime}`);
+                  const end = new Date(`${formData.endDate}T${formData.endTime}`);
+                  const duration = Math.floor((end - start) / (1000 * 60 * 60));
+                  const days = Math.floor(duration / 24);
+                  const hours = duration % 24;
+                  return (
+                    <div className="eventupload-preview-item">
+                      <span className="eventupload-preview-label">기간:</span>
+                      <span className="eventupload-preview-value">
+                        {days > 0 ? `${days}일 ` : ''}{hours > 0 ? `${hours}시간` : ''}
+                      </span>
+                    </div>
+                  );
+                })()}
+              </div>
+            )}
+          </div>
+        )}
+
         {currentStepData.type === 'textarea' && (
           <div className="eventupload-input-group">
             <textarea
@@ -1628,35 +1856,6 @@ const content = (
                 </div>
               )}
             </div>
-          </div>
-        )}
-
-        {currentStepData.type === 'date' && (
-          <div className="eventupload-input-group">
-            <input
-              className="eventupload-input"
-              type="date"
-              value={formData[currentStepData.id]}
-              min={
-                currentStepData.id === 'endDate'
-                  ? formData.startDate || new Date().toISOString().split('T')[0]
-                  : new Date().toISOString().split('T')[0]
-              }
-              onChange={(e) => handleInputChange(currentStepData.id, e.target.value)}
-              autoFocus
-            />
-          </div>
-        )}
-
-        {currentStepData.type === 'time' && (
-          <div className="eventupload-input-group">
-            <input
-              className="eventupload-input"
-              type="time"
-              value={formData[currentStepData.id]}
-              onChange={(e) => handleInputChange(currentStepData.id, e.target.value)}
-              autoFocus
-            />
           </div>
         )}
 
