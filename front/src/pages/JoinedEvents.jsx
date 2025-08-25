@@ -58,7 +58,7 @@ function pad2(n) { return String(n).padStart(2, "0"); }
 function fmtDate(iso) {
   if (!iso) return "";
   const d = new Date(iso);
-  return `${d.getFullYear()}-${pad2(d.getMonth()+1)}-${pad2(d.getDate())}`;
+  return `${d.getFullYear()}-${pad2(d.getMonth() + 1)}-${pad2(d.getDate())}`;
 }
 function fmtTimeRange(startIso, endIso) {
   if (!startIso && !endIso) return "";
@@ -366,6 +366,9 @@ const JoinedEvents = () => {
   return (
     <Layout>
       <div className="events-page is-under-topbar joined-page">
+        <header className="page-header joined-header">
+          <h1 className="page-title">내가 참여한 행사</h1>
+        </header>
         {/* 안내: 로그인 누락 */}
         {!uid || !hasToken ? (
           <div className="inline-alert error">
