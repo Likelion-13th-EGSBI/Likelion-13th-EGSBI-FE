@@ -412,10 +412,10 @@ const MyPage = () => {
     }
   };
 
-  const SectionHead = ({ title, showMore, onMore }) => (
+  const SectionHead = ({ title, onMore }) => (
     <div className="section-head">
       <h3 className="section-title">{title}</h3>
-      {showMore && <button className="more-btn" onClick={onMore}>더보기</button>}
+      <button className="more-btn" onClick={onMore}>더보기</button>
     </div>
   );
 
@@ -474,7 +474,6 @@ const MyPage = () => {
               <div className="yt-section">
                 <SectionHead
                   title="최근 북마크"
-                  showMore={!loading && bookmarksAll.length > 2}
                   onMore={() => navigate("/bookmarks")}
                 />
 
@@ -517,7 +516,6 @@ const MyPage = () => {
               <div className="yt-section">
                 <SectionHead
                   title="최근 참여"
-                  showMore={!loading && joinedMerged.length > 2}
                   onMore={() => navigate("/joined")}
                 />
 
@@ -560,7 +558,6 @@ const MyPage = () => {
               <div className="yt-section">
                 <SectionHead
                   title="내가 등록한 행사"
-                  showMore={!loading && uploadsList.length > 2}
                   onMore={() => navigate("/my-upload-event")}
                 />
 
