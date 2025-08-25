@@ -579,8 +579,8 @@ const BookmarkedEvents = () => {
     const roTargets = [
       document.querySelector(".events-toggle"),
       document.querySelector(".bottom-bar") ||
-        document.querySelector(".bottombar") ||
-        document.querySelector(".BottomBar"),
+      document.querySelector(".bottombar") ||
+      document.querySelector(".BottomBar"),
     ].filter(Boolean);
 
     const ro = new ResizeObserver(() => applyMapOffset());
@@ -859,9 +859,15 @@ const BookmarkedEvents = () => {
   return (
     <Layout>
       <div className={`events-page events-page--bookmarked is-under-topbar has-mobile-bottom-nav ${view === "map" ? "is-map" : ""}`}>
+        <header className="page-header bookmarked-header">
+          <h1 className="page-title">
+            북마크한 행사
+          </h1>
+        </header>
         <div className="events-toggle" style={{ display: "grid", gridTemplateColumns: "1fr auto", gap: 12, alignItems: "center" }}>
           {/* 왼쪽: 버튼 두 개만 */}
           <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
+
             <button
               className={`pill-btn ${view === "list" ? "active" : ""}`}
               onClick={() => setView("list")}
