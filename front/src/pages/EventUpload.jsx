@@ -221,7 +221,7 @@ const CustomTimePicker = ({ value, onChange, placeholder = "시간 선택" }) =>
   );
 };
 const KAKAO_MAP_SCRIPT_ID = 'kakao-map-script';
-const KAKAO_APP_KEY = '084b4a076cd976847f592a5fea5ea24d';
+const KAKAO_APP_KEY = 'cd740dc5ce8717cd9146f5c91861511a';
 
 // 전역 로딩 플래그 (다중 마운트/StrictMode 대비)
 let kakaoSdkLoadingPromise = null;
