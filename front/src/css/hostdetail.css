@@ -10,10 +10,11 @@
   --olive-hover: #347a47;
 }
 
+/* 호스트 디테일 전체 */
 .host-detail {
   background: var(--bg);
   color: var(--fg);
-  padding: 40px 0 16px; /* 상단 여백 늘림 */
+  padding: 40px 0 16px;
   min-height: 100vh;
   overflow-x: hidden;
 }
@@ -28,6 +29,7 @@
   box-sizing: border-box;
 }
 
+/* Hero 카드 */
 .hero-card {
   width: 100%;
   overflow: visible;
@@ -44,7 +46,7 @@
   margin-top: 12px;
 }
 
-.host-detail .card-overlap .avatar-xxl {
+.card-overlap .avatar-xxl {
   position: absolute;
   left: 8px;
   top: 50%;
@@ -60,10 +62,11 @@
   display: grid;
   place-items: center;
   border: 4px solid var(--card);
-  box-shadow: 0 6px 14px rgba(0, 0, 0, .08);
+  box-shadow: 0 6px 14px rgba(0,0,0,.08);
   overflow: hidden;
 }
-.host-detail .card-overlap .avatar-xxl img {
+
+.card-overlap .avatar-xxl img {
   width: 100%;
   height: 100%;
   object-fit: cover;
@@ -109,6 +112,7 @@
   transition: transform .15s ease, background .2s ease;
   margin-right: 14px;
 }
+
 .pill-subscribe.on { background: #D8D0BB; }
 .pill-subscribe:hover { transform: translateY(-1px); }
 .pill-subscribe .ps-label-default { display: inline; }
@@ -118,12 +122,7 @@
 .pill-subscribe.on:hover .ps-label-hover,
 .pill-subscribe.on:focus-visible .ps-label-hover   { display: inline; }
 
-@media (hover: none) {
-  .pill-subscribe.on .ps-label-default { display: inline !important; }
-  .pill-subscribe.on .ps-label-hover   { display: none !important; }
-}
-
-/* AI 요약 */
+/* AI 리뷰 카드 */
 .ai-summary-card {
   background: var(--card);
   border: 1px solid var(--line);
@@ -134,21 +133,19 @@
   margin-bottom: 20px;
   box-sizing: border-box;
 }
-.ai-badge {
-  display: inline-block;
-  background: #F2ECD8;
-  color: var(--fg);
-  padding: 6px 10px;
-  border-radius: 8px;
-  font-size: .9rem;
+
+.ai-comment {
+  margin: 0;
+  font-size: 14px;
+  line-height: 1.5;
+  white-space: pre-wrap;      
+  word-break: break-word;
+  overflow-wrap: anywhere;
 }
-.ai-badge strong { color: var(--brand); }
-.ai-summary-txt { margin: 0; line-height: 1.55; }
 
 /* 섹션 */
 .host-events-section { margin-top: 24px; }
 .section-title { font-size: 1.1rem; font-weight: 800; margin: 0 0 18px; }
-.host-events-section .event-grid { margin-top: 6px; }
 
 /* 이벤트 카드 그리드 */
 .event-grid {
@@ -157,11 +154,6 @@
   gap: 20px;
   width: 100%;
   box-sizing: border-box;
-}
-.event-grid > * { min-width: 0; }
-
-@media (max-width: 1024px) {
-  .event-grid { gap: 18px; }
 }
 
 @media (max-width: 768px) {
