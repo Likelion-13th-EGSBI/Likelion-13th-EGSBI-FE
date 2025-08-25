@@ -833,7 +833,7 @@ const checkUserLocationAndNavigate = async () => {
     if (!userData || (!userData.latitude && !userData.longitude)) {
       // 위치 정보가 없으면 위치 설정 페이지로 이동
       if (window.confirm('위치 정보가 설정되어 있지 않습니다. 위치 설정 페이지로 이동하시겠습니까?')) {
-        window.location.href = '/location-upload'; // 또는 적절한 라우팅 방법 사용
+        window.location.href = '/location'; // 또는 적절한 라우팅 방법 사용
       }
       return false;
     }
@@ -843,7 +843,7 @@ const checkUserLocationAndNavigate = async () => {
   } catch (error) {
     console.error('사용자 위치 확인 오류:', error);
     if (window.confirm('위치 정보를 확인할 수 없습니다. 위치 설정 페이지로 이동하시겠습니까?')) {
-      window.location.href = '/location-upload'; // 또는 적절한 라우팅 방법 사용
+      window.location.href = '/location'; // 또는 적절한 라우팅 방법 사용
     }
     return false;
   }
