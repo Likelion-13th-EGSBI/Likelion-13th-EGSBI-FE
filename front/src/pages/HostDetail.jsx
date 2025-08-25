@@ -61,7 +61,7 @@ function isLoggedIn() {
   return Number.isFinite(Number(id));
 }
 
-/* ---------- axios 인스턴스(토큰/401재발급) ---------- */
+/* ---------- axios 인스턴스 ---------- */
 function makeAxios() {
   const inst = axios.create({ baseURL: BASE_URL, withCredentials: false });
 
@@ -112,28 +112,16 @@ function makeAxios() {
 }
 const api = makeAxios();
 
+/* ---------- 기타 헬퍼 ---------- */
 function pickOrganizerProfile(src, organizerId) {
   if (!src) return null;
   const name =
-    src.organizerName ??
-    src.organizerNickname ??
-    src.name ??
-    `Organizer #${organizerId}`;
-
+    src.organizerName ?? src.organizerNickname ?? src.name ?? `Organizer #${organizerId}`;
   const nickname = src.organizerNickname ?? src.nickname ?? null;
-
   const profileImageId =
-    src.organizerProfileImageId ??
-    src.profileImageId ??
-    src.imageId ??
-    null;
-
+    src.organizerProfileImageId ?? src.profileImageId ?? src.imageId ?? null;
   const profileImageUri =
-    src.organizerProfileImageUri ??
-    src.profileImageUri ??
-    src.imageUri ??
-    null;
-
+    src.organizerProfileImageUri ?? src.profileImageUri ?? src.imageUri ?? null;
   return {
     id: organizerId,
     name,
@@ -151,9 +139,7 @@ async function bmList() {
   for (const b of arr) if (b?.eventId != null) map[Number(b.eventId)] = true;
   return map;
 }
-async function bmToggle(eventId) {
-  await api.post('/api/activity/bookmark/toggle', { eventId });
-}
+async function bmToggle(eventId) { await api.post('/api/activity/bookmark/toggle', { eventId }); }
 async function bmCount(eventId) {
   const r = await api.get('/api/activity/bookmark/count', { params: { eventId } });
   const n = Number(r?.data);
@@ -164,34 +150,54 @@ async function subGetAll() {
   const r = await api.get('/api/user/subscription/getAll', { validateStatus: (s) => (s >= 200 && s < 300) || s === 204 });
   return Array.isArray(r.data) ? r.data : [];
 }
-async function subCreate(userId, organizerId) {
-  await api.post('/api/user/subscription/create', { userId, organizerId });
-}
-async function subDelete(userId, organizerId) {
-  await api.delete('/api/user/subscription/delete', { data: { userId, organizerId } });
-}
+async function subCreate(userId, organizerId) { await api.post('/api/user/subscription/create', { userId, organizerId }); }
+async function subDelete(userId, organizerId) { await api.delete('/api/user/subscription/delete', { data: { userId, organizerId } }); }
 
-async function fetchAiReviewSummary(organizerId) {
+async function fetchAiReviewSummary(targetId) {
   try {
     const r = await api.get('/api/ai/review/summary', {
-      headers: { 'X-User-Id': String(organizerId) },
+      params: { targetId },
       validateStatus: (s) => s === 200 || s === 404,
     });
-    if (r.status === 200) {
-      return typeof r.data === 'string' ? r.data : String(r.data ?? '');
+    
+    console.log('AI Review Summary API Response:', r.data); // 디버깅용 로그
+    
+    if (r.status === 200 && r.data != null) {
+      const summary = typeof r.data === 'string' ? r.data : String(r.data);
+      return summary.trim() || null;
     }
-    return null; 
-  } catch {
+    return null;
+  } catch (error) { 
+    console.error('AI Review Summary API Error:', error);
     return null; 
   }
 }
+
+/* ---------- ⭐ 호스트 평점 API ---------- */
+const fetchHostRating = async (targetId) => {
+  try {
+    const r = await api.get('/api/activity/review/rating', {
+      params: { targetId },
+      validateStatus: (s) => s === 200 || s === 400 || s === 500,
+    });
+    if (r.status === 200 && r.data != null) {
+      return {
+        avg: Number(r.data.average ?? r.data ?? 0),
+        count: Number(r.data.count ?? 0)
+      };
+    }
+    return { avg: null, count: 0 };
+  } catch {
+    return { avg: null, count: 0 };
+  }
+};
 
 export default function HostDetail() {
   const { id } = useParams();
   const organizerId = Number(id);
   const navigate = useNavigate();
 
-  const [host, setHost] = useState(null); 
+  const [host, setHost] = useState(null);
   const [events, setEvents] = useState([]);
   const [isSubscribed, setIsSubscribed] = useState(false);
   const [subscribing, setSubscribing] = useState(false);
@@ -199,8 +205,8 @@ export default function HostDetail() {
   const [bmMapState, setBmMapState] = useState({});
   const [bmCounts, setBmCounts] = useState({});
 
-  const [avgRating] = useState(null);
-  const [reviewCount] = useState(0);
+  const [avgRating, setAvgRating] = useState(null);
+  const [reviewCount, setReviewCount] = useState(0);
   const [reviewSummary, setReviewSummary] = useState('');
 
   const [loading, setLoading] = useState(true);
@@ -209,26 +215,23 @@ export default function HostDetail() {
   const myUserId = useMemo(() => getAuth().id ?? null, []);
   const isSelf = myUserId != null && myUserId === organizerId;
 
+  /* ---------- 프로필 로딩 ---------- */
   const fetchUserProfile = useCallback(async (targetUserId) => {
     try {
       const r = await api.get('/api/user/info', { params: { userId: targetUserId } });
       const data = r?.data ?? null;
-
       const nickname = data?.nickname ?? '';
       const profileId = data?.profileId ?? null;
       const displayName = nickname || `Organizer #${targetUserId}`;
-
       return {
         id: targetUserId,
         name: displayName,
         nickname: nickname || null,
         profileImageId: profileId,
-        profileImageUri: null, 
+        profileImageUri: null,
         avatarUrl: toProfileUrl(profileId),
       };
-    } catch (e) {
-      return null;
-    }
+    } catch { return null; }
   }, []);
 
   const hydrateHostFromSources = useCallback(async (organizerId) => {
@@ -239,7 +242,7 @@ export default function HostDetail() {
         const subs = await subGetAll();
         const found = subs.find((x) => Number(x?.organizerId) === organizerId);
         if (found) profile = pickOrganizerProfile(found, organizerId);
-      } catch {}
+      } catch { }
     }
 
     if (!profile) {
@@ -249,7 +252,7 @@ export default function HostDetail() {
         const list = Array.isArray(r.data) ? r.data : [];
         setEvents(list);
         if (list[0]) profile = pickOrganizerProfile(list[0], organizerId);
-      } catch {}
+      } catch { }
     }
 
     if (!profile) {
@@ -272,11 +275,11 @@ export default function HostDetail() {
       const r = await api.get(`/api/event/${organizerId}?${qs}`);
       const list = Array.isArray(r.data) ? r.data : [];
       setEvents(list);
-    } catch {}
+    } catch { }
   }, [events, organizerId]);
 
   const refreshSubscribed = useCallback(async () => {
-    if (isSelf) { setIsSubscribed(false); return; }       
+    if (isSelf) { setIsSubscribed(false); return; }
     if (!isLoggedIn()) { setIsSubscribed(false); return; }
     try {
       const subs = await subGetAll();
@@ -320,7 +323,18 @@ export default function HostDetail() {
         await hydrateHostFromSources(organizerId);
         await loadEventsIfNeeded();
         await refreshSubscribed();
-        await refreshAiSummary(); 
+
+        // 리뷰 요약 API 호출
+        const summary = await fetchAiReviewSummary(organizerId);
+        if (alive) setReviewSummary(summary || '');
+
+        // ⭐ 평균 평점 API 호출 - 주최자 ID 사용
+        const { avg, count } = await fetchHostRating(organizerId);
+        if (alive) {
+          setAvgRating(avg);
+          setReviewCount(count);
+        }
+
       } catch {
         if (alive) setErrMsg('네트워크 오류가 발생했어요.');
       } finally {
@@ -328,15 +342,16 @@ export default function HostDetail() {
       }
     })();
     return () => { alive = false; };
-  }, [organizerId, isSelf]);
+  }, [organizerId, isSelf, myUserId, hydrateHostFromSources, loadEventsIfNeeded, refreshSubscribed]);
 
   useEffect(() => {
     if (!events || events.length === 0) return;
     refreshBookmarks(events);
   }, [events, refreshBookmarks]);
 
+  /* ---------- 구독 토글 ---------- */
   const onToggleSubscribe = async () => {
-    if (isSelf) return;                                    
+    if (isSelf) return;
     if (!isLoggedIn()) { alert('로그인이 필요합니다.'); return; }
     if (!host?.id || subscribing) return;
     setSubscribing(true);
@@ -349,11 +364,8 @@ export default function HostDetail() {
         await subCreate(userId, host.id);
         setIsSubscribed(true);
       }
-    } catch {
-      alert('구독 처리 중 오류가 발생했어요.');
-    } finally {
-      setSubscribing(false);
-    }
+    } catch { alert('구독 처리 중 오류가 발생했어요.'); }
+    finally { setSubscribing(false); }
   };
 
   const onToggleBookmark = async (eventId) => {
@@ -363,8 +375,8 @@ export default function HostDetail() {
     setBmCounts((c) => ({ ...c, [eventId]: Math.max(0, (c[eventId] || 0) + (prevOn ? -1 : 1)) }));
     try {
       await bmToggle(eventId);
-      bmList().then(setBmMapState).catch(() => {});
-      bmCount(eventId).then((cnt) => setBmCounts((c) => ({ ...c, [eventId]: cnt }))).catch(() => {});
+      bmList().then(setBmMapState).catch(() => { });
+      bmCount(eventId).then((cnt) => setBmCounts((c) => ({ ...c, [eventId]: cnt }))).catch(() => { });
     } catch {
       setBmMapState((m) => ({ ...m, [eventId]: prevOn }));
       setBmCounts((c) => ({ ...c, [eventId]: Math.max(0, (c[eventId] || 0) + (prevOn ? 1 : -1)) }));
@@ -390,12 +402,19 @@ export default function HostDetail() {
             <div className="hero-content">
               <h1 className="host-title">{titleName}</h1>
               <div className="host-sub">
-                {host?.nickname ? <span className="host-nick">@{host.nickname}</span> : null}
+                {host?.nickname && <span className="host-nick">@{host.nickname}</span>}
                 {avgRating != null ? (
-                  <span className="host-rating">· 평균 ★{avgRating.toFixed(1)} ({reviewCount}개)</span>
+                  <span className="star-rating">
+                    <span
+                      className="rating-stars overlay"
+                      style={{ '--fill': avgRating }}
+                    />
+                    <span className="rating-value">{avgRating.toFixed(1)}</span>
+                  </span>
                 ) : (
                   <span className="host-rating">· 리뷰 없음</span>
                 )}
+
               </div>
             </div>
 
@@ -423,9 +442,7 @@ export default function HostDetail() {
             <div className="ai-badge">
               <strong>{titleName}</strong> 주최자의 리뷰 요약
             </div>
-            <p className="ai-summary-txt">
-              {reviewSummary || '아직 리뷰가 없어요. 첫 리뷰의 주인공이 되어보세요!'}
-            </p>
+            <p className="ai-summary-txt">{reviewSummary || '리뷰 요약을 불러오는 중...'}</p>
           </section>
 
           {errMsg && <div className="state state--error">{errMsg}</div>}
