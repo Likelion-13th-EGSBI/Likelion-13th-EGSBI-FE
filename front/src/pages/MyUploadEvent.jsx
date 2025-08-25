@@ -4,7 +4,135 @@ import EventCard from "../components/EventCard"; // EventCard 컴포넌트 impor
 import '../css/myuploadevent.css';
 import { useNavigate } from "react-router-dom";
 
-// ReviewModal 컴포넌트
+// QR 이미지 모달 컴포넌트
+const QRModal = ({ isOpen, onClose, qrImageId, eventName }) => {
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState(null);
+    const [imageUrl, setImageUrl] = useState(null);
+
+    useEffect(() => {
+        if (isOpen && qrImageId) {
+            setLoading(true);
+            setError(null);
+            
+            // QR 이미지 URL 생성
+            const url = `https://gateway.gamja.cloud/api/image/${qrImageId}`;
+            setImageUrl(url);
+            
+            // 이미지 로드 확인
+            const img = new Image();
+            img.onload = () => {
+                setLoading(false);
+            };
+            img.onerror = () => {
+                setError('QR 코드를 불러올 수 없습니다.');
+                setLoading(false);
+            };
+            img.src = url;
+        }
+    }, [isOpen, qrImageId]);
+
+    // ESC 키로 모달 닫기
+    useEffect(() => {
+        const handleEsc = (event) => {
+            if (event.keyCode === 27) {
+                onClose();
+            }
+        };
+        
+        if (isOpen) {
+            document.addEventListener('keydown', handleEsc);
+            document.body.style.overflow = 'hidden';
+        }
+        
+        return () => {
+            document.removeEventListener('keydown', handleEsc);
+            document.body.style.overflow = 'unset';
+        };
+    }, [isOpen, onClose]);
+
+    // QR 다운로드 함수
+    const downloadQR = async () => {
+        try {
+            const response = await fetch(imageUrl);
+            const blob = await response.blob();
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `${eventName}_QR코드.png`;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            window.URL.revokeObjectURL(url);
+        } catch (error) {
+            console.error('QR 코드 다운로드 실패:', error);
+            alert('QR 코드 다운로드에 실패했습니다.');
+        }
+    };
+
+    if (!isOpen) return null;
+
+    return (
+        <div className="qr-modal-overlay" onClick={onClose}>
+            <div className="qr-modal-content" onClick={(e) => e.stopPropagation()}>
+                <div className="qr-modal-header">
+                    <div className="qr-modal-title-section">
+                        <h2 className="qr-modal-main-title">QR 코드</h2>
+                        <p className="qr-modal-event-name">{eventName}</p>
+                    </div>
+                    <button className="qr-modal-close-button" onClick={onClose}>
+                        ✕
+                    </button>
+                </div>
+
+                <div className="qr-modal-body">
+                    {loading && (
+                        <div className="qr-modal-loading-state">
+                            <div className="qr-loading-spinner"></div>
+                            <p className="qr-loading-text">QR 코드를 불러오는 중...</p>
+                        </div>
+                    )}
+
+                    {error && (
+                        <div className="qr-modal-error-state">
+                            <div className="qr-error-icon">⚠️</div>
+                            <p className="qr-error-message">{error}</p>
+                        </div>
+                    )}
+
+                    {!loading && !error && imageUrl && (
+                        <div className="qr-modal-image-container">
+                            <img 
+                                src={imageUrl} 
+                                alt="QR 코드" 
+                                className="qr-modal-image"
+                            />
+                            <p className="qr-modal-description">
+                                이 QR 코드를 참가자한테 공유하세요.
+                            </p>
+                        </div>
+                    )}
+                </div>
+
+                {!loading && !error && imageUrl && (
+                    <div className="qr-modal-footer">
+                        <button 
+                            className="qr-modal-download-button"
+                            onClick={downloadQR}
+                        >
+                            QR 코드 다운로드
+                        </button>
+                        <button className="qr-modal-close-footer-button" onClick={onClose}>
+                            닫기
+                        </button>
+                    </div>
+                )}
+            </div>
+        </div>
+    );
+};
+
+// ReviewModal 컴포넌트 (기존과 동일)
 const ReviewModal = ({ isOpen, onClose, eventId, eventName }) => {
     const [reviews, setReviews] = useState([]);
     const [loading, setLoading] = useState(false);
@@ -267,6 +395,13 @@ const MyUploadEvent = () => {
     const [reviewModal, setReviewModal] = useState({
         isOpen: false,
         eventId: null,
+        eventName: ''
+    });
+
+    // QR 모달 상태
+    const [qrModal, setQrModal] = useState({
+        isOpen: false,
+        qrImageId: null,
         eventName: ''
     });
 
@@ -614,6 +749,24 @@ const MyUploadEvent = () => {
         });
     };
 
+    const handleViewQRCode = (qrImageId, eventName) => {
+        // QR 코드 모달 열기
+        console.log('QR 코드 보기:', qrImageId, eventName);
+        setQrModal({
+            isOpen: true,
+            qrImageId: qrImageId,
+            eventName: eventName || '행사'
+        });
+    };
+
+    const handleCloseQRModal = () => {
+        setQrModal({
+            isOpen: false,
+            qrImageId: null,
+            eventName: ''
+        });
+    };
+
     const isEventEnded = (endTime) => {
         if (!endTime) return false;
         const now = new Date();
@@ -711,19 +864,39 @@ const MyUploadEvent = () => {
                                         {/* 행사 종료 여부에 따른 버튼 */}
                                         <div className="myuploadevent-action-buttons">
                                             {eventEnded ? (
-                                                <button 
-                                                    className="myuploadevent-action-btn review-btn"
-                                                    onClick={() => handleViewReviews(event.id, event.name)}
-                                                >
-                                                    리뷰 보기
-                                                </button>
+                                                <div className="myuploadevent-ended-buttons">
+                                                    <button 
+                                                        className="myuploadevent-action-btn review-btn"
+                                                        onClick={() => handleViewReviews(event.id, event.name)}
+                                                    >
+                                                        리뷰 보기
+                                                    </button>
+                                                    {event.qrImage && (
+                                                        <button 
+                                                            className="myuploadevent-action-btn qr-btn"
+                                                            onClick={() => handleViewQRCode(event.qrImage, event.name)}
+                                                        >
+                                                            QR 코드 보기
+                                                        </button>
+                                                    )}
+                                                </div>
                                             ) : (
-                                                <button 
-                                                    className="myuploadevent-action-btn edit-btn"
-                                                    onClick={() => handleEditEvent(event)}
-                                                >
-                                                    수정하기
-                                                </button>
+                                                <div className="myuploadevent-ongoing-buttons">
+                                                    <button 
+                                                        className="myuploadevent-action-btn edit-btn"
+                                                        onClick={() => handleEditEvent(event)}
+                                                    >
+                                                        수정하기
+                                                    </button>
+                                                    {event.qrImage && (
+                                                        <button 
+                                                            className="myuploadevent-action-btn qr-btn"
+                                                            onClick={() => handleViewQRCode(event.qrImage, event.name)}
+                                                        >
+                                                            QR 코드 보기
+                                                        </button>
+                                                    )}
+                                                </div>
                                             )}
                                         </div>
                                     </div>
@@ -755,6 +928,14 @@ const MyUploadEvent = () => {
                 onClose={handleCloseReviewModal}
                 eventId={reviewModal.eventId}
                 eventName={reviewModal.eventName}
+            />
+            
+            {/* QR 코드 모달 */}
+            <QRModal 
+                isOpen={qrModal.isOpen}
+                onClose={handleCloseQRModal}
+                qrImageId={qrModal.qrImageId}
+                eventName={qrModal.eventName}
             />
         </Layout>
     );
