@@ -2,6 +2,7 @@ import React, { useMemo, useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import Layout from "../components/Layout";
 import "../css/mypage.css";
+import { Bookmark, ThumbsUp, CalendarCheck, UploadCloud } from "lucide-react";
 
 const BASE_URL = "https://gateway.gamja.cloud";
 
@@ -110,8 +111,23 @@ const getFeeLabel = (ev) => {
   return raw || "요금정보 없음";
 };
 
-const fmtDateTime = (d) =>
-  d ? d.toLocaleString(undefined, { year: "numeric", month: "short", day: "numeric", hour: "2-digit", minute: "2-digit" }) : "미정";
+/* ===== 리스트/라인용 포맷 ===== */
+const fmtDateKR = (d) => d ? d.toLocaleDateString("ko-KR") : "미정";
+const fmtHM = (d) => d ? d.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }) : null;
+function toDateLabel(start, end) {
+  if (!start && !end) return "미정";
+  if (start && end) {
+    const s = fmtDateKR(start), e = fmtDateKR(end);
+    return s === e ? s : `${s} ~ ${e}`;
+  }
+  return fmtDateKR(start || end);
+}
+function toTimeLabel(start, end) {
+  const sh = fmtHM(start), eh = fmtHM(end);
+  if (!sh && !eh) return "미정";
+  if (sh && eh) return `${sh} ~ ${eh}`;
+  return sh || eh || "미정";
+}
 
 function getStatusBadge(ev, context) {
   const now = Date.now();
@@ -364,7 +380,6 @@ const MyPage = () => {
     const org = getOrganizerName(ev);
     const start = getStart(ev);
     const end = getEnd(ev);
-    const deadline = getDeadline(ev);
     const venue = getVenueText(ev);
     const feeLabel = getFeeLabel(ev);
     const img = toImageUrl(getImageId(ev));
@@ -372,11 +387,13 @@ const MyPage = () => {
 
     return (
       <button className="yt-card" onClick={() => { if (eid) navigate(`/events/${eid}`); }} title={title}>
+        {/* 썸네일 영역 */}
         <div className={`thumb ${img ? "thumb-hasimg" : ""}`} style={img ? { backgroundImage: `url(${img})` } : undefined}>
           {!img && <div className="thumb-fallback">NO IMAGE</div>}
           {badge.text && <span className={`badge ${badge.cls}`}>{badge.text}</span>}
         </div>
 
+        {/* 제목 */}
         <div className="ec-title-row">
           {img
             ? <div className="ec-title-avatar" style={{ backgroundImage: `url(${img})` }} />
@@ -384,17 +401,28 @@ const MyPage = () => {
           <div className="ec-title-text">{title}</div>
         </div>
 
-        <div className="ec-divider" />
-
-        <div className="ec-chips">
-          <span className="ec-chip">
-            🕒 {fmtDateTime(start)}{end ? ` ~ ${end.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}` : ""}
-          </span>
-          {deadline && <span className="ec-chip">⏳ 마감 {fmtDateTime(deadline)}</span>}
-          <span className="ec-chip">📍 {venue || "장소 미정"}</span>
-          <span className="ec-chip">💳 {feeLabel}</span>
-          {joinedAt && <span className="ec-chip">✅ 참여 {new Date(joinedAt).toLocaleDateString()}</span>}
+        {/* 라인형 메타 (칩/박스 → 텍스트 라인) */}
+        <div className="ec-meta">
+          <div className="ec-kv">
+            <span className="ec-k">날짜</span>
+            <span className="ec-v">{toDateLabel(start, end)}</span>
+          </div>
+          <div className="ec-kv">
+            <span className="ec-k">시간</span>
+            <span className="ec-v">{toTimeLabel(start, end)}</span>
+          </div>
+          <div className="ec-kv">
+            <span className="ec-k">장소</span>
+            <span className="ec-v">{venue || "장소 미정"}</span>
+          </div>
+          <div className="ec-kv">
+            <span className="ec-k">요금</span>
+            <span className="ec-v">{feeLabel}</span>
+          </div>
         </div>
+
+        {/* 참여일 등 별도 표시는 필요 시 추가
+        {joinedAt && <div className="ec-join">참여 {new Date(joinedAt).toLocaleDateString()}</div>} */}
       </button>
     );
   };
@@ -433,7 +461,7 @@ const MyPage = () => {
     <Layout pageTitle="마이페이지" activeMenuItem="mypage">
       <div className="mypage-page">
 
-        {/* ▶ 모바일 전용: 프로필 요약 (데스크탑에서는 숨김) */}
+        {/* ▶ 모바일 전용: 프로필 요약 */}
         <section className="profile-summary-card mobile-only" aria-label="프로필 요약">
           <button className="profile-edit-mini" onClick={() => navigate("/mypage/edit")} title="프로필 수정">프로필 수정</button>
 
@@ -483,8 +511,12 @@ const MyPage = () => {
                       <div className="yt-card skeleton" key={`bm-s-${k}`}>
                         <div className="thumb" />
                         <div className="ec-title-row"><div className="ec-title-text" /></div>
-                        <div className="ec-divider" />
-                        <div className="ec-chips" />
+                        <div className="ec-meta">
+                          <div className="ec-kv"><span className="ec-k">날짜</span><span className="ec-v skeleton-line sm" /></div>
+                          <div className="ec-kv"><span className="ec-k">시간</span><span className="ec-v skeleton-line sm" /></div>
+                          <div className="ec-kv"><span className="ec-k">장소</span><span className="ec-v skeleton-line sm" /></div>
+                          <div className="ec-kv"><span className="ec-k">요금</span><span className="ec-v skeleton-line sm" /></div>
+                        </div>
                       </div>
                     ))
                   ) : bookmarksAll.length ? (
@@ -501,8 +533,12 @@ const MyPage = () => {
                     <div className="yt-card skeleton">
                       <div className="thumb" />
                       <div className="ec-title-row"><div className="ec-title-text" /></div>
-                      <div className="ec-divider" />
-                      <div className="ec-chips" />
+                      <div className="ec-meta">
+                        <div className="ec-kv"><span className="ec-k">날짜</span><span className="ec-v skeleton-line sm" /></div>
+                        <div className="ec-kv"><span className="ec-k">시간</span><span className="ec-v skeleton-line sm" /></div>
+                        <div className="ec-kv"><span className="ec-k">장소</span><span className="ec-v skeleton-line sm" /></div>
+                        <div className="ec-kv"><span className="ec-k">요금</span><span className="ec-v skeleton-line sm" /></div>
+                      </div>
                     </div>
                   ) : bookmarksAll.length ? (
                     <EventCard ev={bookmarksAll[0]} context="bookmarks" />
@@ -525,8 +561,12 @@ const MyPage = () => {
                       <div className="yt-card skeleton" key={`jn-s-${k}`}>
                         <div className="thumb" />
                         <div className="ec-title-row"><div className="ec-title-text" /></div>
-                        <div className="ec-divider" />
-                        <div className="ec-chips" />
+                        <div className="ec-meta">
+                          <div className="ec-kv"><span className="ec-k">날짜</span><span className="ec-v skeleton-line sm" /></div>
+                          <div className="ec-kv"><span className="ec-k">시간</span><span className="ec-v skeleton-line sm" /></div>
+                          <div className="ec-kv"><span className="ec-k">장소</span><span className="ec-v skeleton-line sm" /></div>
+                          <div className="ec-kv"><span className="ec-k">요금</span><span className="ec-v skeleton-line sm" /></div>
+                        </div>
                       </div>
                     ))
                   ) : joinedMerged.length ? (
@@ -543,8 +583,12 @@ const MyPage = () => {
                     <div className="yt-card skeleton">
                       <div className="thumb" />
                       <div className="ec-title-row"><div className="ec-title-text" /></div>
-                      <div className="ec-divider" />
-                      <div className="ec-chips" />
+                      <div className="ec-meta">
+                        <div className="ec-kv"><span className="ec-k">날짜</span><span className="ec-v skeleton-line sm" /></div>
+                        <div className="ec-kv"><span className="ec-k">시간</span><span className="ec-v skeleton-line sm" /></div>
+                        <div className="ec-kv"><span className="ec-k">장소</span><span className="ec-v skeleton-line sm" /></div>
+                        <div className="ec-kv"><span className="ec-k">요금</span><span className="ec-v skeleton-line sm" /></div>
+                      </div>
                     </div>
                   ) : joinedMerged.length ? (
                     <EventCard ev={joinedMerged[0]._event || {}} joinedAt={joinedMerged[0].joinedAt} context="joined" />
@@ -554,10 +598,10 @@ const MyPage = () => {
                 </div>
               </div>
 
-              {/* === 내가 등록한 행사 === */}
+              {/* === 내가 업로드한 행사 === */}
               <div className="yt-section">
                 <SectionHead
-                  title="내가 등록한 행사"
+                  title="내가 업로드한 행사"
                   onMore={() => navigate("/my-upload-event")}
                 />
 
@@ -567,8 +611,12 @@ const MyPage = () => {
                       <div className="yt-card skeleton" key={`up-s-${k}`}>
                         <div className="thumb" />
                         <div className="ec-title-row"><div className="ec-title-text" /></div>
-                        <div className="ec-divider" />
-                        <div className="ec-chips" />
+                        <div className="ec-meta">
+                          <div className="ec-kv"><span className="ec-k">날짜</span><span className="ec-v skeleton-line sm" /></div>
+                          <div className="ec-kv"><span className="ec-k">시간</span><span className="ec-v skeleton-line sm" /></div>
+                          <div className="ec-kv"><span className="ec-k">장소</span><span className="ec-v skeleton-line sm" /></div>
+                          <div className="ec-kv"><span className="ec-k">요금</span><span className="ec-v skeleton-line sm" /></div>
+                        </div>
                       </div>
                     ))
                   ) : uploadsList.length ? (
@@ -576,7 +624,7 @@ const MyPage = () => {
                       <EventCard ev={ev} context="uploaded" key={`up-${i}`} />
                     ))
                   ) : (
-                    <div className="empty-block">등록한 행사가 아직 없어요</div>
+                    <div className="empty-block">업로드한 행사가 아직 없어요</div>
                   )}
                 </div>
 
@@ -585,20 +633,24 @@ const MyPage = () => {
                     <div className="yt-card skeleton">
                       <div className="thumb" />
                       <div className="ec-title-row"><div className="ec-title-text" /></div>
-                      <div className="ec-divider" />
-                      <div className="ec-chips" />
+                      <div className="ec-meta">
+                        <div className="ec-kv"><span className="ec-k">날짜</span><span className="ec-v skeleton-line sm" /></div>
+                        <div className="ec-kv"><span className="ec-k">시간</span><span className="ec-v skeleton-line sm" /></div>
+                        <div className="ec-kv"><span className="ec-k">장소</span><span className="ec-v skeleton-line sm" /></div>
+                        <div className="ec-kv"><span className="ec-k">요금</span><span className="ec-v skeleton-line sm" /></div>
+                      </div>
                     </div>
                   ) : uploadsList.length ? (
                     <EventCard ev={uploadsList[0]} context="uploaded" />
                   ) : (
-                    <div className="empty-block">등록한 행사가 아직 없어요</div>
+                    <div className="empty-block">업로드한 행사가 아직 없어요</div>
                   )}
                 </div>
               </div>
 
             </main>
 
-            {/* ▶ 데스크탑 전용 우측 레일 (여기에 ‘프로필 수정’ 버튼 추가) */}
+            {/* ▶ 데스크탑 전용 우측 레일 */}
             <aside className="yt-rail desktop-only" aria-label="마이페이지 빠른 메뉴">
               <div className="rail-edit">
                 <button
@@ -610,13 +662,45 @@ const MyPage = () => {
                 </button>
               </div>
 
-              <div className="rail-card">
-                <h4 className="rail-title">내 지표</h4>
+              <div className="rail-card kpi-card">
+                <h4 className="rail-title">내 활동</h4>
                 <div className="kpi-list">
-                  <div className="kpi-row"><span className="kpi-icon">🔖</span><span className="kpi-label">북마크</span><span className="kpi-count">{kpi.bookmarks}</span></div>
-                  <div className="kpi-row"><span className="kpi-icon">👥</span><span className="kpi-label">구독</span><span className="kpi-count">{kpi.subscribes}</span></div>
-                  <div className="kpi-row"><span className="kpi-icon">✅</span><span className="kpi-label">다가오는 참여</span><span className="kpi-count">{kpi.joinedUpcoming}</span></div>
-                  <div className="kpi-row"><span className="kpi-icon">📌</span><span className="kpi-label">등록한 행사</span><span className="kpi-count">{kpi.uploads}</span></div>
+                  <div className="kpi-row bookmarks">
+                    <span className="kpi-lucide" aria-hidden="true"><Bookmark size={16} /></span>
+                    <span className="kpi-label">북마크</span>
+                    <span className="kpi-count">{kpi.bookmarks}</span>
+                  </div>
+                  <div className="kpi-row subscribes">
+                    <span className="kpi-lucide" aria-hidden="true"><ThumbsUp size={16} /></span>
+                    <span className="kpi-label">구독</span>
+                    <span className="kpi-count">{kpi.subscribes}</span>
+                  </div>
+                  <div className="kpi-row joined">
+                    <span className="kpi-lucide" aria-hidden="true"><CalendarCheck size={16} /></span>
+                    <span className="kpi-label">다가오는 참여</span>
+                    <span className="kpi-count">{kpi.joinedUpcoming}</span>
+                  </div>
+                  <div className="kpi-row uploads">
+                    <span className="kpi-lucide" aria-hidden="true"><UploadCloud size={16} /></span>
+                    <span className="kpi-label">업로드한 행사</span>
+                    <span className="kpi-count">{kpi.uploads}</span>
+                  </div>
+                </div>
+              </div>
+
+              {/* ── 내 별점 카드 */}
+              <div className="rail-card rail-rating-card">
+                <h4 className="rail-title">내 별점</h4>
+                <div className="rating-head">
+                  <div
+                    className="rating-stars overlay"
+                    style={{ "--fill": `${fillValue}` }}
+                    aria-label={`별점 ${ratingLabel}점`}
+                  />
+                  <span className="rating-value">{ratingLabel}</span>
+                </div>
+                <div className="mr-meter small">
+                  <div className="mr-fill" style={{ "--pct": `${fillPct}%` }} />
                 </div>
               </div>
 
