@@ -6,10 +6,16 @@ Eventory Frontend는 React 기반의 위치 기반 맞춤형 행사 추천 서�
 ## 🎨 주요 페이지 및 기능
 
 ### 🏠 메인 페이지 (`/`)
-- **작업 중 페이지**: "메인페이지 작업중" 메시지와 함께 개발 진행 상황 표시
-- **히어로 섹션**: Sparkles 아이콘과 그라데이션 배경, CSS 애니메이션 효과
-- **장식 요소**: Heart, Star, Sparkles 아이콘으로 동적 장식 효과
-- **반응형 디자인**: 768px 기준 모바일/데스크톱 최적화
+- **적극 추천 행사**: 
+  -  AI 기반 개인화 추천
+
+- **우리동네 인기 행사**:
+  - 지역 기반 인기 행사 표시  
+- **행사 카드 디자인**:
+  - 썸네일 이미지 (없는 경우 "No Image" 플레이스홀더)
+  - 행사명, 날짜, 시간, 장소 정보
+  - 북마크 토글 하트 아이콘
+  - 호버 효과 및 그림자 애니메이션
 
 ### 📝 행사 등록 시스템 (`/event-upload`)
 - **다단계 폼 시스템**: 기본 정보 → 상세 정보 → 위치 정보 단계별 진행
@@ -120,6 +126,10 @@ Eventory Frontend는 React 기반의 위치 기반 맞춤형 행사 추천 서�
 - **Axios**: 1.x HTTP 클라이언트 
 - **LocalStorage**: JWT 토큰 및 사용자 정보 클라이언트 저장
 
+### UI/UX 라이브러리
+- **Lucide React**: 모던 아이콘 라이브러리 (ArrowLeft, Search, X, Heart 등)
+- **Custom CSS**: CSS Variables 기반 일관된 디자인 시스템
+- **Pretendard**: 한국어 최적화 웹폰트
 
 ### 지도 및 외부 서비스  
 - **카카오 맵 API**: 
@@ -148,7 +158,6 @@ Eventory Frontend는 React 기반의 위치 기반 맞춤형 행사 추천 서�
 - **디바운싱**: 검색 입력 500ms 지연 처리
 - **메모이제이션**: useCallback, useMemo로 불필요한 리렌더링 방지
 - **이미지 최적화**: WebP 포맷 우선, lazy loading
-
 
 
 ## 🚀 핵심 컴포넌트
@@ -182,6 +191,7 @@ Eventory Frontend는 React 기반의 위치 기반 맞춤형 행사 추천 서�
 - **임계점 계산**: scrollHeight - clientHeight - 100px
 - **페이지네이션**: page 상태 기반 API 호출
 - **로딩 상태**: 스켈레톤 UI 및 로딩 스피너
+
 
 ## ⚙️ 실행 조건
 
@@ -241,3 +251,11 @@ npx serve -s build
 - **Edge**: 90+ ✅
 - **Mobile Safari**: iOS 14+ ✅
 - **Chrome Mobile**: Android 10+ ✅
+
+
+
+## 📄 라이선스
+This project is licensed under the MIT License - see the LICENSE file for details.
+
+## 📞 지원
+문의사항이나 버그 리포트는 Issues 탭을 통해 제출해 주세요.
