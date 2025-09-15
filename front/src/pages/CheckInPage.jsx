@@ -101,7 +101,7 @@ const CheckInPage = () => {
   const fetchEventInfo = async (id) => {
     try {
       setLoading(true);
-      const response = await fetch(`https://gateway.gamja.cloud/api/event/info/${id}`, {
+      const response = await fetch(`https://likelion-att.o-r.kr/v1/event/info/${id}`, {
         method: 'GET',
         headers: {
           'Content-Type': 'application/json'
@@ -128,7 +128,7 @@ const CheckInPage = () => {
   // 포스터 이미지 로드
   const loadPosterImage = async (posterId) => {
     try {
-      const response = await fetch(`https://gateway.gamja.cloud/api/image/${posterId}`, {
+      const response = await fetch(`https://likelion-att.o-r.kr/v1/image/${posterId}`, {
         method: 'GET'
       });
 
@@ -154,7 +154,7 @@ const CheckInPage = () => {
 
     try {
       setCheckingIn(true);
-      const response = await fetch('https://gateway.gamja.cloud/api/activity/participation/join', {
+      const response = await fetch('https://likelion-att.o-r.kr/v1/activity/participation/join', {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${accessToken}`,

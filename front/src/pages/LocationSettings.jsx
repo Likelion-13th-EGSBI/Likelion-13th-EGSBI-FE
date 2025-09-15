@@ -7,7 +7,7 @@ import "../css/location-settings.css";
 /* ===============================
    ✅ API & Auth 유틸
    =============================== */
-const BASE_URL = "https://gateway.gamja.cloud";
+const BASE_URL = "https://likelion-att.o-r.kr/v1";
 
 // 로컬스토리지 키(두 형태 모두 지원)
 function getAccessToken() {
@@ -42,20 +42,20 @@ async function fetchJson(url, options = {}) {
   return body;
 }
 
-// GET /api/user/location/{id}
+// GET /user/location/{id}
 async function apiGetUserLocationById(userId) {
   const token = getAccessToken();
-  const url = `${BASE_URL}/api/user/location/${userId}`;
+  const url = `${BASE_URL}/user/location/${userId}`;
   return fetchJson(url, {
     method: "GET",
     headers: { Authorization: `Bearer ${token}` },
   });
 }
 
-// POST /api/user/location  (body: {email, latitude, longitude, address})
+// POST /user/location  (body: {email, latitude, longitude, address})
 async function apiSaveUserLocation({ email, latitude, longitude, address }) {
   const token = getAccessToken();
-  const url = `${BASE_URL}/api/user/location`;
+  const url = `${BASE_URL}/user/location`;
   return fetchJson(url, {
     method: "POST",
     headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
@@ -63,10 +63,10 @@ async function apiSaveUserLocation({ email, latitude, longitude, address }) {
   });
 }
 
-// DELETE /api/user/delete/location?email=...
+// DELETE /user/delete/location?email=...
 async function apiDeleteUserLocationByEmail(email) {
   const token = getAccessToken();
-  const url = `${BASE_URL}/api/user/delete/location?email=${encodeURIComponent(email)}`;
+  const url = `${BASE_URL}/user/delete/location?email=${encodeURIComponent(email)}`;
   return fetchJson(url, {
     method: "DELETE",
     headers: { Authorization: `Bearer ${token}` },

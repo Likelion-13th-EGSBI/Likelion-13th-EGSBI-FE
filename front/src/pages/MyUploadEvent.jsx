@@ -16,7 +16,7 @@ const QRModal = ({ isOpen, onClose, qrImageId, eventName }) => {
             setError(null);
             
             // QR 이미지 URL 생성
-            const url = `https://gateway.gamja.cloud/api/image/${qrImageId}`;
+            const url = `https://likelion-att.o-r.kr/v1/image/${qrImageId}`;
             setImageUrl(url);
             
             // 이미지 로드 확인
@@ -157,7 +157,7 @@ const ReviewModal = ({ isOpen, onClose, eventId, eventName }) => {
             }
 
             const response = await fetch(
-                `https://gateway.gamja.cloud/api/activity/review/eventlist?eventId=${eventId}`,
+                `https://likelion-att.o-r.kr/v1/activity/review/eventlist?eventId=${eventId}`,
                 {
                     method: 'GET',
                     headers: {
@@ -546,7 +546,7 @@ const MyUploadEvent = () => {
             });
 
             const response = await fetch(
-                `https://gateway.gamja.cloud/api/event/${userId}?${params}`, 
+                `https://likelion-att.o-r.kr/v1/event/${userId}?${params}`, 
                 {
                     method: 'GET',
                     headers: {
@@ -848,7 +848,7 @@ const MyUploadEvent = () => {
                                     <div key={uniqueKey} className="myuploadevent-event-wrapper">
                                         <EventCard
                                             id={event.id}
-                                            image={event.posterId ? `https://gateway.gamja.cloud/api/image/${event.posterId}` : null}
+                                            image={event.posterId ? `https://likelion-att.o-r.kr/v1/image/${event.posterId}` : null}
                                             title={event.name || '행사명 없음'}
                                             summary={markdownToText(event.description)}
                                             hashtags={event.hashtags || []}

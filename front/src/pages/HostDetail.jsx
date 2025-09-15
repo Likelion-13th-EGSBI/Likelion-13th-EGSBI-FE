@@ -6,7 +6,7 @@ import EventCard from '../components/EventCard';
 import axios from 'axios';
 import '../css/hostdetail.css';
 
-const BASE_URL = 'https://gateway.gamja.cloud';
+const BASE_URL = 'https://likelion-att.o-r.kr/v1';
 
 /* ---------- 공통 유틸 ---------- */
 async function safeJson(res) {
@@ -16,9 +16,9 @@ async function safeJson(res) {
 }
 const toProfileUrl = (id) => {
   const n = Number(id);
-  return Number.isFinite(n) && n > 0 ? `${BASE_URL}/api/image/${n}` : '';
+  return Number.isFinite(n) && n > 0 ? `${BASE_URL}/image/${n}` : '';
 };
-const imgUrl = (id) => (id ? `${BASE_URL}/api/image/${id}` : null);
+const imgUrl = (id) => (id ? `${BASE_URL}/image/${id}` : null);
 const toExcerpt = (s, n = 120) => {
   const t = String(s || '').replace(/\s+/g, ' ').trim();
   return t.length > n ? `${t.slice(0, n).trim()}…` : t;
@@ -86,7 +86,7 @@ function makeAxios() {
           const { id } = getAuth();
           if (id == null) throw error;
           renewing = axios
-            .post(`${BASE_URL}/api/user/renew`, null, {
+            .post(`${BASE_URL}/user/renew`, null, {
               headers: { 'X-User-Id': String(id) },
               withCredentials: false,
             })
@@ -133,29 +133,29 @@ function pickOrganizerProfile(src, organizerId) {
 }
 
 async function bmList() {
-  const r = await api.get('/api/activity/bookmark/list', { validateStatus: (s) => s >= 200 && s < 300 });
+  const r = await api.get('/activity/bookmark/list', { validateStatus: (s) => s >= 200 && s < 300 });
   const arr = Array.isArray(r.data) ? r.data : [];
   const map = {};
   for (const b of arr) if (b?.eventId != null) map[Number(b.eventId)] = true;
   return map;
 }
-async function bmToggle(eventId) { await api.post('/api/activity/bookmark/toggle', { eventId }); }
+async function bmToggle(eventId) { await api.post('/activity/bookmark/toggle', { eventId }); }
 async function bmCount(eventId) {
-  const r = await api.get('/api/activity/bookmark/count', { params: { eventId } });
+  const r = await api.get('/activity/bookmark/count', { params: { eventId } });
   const n = Number(r?.data);
   return Number.isFinite(n) ? n : 0;
 }
 
 async function subGetAll() {
-  const r = await api.get('/api/user/subscription/getAll', { validateStatus: (s) => (s >= 200 && s < 300) || s === 204 });
+  const r = await api.get('/user/subscription/getAll', { validateStatus: (s) => (s >= 200 && s < 300) || s === 204 });
   return Array.isArray(r.data) ? r.data : [];
 }
-async function subCreate(userId, organizerId) { await api.post('/api/user/subscription/create', { userId, organizerId }); }
-async function subDelete(userId, organizerId) { await api.delete('/api/user/subscription/delete', { data: { userId, organizerId } }); }
+async function subCreate(userId, organizerId) { await api.post('/user/subscription/create', { userId, organizerId }); }
+async function subDelete(userId, organizerId) { await api.delete('/user/subscription/delete', { data: { userId, organizerId } }); }
 
 async function fetchAiReviewSummary(targetId) {
   try {
-    const r = await api.get('/api/ai/review/summary', {
+    const r = await api.get('/ai/review/summary', {
       params: { targetId },
       validateStatus: (s) => s === 200 || s === 404,
     });
@@ -176,7 +176,7 @@ async function fetchAiReviewSummary(targetId) {
 /* ---------- ⭐ 호스트 평점 API ---------- */
 const fetchHostRating = async (targetId) => {
   try {
-    const r = await api.get('/api/activity/review/rating', {
+    const r = await api.get('/activity/review/rating', {
       params: { targetId },
       validateStatus: (s) => s === 200 || s === 400 || s === 500,
     });
@@ -218,7 +218,7 @@ export default function HostDetail() {
   /* ---------- 프로필 로딩 ---------- */
   const fetchUserProfile = useCallback(async (targetUserId) => {
     try {
-      const r = await api.get('/api/user/info', { params: { userId: targetUserId } });
+      const r = await api.get('/user/info', { params: { userId: targetUserId } });
       const data = r?.data ?? null;
       const nickname = data?.nickname ?? '';
       const profileId = data?.profileId ?? null;
@@ -248,7 +248,7 @@ export default function HostDetail() {
     if (!profile) {
       try {
         const qs = new URLSearchParams({ page: '0', size: '12', sort: 'createTime,DESC' }).toString();
-        const r = await api.get(`/api/event/${organizerId}?${qs}`);
+        const r = await api.get(`/event/${organizerId}?${qs}`);
         const list = Array.isArray(r.data) ? r.data : [];
         setEvents(list);
         if (list[0]) profile = pickOrganizerProfile(list[0], organizerId);
@@ -272,7 +272,7 @@ export default function HostDetail() {
     if (Array.isArray(events) && events.length > 0) return;
     try {
       const qs = new URLSearchParams({ page: '0', size: '12', sort: 'createTime,DESC' }).toString();
-      const r = await api.get(`/api/event/${organizerId}?${qs}`);
+      const r = await api.get(`/event/${organizerId}?${qs}`);
       const list = Array.isArray(r.data) ? r.data : [];
       setEvents(list);
     } catch { }

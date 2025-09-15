@@ -4,13 +4,13 @@ import Layout from "../components/Layout";
 import "../css/mypage.css";
 import { Bookmark, ThumbsUp, CalendarCheck, UploadCloud } from "lucide-react";
 
-const BASE_URL = "https://gateway.gamja.cloud";
+const BASE_URL = "https://likelion-att.o-r.kr/v1";
 
 /* ===== 공통 ===== */
 const toImageUrl = (id) => {
   const n = Number(id);
   if (!Number.isFinite(n) || n <= 0) return "";
-  return `${BASE_URL}/api/image/${n}`;
+  return `${BASE_URL}/image/${n}`;
 };
 const toProfileUrl = (id) => toImageUrl(id);
 
@@ -204,7 +204,7 @@ const MyPage = () => {
     (async () => {
       try {
         const res = await fetch(
-          `${BASE_URL}/api/user/info?userId=${encodeURIComponent(user.id)}`,
+          `${BASE_URL}/user/info?userId=${encodeURIComponent(user.id)}`,
           { headers: buildHeaders(), cache: "no-store" }
         );
         const data = await safeJson(res);
@@ -237,7 +237,7 @@ const MyPage = () => {
     const fetchRating = async () => {
       if (!user?.id) return;
       try {
-        const url = `${BASE_URL}/api/activity/review/all/detail?targetId=${encodeURIComponent(
+        const url = `${BASE_URL}/activity/review/all/detail?targetId=${encodeURIComponent(
           user.id
         )}`;
         const res = await fetch(url, { headers: buildHeaders() });
@@ -263,7 +263,7 @@ const MyPage = () => {
     setLoading(true);
 
     const loadBookmarks = async () => {
-      const res = await fetch(`${BASE_URL}/api/event/bookmarks`, { headers: buildHeaders() });
+      const res = await fetch(`${BASE_URL}/event/bookmarks`, { headers: buildHeaders() });
       const data = await safeJson(res);
       if (!res.ok) throw new Error("bookmarks fail");
       const list = Array.isArray(data) ? data : Array.isArray(data?.items) ? data.items : [];
@@ -273,21 +273,21 @@ const MyPage = () => {
     };
 
     const loadSubscriptions = async () => {
-      const res = await fetch(`${BASE_URL}/api/user/subscription/getAll`, { headers: buildHeaders() });
+      const res = await fetch(`${BASE_URL}/user/subscription/getAll`, { headers: buildHeaders() });
       if (!res.ok) throw new Error("subscribes fail");
       const data = await safeJson(res);
       return Array.isArray(data) ? data : Array.isArray(data?.subscriptions) ? data.subscriptions : [];
     };
 
     const loadParticipationWithEvent = async () => {
-      const res = await fetch(`${BASE_URL}/api/activity/participation/list`, { headers: buildHeaders() });
+      const res = await fetch(`${BASE_URL}/activity/participation/list`, { headers: buildHeaders() });
       if (!res.ok) throw new Error("participation fail");
       const plist = await safeJson(res);
       const arr = Array.isArray(plist) ? plist : [];
       const ids = [...new Set(arr.map((p) => p?.eventId).filter(Boolean))];
 
       const fetchEventInfo = async (id) => {
-        const r = await fetch(`${BASE_URL}/api/event/info/${encodeURIComponent(id)}`, { headers: buildHeaders() });
+        const r = await fetch(`${BASE_URL}/event/info/${encodeURIComponent(id)}`, { headers: buildHeaders() });
         if (!r.ok) return null;
         const d = await safeJson(r);
         return d?.event || d?.data || d;
@@ -323,7 +323,7 @@ const MyPage = () => {
     };
 
     const loadUploads = async (organizerId) => {
-      const url = `${BASE_URL}/api/event/${encodeURIComponent(organizerId)}?size=50&page=0&sort=createTime,DESC`;
+      const url = `${BASE_URL}/event/${encodeURIComponent(organizerId)}?size=50&page=0&sort=createTime,DESC`;
       const res = await fetch(url, { headers: buildHeaders() });
       if (!res.ok) throw new Error("uploads fail");
       const data = await safeJson(res);
@@ -333,7 +333,7 @@ const MyPage = () => {
     };
 
     const loadHostReviewSummary = async () => {
-      const res = await fetch(`${BASE_URL}/api/ai/review/summary`, { headers: buildHeaders() });
+      const res = await fetch(`${BASE_URL}/ai/review/summary`, { headers: buildHeaders() });
       if (!res.ok) throw new Error("ai summary fail");
       const data = await safeJson(res);
       const text = (typeof data === "string") ? data : (data?.summaryText ?? data?.summary ?? "");

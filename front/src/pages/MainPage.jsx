@@ -5,7 +5,7 @@ import Layout from "../components/Layout";
 import EventCard from "../components/EventCard";
 import "../css/mainpage.css";
 
-const API_BASE = "https://gateway.gamja.cloud";
+const API_BASE = "https://likelion-att.o-r.kr/v1";
 
 function abs(path) {
   if (!path) return path;
@@ -78,7 +78,7 @@ async function apiFetch(path, init = {}, opts = {}) {
       const rh = new Headers();
       rh.set("X-User-Id", String(uid));
       if (token) rh.set("Authorization", `Bearer ${token}`);
-      const renew = await fetch(abs("/api/user/renew"), {
+      const renew = await fetch(abs("/user/renew"), {
         method: "POST",
         headers: rh,
         credentials: "omit",
@@ -128,7 +128,7 @@ function formatKSTDateTime(iso) {
 
 function toImageUrl(posterId) {
   if (posterId == null) return undefined;
-  return abs(`/api/image/${posterId}`);
+  return abs(`/image/${posterId}`);
 }
 
 function normalizeMDText(s) {
@@ -162,7 +162,7 @@ function shuffle(arr) {
 
 async function fetchBookmarkCount(eventId) {
   try {
-    const r = await apiFetch(`/api/activity/bookmark/count?eventId=${encodeURIComponent(eventId)}`);
+    const r = await apiFetch(`/activity/bookmark/count?eventId=${encodeURIComponent(eventId)}`);
     if (!r.ok) return null;
     const d = await r.json().catch(() => null);
     const n = Number(d?.data ?? d);
@@ -238,7 +238,7 @@ export default function MainPage() {
     if (!userId) return null;
     try {
       const qs = new URLSearchParams({ userId: String(userId) }).toString();
-      const resp = await apiFetch(`/api/user/info?${qs}`);
+      const resp = await apiFetch(`/user/info?${qs}`);
       if (!resp.ok) return null;
       const data = await resp.json();
       const name = data?.name || "";
@@ -252,7 +252,7 @@ export default function MainPage() {
   const loadUserLocation = useCallback(async () => {
     if (!userId) return null;
     try {
-      const resp = await apiFetch(`/api/user/location/${userId}`);
+      const resp = await apiFetch(`/user/location/${userId}`);
       if (!resp.ok) return null;
       const data = await resp.json();
       const loc = {
@@ -273,7 +273,7 @@ export default function MainPage() {
       return;
     }
     try {
-      const resp = await apiFetch("/api/activity/bookmark/list", {}, { requireUser: true });
+      const resp = await apiFetch("/activity/bookmark/list", {}, { requireUser: true });
       if (!resp.ok) return;
       const list = await resp.json();
       setBookmarks(new Set((list || []).map((b) => Number(b.eventId))));
@@ -281,7 +281,7 @@ export default function MainPage() {
   }, [userId]);
 
   async function fetchPopular(size = 12) {
-    const resp = await apiFetch("/api/event/popular");
+    const resp = await apiFetch("/event/popular");
     if (!resp.ok) return [];
     const list = await resp.json();
     if (Array.isArray(list) && list.length > 0) {
@@ -298,7 +298,7 @@ export default function MainPage() {
       size: String(size),
       sort: "createTime,DESC",
     }).toString();
-    const resp = await apiFetch(`/api/event?${qs}`);
+    const resp = await apiFetch(`/event?${qs}`);
     if (!resp.ok) return [];
     return (await resp.json()) || [];
   }
@@ -316,7 +316,7 @@ export default function MainPage() {
       let comment = "";
 
       if (userId) {
-        const r = await apiFetch("/api/event/recommend", {}, { requireUser: true });
+        const r = await apiFetch("/event/recommend", {}, { requireUser: true });
         if (r.ok) {
           const j = await r.json();
           events = Array.isArray(j?.events) ? j.events : [];
@@ -360,7 +360,7 @@ export default function MainPage() {
             page: "0",
             size: "12",
           }).toString();
-          const resp = await apiFetch(`/api/event/loc?${qs}`);
+          const resp = await apiFetch(`/event/loc?${qs}`);
           if (resp.ok) list = (await resp.json()) || [];
         }
 
@@ -388,7 +388,7 @@ export default function MainPage() {
     }
     try {
       const resp = await apiFetch(
-        "/api/activity/bookmark/toggle",
+        "/activity/bookmark/toggle",
         {
           method: "POST",
           headers: { "Content-Type": "application/json" },
@@ -413,7 +413,7 @@ export default function MainPage() {
       });
 
       const [listResp, cnt] = await Promise.all([
-        apiFetch("/api/activity/bookmark/list", {}, { requireUser: true })
+        apiFetch("/activity/bookmark/list", {}, { requireUser: true })
           .then((r) => (r.ok ? r.json() : null))
           .catch(() => null),
         fetchBookmarkCount(eventId),

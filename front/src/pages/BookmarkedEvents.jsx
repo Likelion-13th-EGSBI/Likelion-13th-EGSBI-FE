@@ -12,9 +12,9 @@ import "../css/bookmarkedevents.css";
 /* ===============================
    ✅ API & Auth 유틸
    =============================== */
-const EVENT_BASE = "https://gateway.gamja.cloud";
-const ACTIVITY_BASE = "https://gateway.gamja.cloud";
-const IMAGE_BASE = "https://gateway.gamja.cloud";
+const EVENT_BASE = "https://likelion-att.o-r.kr/v1";
+const ACTIVITY_BASE = "https://likelion-att.o-r.kr/v1";
+const IMAGE_BASE = "https://likelion-att.o-r.kr/v1";
 const PER_PAGE = 12;
 
 function getAccessToken() {
@@ -239,7 +239,7 @@ const BookmarkedEvents = () => {
       return [];
     }
     try {
-      const res = await eventApi.get("/api/event/bookmarks", { headers });
+      const res = await eventApi.get("/event/bookmarks", { headers });
       const arr = Array.isArray(res.data) ? res.data : [];
 
       /* eslint-disable no-console */
@@ -261,7 +261,7 @@ const BookmarkedEvents = () => {
 
       return mapped;
     } catch (err) {
-      console.error("GET /api/event/bookmarks error:", err);
+      console.error("GET /event/bookmarks error:", err);
       if (axios.isAxiosError(err) && err.response?.status === 401) navigate("/login");
       setBookmarkCount(0);
       return [];
@@ -285,7 +285,7 @@ const BookmarkedEvents = () => {
       imgPendingRef.current.add(imageId);
       const headers = authHeaders();
 
-      const res = await imageApi.get(`/api/image/${imageId}`, {
+      const res = await imageApi.get(`/image/${imageId}`, {
         headers,
         responseType: "blob",
       });
@@ -298,7 +298,7 @@ const BookmarkedEvents = () => {
       createdUrlsRef.current.add(url);
       return url;
     } catch (e) {
-      console.error("GET /api/image/{id} error:", imageId, e);
+      console.error("GET /image/{id} error:", imageId, e);
       return "";
     } finally {
       imgPendingRef.current.delete(imageId);
@@ -310,13 +310,13 @@ const BookmarkedEvents = () => {
     const headers = authHeaders();
     try {
       await activityApi.post(
-        "/api/activity/bookmark/toggle",
+        "/activity/bookmark/toggle",
         { eventId: Number(eventId) },
         { headers }
       );
       return true;
     } catch (err) {
-      console.error("POST /api/activity/bookmark/toggle error:", err);
+      console.error("POST /activity/bookmark/toggle error:", err);
       return false;
     }
   }

@@ -33,7 +33,7 @@ export default function HostCard({ host, onUnsubscribe }) {
       return;
     }
     try {
-      await axios.delete(`${apiBase}/api/subscribe/${id}`);
+      await axios.delete(`${apiBase}/subscribe/${id}`);
       onUnsubscribe?.(id);
     } catch (err) {
       console.error(err);

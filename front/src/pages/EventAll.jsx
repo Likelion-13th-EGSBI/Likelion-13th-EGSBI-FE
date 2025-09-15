@@ -4,7 +4,7 @@ import Layout from "../components/Layout";
 import EventCard from "../components/EventCard";
 import "../css/eventall.css";
 
-const BASE_URL = "https://gateway.gamja.cloud";
+const BASE_URL = "https://likelion-att.o-r.kr/v1";
 
 function getAuth() {
   try {
@@ -116,7 +116,7 @@ const normalizeEventArray = (payload) => {
 };
 const toCardProps = (e) => ({
   id: e.id,
-  image: e.imageUrl || (e.posterId ? `${BASE_URL}/api/image/${e.posterId}` : null),
+  image: e.imageUrl || (e.posterId ? `${BASE_URL}/image/${e.posterId}` : null),
   title: e.name,
   summary: (e.description ?? "").replace(/<br\s*\/?>/gi, "\n"),
   hashtags: e.hashtags,
@@ -136,17 +136,17 @@ const toCardProps = (e) => ({
 
 async function fetchEventsLatest({ includeClosed, page = 0, size = 40 }) {
   const params = new URLSearchParams({ deadline: includeClosed ? "true" : "false", page: String(page), size: String(size), sort: "createTime,DESC" });
-  const payload = await api.pubGet(`/api/event?${params.toString()}`);
+  const payload = await api.pubGet(`/event?${params.toString()}`);
   return normalizeEventArray(payload);
 }
 async function fetchEventsByDistance({ includeClosed, lat, lng, page = 0, size = 40 }) {
   const params = new URLSearchParams({ deadline: includeClosed ? "true" : "false", latitude: String(lat), longitude: String(lng), page: String(page), size: String(size) });
-  const payload = await api.pubGet(`/api/event/loc?${params.toString()}`);
+  const payload = await api.pubGet(`/event/loc?${params.toString()}`);
   return normalizeEventArray(payload);
 }
 async function fetchEventsPopular() {
   try {
-    const payload = await api.pubGet(`/api/event/popular`);
+    const payload = await api.pubGet(`/event/popular`);
     const list = normalizeEventArray(payload);
     return Array.isArray(list) ? list : [];
   } catch (e) {
@@ -157,7 +157,7 @@ async function fetchEventsPopular() {
 }
 async function fetchMyBookmarkList() {
   try {
-    const list = await api.uGet(`/api/activity/bookmark/list`);
+    const list = await api.uGet(`/activity/bookmark/list`);
     const arr = Array.isArray(list) ? list : list ? [list] : [];
     const map = {};
     for (const b of arr) if (b?.eventId != null) map[Number(b.eventId)] = true;
@@ -167,10 +167,10 @@ async function fetchMyBookmarkList() {
   }
 }
 async function toggleBookmarkOnServer(eventId) {
-  await api.uPost(`/api/activity/bookmark/toggle`, { eventId });
+  await api.uPost(`/activity/bookmark/toggle`, { eventId });
 }
 async function fetchBookmarkCount(eventId) {
-  const payload = await api.pubGet(`/api/activity/bookmark/count?eventId=${encodeURIComponent(eventId)}`);
+  const payload = await api.pubGet(`/activity/bookmark/count?eventId=${encodeURIComponent(eventId)}`);
   const num = Number(payload?.data ?? payload);
   return Number.isFinite(num) ? num : 0;
 }

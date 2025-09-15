@@ -416,7 +416,7 @@ const EventEdit = () => {
 
     // 기존 이미지 설정
     if (eventData.posterId) {
-      const imageUrl = `https://gateway.gamja.cloud/api/image/${eventData.posterId}`;
+      const imageUrl = `https://likelion-att.o-r.kr/v1/image/${eventData.posterId}`;
       console.log('기존 이미지 URL:', imageUrl);
       setOriginalImageUrl(imageUrl);
       setImagePreview(imageUrl);
@@ -746,8 +746,8 @@ const EventEdit = () => {
       }
       
       // Bearer 토큰과 함께 멀티파트 폼 데이터로 PATCH 요청
-      const apiUrl = process.env.REACT_APP_API_URL || 'https://gateway.gamja.cloud';
-      const response = await fetch(`${apiUrl}/api/event`, {
+      const apiUrl = process.env.REACT_APP_API_URL || 'https://likelion-att.o-r.kr/v1';
+      const response = await fetch(`${apiUrl}/event`, {
         method: 'PATCH',
         headers: {
           'Authorization': `Bearer ${accessToken}`,

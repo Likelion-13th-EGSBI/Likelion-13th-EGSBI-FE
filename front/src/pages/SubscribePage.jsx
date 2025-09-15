@@ -7,13 +7,13 @@ import axios from 'axios';
 import '../css/subscribe.css';
 
 const PAGE_SIZE = 20;
-const API_BASE = 'https://gateway.gamja.cloud';
+const API_BASE = 'https://likelion-att.o-r.kr/v1';
 
 const toProfileUrl = (id) => {
   const n = Number(id);
-  return Number.isFinite(n) && n > 0 ? `${API_BASE}/api/image/${n}` : '';
+  return Number.isFinite(n) && n > 0 ? `${API_BASE}/image/${n}` : '';
 };
-const imgUrl = (id) => (id ? `${API_BASE}/api/image/${id}` : null);
+const imgUrl = (id) => (id ? `${API_BASE}/image/${id}` : null);
 
 function pickOrganizerProfile(src, organizerId) {
   if (!src) return null;
@@ -104,7 +104,7 @@ function makeAxios() {
           const { id } = getAuth();
           if (id == null) throw error;
           renewing = axios
-            .post(`${API_BASE}/api/user/renew`, null, {
+            .post(`${API_BASE}/user/renew`, null, {
               headers: { 'X-User-Id': String(id) },
               withCredentials: false,
             })
@@ -133,37 +133,37 @@ function makeAxios() {
 const api = makeAxios();
 
 async function bookmarkList() {
-  const res = await api.get('/api/activity/bookmark/list', { validateStatus: (s) => s >= 200 && s < 300 });
+  const res = await api.get('/activity/bookmark/list', { validateStatus: (s) => s >= 200 && s < 300 });
   const arr = Array.isArray(res.data) ? res.data : [];
   const map = {};
   for (const b of arr) if (b?.eventId != null) map[Number(b.eventId)] = true;
   return map;
 }
 async function bookmarkToggle(eventId) {
-  await api.post('/api/activity/bookmark/toggle', { eventId });
+  await api.post('/activity/bookmark/toggle', { eventId });
 }
 async function bookmarkCount(eventId) {
-  const res = await api.get('/api/activity/bookmark/count', { params: { eventId } });
+  const res = await api.get('/activity/bookmark/count', { params: { eventId } });
   const n = Number(res?.data);
   return Number.isFinite(n) ? n : 0;
 }
 
 async function subscriptionGetAll() {
-  const res = await api.get('/api/user/subscription/getAll', {
+  const res = await api.get('/user/subscription/getAll', {
     validateStatus: (s) => (s >= 200 && s < 300) || s === 204,
   });
   return Array.isArray(res.data) ? res.data : [];
 }
 async function subscriptionCreate(userId, organizerId) {
-  await api.post('/api/user/subscription/create', { userId, organizerId });
+  await api.post('/user/subscription/create', { userId, organizerId });
 }
 async function subscriptionDelete(userId, organizerId) {
-  await api.delete('/api/user/subscription/delete', { data: { userId, organizerId } });
+  await api.delete('/user/subscription/delete', { data: { userId, organizerId } });
 }
 
 async function fetchUserProfile(organizerId) {
   try {
-    const r = await api.get('/api/user/info', { params: { userId: organizerId } });
+    const r = await api.get('/user/info', { params: { userId: organizerId } });
     const data = r?.data ?? null;
 
     const nickname = data?.nickname ?? '';

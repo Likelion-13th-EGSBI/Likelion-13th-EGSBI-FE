@@ -58,7 +58,7 @@ const sendVerificationCode = async () => {
   setIsCodeSending(true);
   try {
     const response = await fetch(
-      `https://gateway.gamja.cloud/api/user/email/send/code?email=${encodeURIComponent(email.trim())}`,
+      `https://likelion-att.o-r.kr/v1/user/email/send/code?email=${encodeURIComponent(email.trim())}`,
       { method: "POST" }
     );
     if (!response.ok) {
@@ -83,7 +83,7 @@ const verifyCode = async () => {
   setIsCodeVerifying(true);
   try {
     const response = await fetch(
-      `https://gateway.gamja.cloud/api/user/email/verify/code?email=${encodeURIComponent(email.trim())}&inputCode=${encodeURIComponent(verificationCode.trim())}`,
+      `https://likelion-att.o-r.kr/v1/user/email/verify/code?email=${encodeURIComponent(email.trim())}&inputCode=${encodeURIComponent(verificationCode.trim())}`,
       { method: "POST" }
     );
     if (!response.ok) {
@@ -139,7 +139,7 @@ const verifyCode = async () => {
       } else {
         formData.append("image", new Blob([], { type: "application/octet-stream" }));
       }
-      const response = await fetch("https://gateway.gamja.cloud/api/user/signup", {
+      const response = await fetch("https://likelion-att.o-r.kr/v1/user/signup", {
         method: "POST",
         body: formData
       });

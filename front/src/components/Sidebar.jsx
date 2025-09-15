@@ -34,7 +34,7 @@ const Sidebar = ({ activeMenuItem }) => {
     }
 
     try {
-      const response = await fetch(`https://gateway.gamja.cloud/api/image/${profileId}`, {
+      const response = await fetch(`https://likelion-att.o-r.kr/v1/image/${profileId}`, {
         headers: { 'Authorization': `Bearer ${accessToken}` }
       });
       

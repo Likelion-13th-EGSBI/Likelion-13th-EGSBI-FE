@@ -7,7 +7,7 @@ import Layout from '../components/Layout';
 import HostCard from '../components/HostCard';
 import { FaCalendarAlt, FaClock, FaMapMarkerAlt, FaWonSign, FaRegHeart, FaHeart } from 'react-icons/fa';
 
-const API_BASE = 'https://gateway.gamja.cloud';
+const API_BASE = 'https://likelion-att.o-r.kr/v1';
 
 function getAccessToken() {
   return (
@@ -43,7 +43,7 @@ async function apiRequest(config, { retry = true } = {}) {
       const uid = getUserId();
       if (!uid) throw err;
       try {
-        const renew = await axios.post(`${API_BASE}/api/user/renew`, null, {
+        const renew = await axios.post(`${API_BASE}/user/renew`, null, {
           headers: { ...baseAuthHeaders(), 'X-User-Id': String(uid) },
           withCredentials: false,
         });
@@ -149,7 +149,7 @@ function mdBlock(input = '') {
 }
 const mdToHtml = (src = '') => mdBlock(src);
 
-const toImageUrl = (id) => (Number.isFinite(Number(id)) && Number(id) > 0 ? `${API_BASE}/api/image/${id}` : '');
+const toImageUrl = (id) => (Number.isFinite(Number(id)) && Number(id) > 0 ? `${API_BASE}/image/${id}` : '');
 
 const EventDetail = () => {
   const { id } = useParams();
@@ -189,7 +189,7 @@ const EventDetail = () => {
       try {
         setLoading(true);
         setError(null);
-        const res = await apiRequest({ method: 'GET', url: `/api/event/info/${eventId}` });
+        const res = await apiRequest({ method: 'GET', url: `/event/info/${eventId}` });
         if (!active) return;
         setEvent(res.data || null);
       } catch (e) {
@@ -217,7 +217,7 @@ const EventDetail = () => {
       try {
         const res = await apiRequest({
           method: 'GET',
-          url: `/api/image/${pid}`,
+          url: `/image/${pid}`,
           responseType: 'blob',
         });
         if (cancelled) return;
@@ -244,7 +244,7 @@ const EventDetail = () => {
     (async () => {
       try {
         setLoadingSummary(true);
-        const resp = await apiRequest({ method: 'POST', url: `/api/ai/${event.id}` });
+        const resp = await apiRequest({ method: 'POST', url: `/ai/${event.id}` });
         if (!active) return;
         const text = typeof resp.data === 'string' ? resp.data : (resp.data?.data ?? resp.data ?? '');
         setAiSummary(String(text || ''));
@@ -274,8 +274,8 @@ const EventDetail = () => {
   const refreshBookmarkState = useCallback(async (eid) => {
     try {
       const [listRes, cntRes] = await Promise.all([
-        apiRequest({ method: 'GET', url: '/api/activity/bookmark/list' }),
-        apiRequest({ method: 'GET', url: '/api/activity/bookmark/count', params: { eventId: eid } }),
+        apiRequest({ method: 'GET', url: '/activity/bookmark/list' }),
+        apiRequest({ method: 'GET', url: '/activity/bookmark/count', params: { eventId: eid } }),
       ]);
       const list = Array.isArray(listRes.data) ? listRes.data : [];
       const has = list.some((b) => Number(b?.eventId) === Number(eid));
@@ -314,7 +314,7 @@ const EventDetail = () => {
     try {
       await apiRequest({
         method: 'POST',
-        url: '/api/activity/bookmark/toggle',
+        url: '/activity/bookmark/toggle',
         data: { eventId: Number(event.id) },
       });
       await refreshBookmarkState(event.id);
@@ -336,7 +336,7 @@ const EventDetail = () => {
     try {
       const res = await apiRequest({
         method: 'GET',
-        url: '/api/activity/review/eventlist',
+        url: '/activity/review/eventlist',
         params: { eventId },
       });
       setReviews(Array.isArray(res.data) ? res.data : []);
@@ -356,7 +356,7 @@ const EventDetail = () => {
 
   const fetchOrganizerProfile = useCallback(async (organizerId) => {
     try {
-      const r = await apiRequest({ method: 'GET', url: '/api/user/info', params: { userId: organizerId } });
+      const r = await apiRequest({ method: 'GET', url: '/user/info', params: { userId: organizerId } });
       const data = r?.data ?? null;
       const nickname = data?.nickname ?? '';
       const profileId = data?.profileId ?? null;

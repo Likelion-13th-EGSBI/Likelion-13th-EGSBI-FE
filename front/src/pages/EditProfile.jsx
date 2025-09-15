@@ -4,14 +4,14 @@ import { FaUserCircle } from "react-icons/fa";
 import Layout from "../components/Layout";
 import "../css/editprofile.css";
 
-const BASE_URL = "https://gateway.gamja.cloud";
+const BASE_URL = "https://likelion-att.o-r.kr/v1";
 
-/** 이미지 URL 생성: profileId -> /api/image/{id} */
+/** 이미지 URL 생성: profileId -> /image/{id} */
 const toProfileUrl = (id) => {
   if (!id && id !== 0) return "";
   const n = Number(id);
   if (!Number.isFinite(n) || n <= 0) return "";
-  return `${BASE_URL}/api/image/${n}`;
+  return `${BASE_URL}/image/${n}`;
 };
 
 /** 안전 JSON 파서 */
@@ -50,7 +50,7 @@ const EditProfile = () => {
 
   const fileInputRef = useRef(null);
 
-  /** 초기 로딩: /api/user/info?userId=... */
+  /** 초기 로딩: /user/info?userId=... */
   useEffect(() => {
     (async () => {
       setLoading(true);
@@ -61,7 +61,7 @@ const EditProfile = () => {
         if (!userId) throw new Error("로그인이 필요합니다.");
 
         const res = await fetch(
-          `${BASE_URL}/api/user/info?userId=${encodeURIComponent(userId)}`,
+          `${BASE_URL}/user/info?userId=${encodeURIComponent(userId)}`,
           {
             headers: {
               Accept: "application/json",
@@ -181,7 +181,7 @@ const EditProfile = () => {
         form.append("image", profileFile, profileFile.name || "image");
       }
 
-      const res = await fetch(`${BASE_URL}/api/user/update`, {
+      const res = await fetch(`${BASE_URL}/user/update`, {
         method: "PATCH",
         headers: {
           Accept: "application/json",
@@ -198,7 +198,7 @@ const EditProfile = () => {
 
       // 성공 시 **다시 조회**해서 최신 profileId/닉네임 반영
       const refetch = await fetch(
-        `${BASE_URL}/api/user/info?userId=${encodeURIComponent(originalRef.current.userId)}`,
+        `${BASE_URL}/user/info?userId=${encodeURIComponent(originalRef.current.userId)}`,
         {
           headers: {
             Accept: "application/json",

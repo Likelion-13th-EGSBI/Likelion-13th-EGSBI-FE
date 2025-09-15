@@ -35,7 +35,7 @@ const EmailVerificationPage = () => {
     setIsSendingCode(true);
 
     try {
-      const response = await fetch(`https://gateway.gamja.cloud/api/user/email/send/code?email=${encodeURIComponent(email.trim())}`, {
+      const response = await fetch(`https://likelion-att.o-r.kr/v1/user/email/send/code?email=${encodeURIComponent(email.trim())}`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -103,7 +103,7 @@ const EmailVerificationPage = () => {
     setIsVerifyingCode(true);
 
     try {
-      const response = await fetch(`https://gateway.gamja.cloud/api/user/email/verify/code?email=${encodeURIComponent(email.trim())}&inputCode=${encodeURIComponent(verificationCode.trim())}`, {
+      const response = await fetch(`https://likelion-att.o-r.kr/v1/user/email/verify/code?email=${encodeURIComponent(email.trim())}&inputCode=${encodeURIComponent(verificationCode.trim())}`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

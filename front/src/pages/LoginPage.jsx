@@ -20,7 +20,7 @@ const LoginPage = () => {
 
       console.log('토큰 갱신 요청:', userId);
 
-      const response = await fetch(`https://gateway.gamja.cloud/api/user/renew?userId=${userId}`, {
+      const response = await fetch(`https://likelion-att.o-r.kr/v1/user/renew?userId=${userId}`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'
@@ -171,7 +171,7 @@ const LoginPage = () => {
 
       console.log('로그인 요청:', { email: loginData.email });
 
-      const response = await fetch('https://gateway.gamja.cloud/api/user/login', {
+      const response = await fetch('https://likelion-att.o-r.kr/v1/user/login', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

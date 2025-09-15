@@ -10,7 +10,7 @@ import "../css/review-modal.css";
 /* ================================
    API 연결
    ================================ */
-const API_BASE = "https://gateway.gamja.cloud"; // 프록시 쓰면 "" 로
+const API_BASE = "https://likelion-att.o-r.kr/v1"; // 프록시 쓰면 "" 로
 const IMAGE_REQUIRES_AUTH = false; // 이미지 엔드포인트가 인증 필요하면 true
 
 // ---- Auth/Storage 유틸 ----
@@ -74,7 +74,7 @@ function fmtTimeRange(startIso, endIso) {
 // ★ 포스터 이미지 URL 규칙
 function toPosterUrl(posterId) {
   if (!posterId && posterId !== 0) return "";
-  return `${API_BASE}/api/image/${posterId}`;
+  return `${API_BASE}/image/${posterId}`;
 }
 
 // Participation → 카드 플레이스홀더(단건조회 전 기본값)
@@ -187,7 +187,7 @@ const JoinedEvents = () => {
     }
 
     try {
-      const res = await fetch(`${API_BASE}/api/activity/participation/list`, {
+      const res = await fetch(`${API_BASE}/activity/participation/list`, {
         method: "GET",
         headers: authHeaders(),
       });
@@ -245,7 +245,7 @@ const JoinedEvents = () => {
     inFlightInfo.current.add(eventId);
 
     try {
-      const res = await fetch(`${API_BASE}/api/event/info/${encodeURIComponent(eventId)}`, {
+      const res = await fetch(`${API_BASE}/event/info/${encodeURIComponent(eventId)}`, {
         method: "GET",
         headers: authHeaders(),
       });
@@ -256,7 +256,7 @@ const JoinedEvents = () => {
 
       if (IMAGE_REQUIRES_AUTH && dto?.posterId) {
         try {
-          const imgRes = await fetch(`${API_BASE}/api/image/${dto.posterId}`, {
+          const imgRes = await fetch(`${API_BASE}/image/${dto.posterId}`, {
             method: "GET",
             headers: authHeadersImage(),
           });
@@ -288,7 +288,7 @@ const JoinedEvents = () => {
     if (reviewCache[eventId] !== undefined) return;
     try {
       const res = await fetch(
-        `${API_BASE}/api/activity/review/eventlist?eventId=${encodeURIComponent(eventId)}`,
+        `${API_BASE}/activity/review/eventlist?eventId=${encodeURIComponent(eventId)}`,
         { method: "GET", headers: authHeaders() }
       );
       const list = await safeJson(res);
@@ -322,7 +322,7 @@ const JoinedEvents = () => {
     setSubmitting(true);
     try {
       const res = await fetch(
-        `${API_BASE}/api/activity/review/${encodeURIComponent(target.id)}`,
+        `${API_BASE}/activity/review/${encodeURIComponent(target.id)}`,
         {
           method: "POST",
           headers: authHeaders({ "Content-Type": "application/json" }),

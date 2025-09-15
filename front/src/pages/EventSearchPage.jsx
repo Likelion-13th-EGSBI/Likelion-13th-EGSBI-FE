@@ -54,7 +54,7 @@ const EventSearchPage = () => {
   const formatEventForCard = (event) => {
     return {
       id: event.id,
-      image: event.posterId ? `https://gateway.gamja.cloud/api/image/${event.posterId}` : null,
+      image: event.posterId ? `https://likelion-att.o-r.kr/v1/image/${event.posterId}` : null,
       title: event.name,
       summary: event.description,
       hashtags: event.hashtags || [],
@@ -75,7 +75,7 @@ const EventSearchPage = () => {
     }
 
     try {
-      const response = await fetch('https://gateway.gamja.cloud/api/activity/bookmark/list', {
+      const response = await fetch('https://likelion-att.o-r.kr/v1/activity/bookmark/list', {
         method: 'GET',
         headers: {
           'Authorization': `Bearer ${token}`
@@ -117,7 +117,7 @@ const EventSearchPage = () => {
     }));
 
     try {
-      const response = await fetch('https://gateway.gamja.cloud/api/activity/bookmark/toggle', {
+      const response = await fetch('https://likelion-att.o-r.kr/v1/activity/bookmark/toggle', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -175,7 +175,7 @@ const EventSearchPage = () => {
         sort: currentFilters.sort
       });
 
-      const response = await fetch(`https://gateway.gamja.cloud/api/event/search?${params}`);
+      const response = await fetch(`https://likelion-att.o-r.kr/v1/event/search?${params}`);
       
       if (response.ok) {
         const data = await response.json();

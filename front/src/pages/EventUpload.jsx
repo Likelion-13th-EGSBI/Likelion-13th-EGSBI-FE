@@ -583,7 +583,7 @@ const steps = [
 // 사용자 위치 정보 조회 함수
 const fetchUserLocation = async (userId, accessToken) => {
   try {
-    const response = await fetch(`https://gateway.gamja.cloud/api/user/location/${userId}`, {
+    const response = await fetch(`https://likelion-att.o-r.kr/v1/user/location/${userId}`, {
       method: 'GET',
       headers: {
         'Authorization': `Bearer ${accessToken}`,
@@ -671,7 +671,7 @@ const validateEventLocation = async (selectedAddress) => {
 const generateQRCode = async (eventId, accessToken) => {
   try {
     console.log('QR 코드 생성 시작, 이벤트 ID:', eventId);
-    const response = await fetch(`https://gateway.gamja.cloud/api/event/qr/join?eventId=${eventId}`, {
+    const response = await fetch(`https://likelion-att.o-r.kr/v1/event/qr/join?eventId=${eventId}`, {
       method: 'POST',
       headers: {
         'Authorization': `Bearer ${accessToken}`,
@@ -696,7 +696,7 @@ const generateQRCode = async (eventId, accessToken) => {
 const getQRCodeImage = async (qrId, accessToken) => {
   try {
     console.log('QR 이미지 조회 시작, QR ID:', qrId);
-    const response = await fetch(`https://gateway.gamja.cloud/api/image/${qrId}`, {
+    const response = await fetch(`https://likelion-att.o-r.kr/v1/image/${qrId}`, {
       method: 'GET',
       headers: {
         'Authorization': `Bearer ${accessToken}`
@@ -1221,7 +1221,7 @@ const submitEventToAPI = async (eventData, imageFile) => {
       formData.append('image', new Blob([], { type: 'application/octet-stream' }));
     }
     
-    const response = await fetch('https://gateway.gamja.cloud/api/event', {
+    const response = await fetch('https://likelion-att.o-r.kr/v1/event', {
       method: 'POST',
       headers: {
         'Authorization': `Bearer ${accessToken}`,
@@ -1378,7 +1378,7 @@ const handleAiGenerate = async () => {
     
     console.log('AI 생성 요청 데이터:', aiRequestData);
     
-    const response = await fetch('https://gateway.gamja.cloud/api/event/ai/description', {
+    const response = await fetch('https://likelion-att.o-r.kr/v1/event/ai/description', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
